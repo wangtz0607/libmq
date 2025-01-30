@@ -86,6 +86,7 @@ public:
         kOpened,
     };
 
+    using ConnectCallback = std::move_only_function<void (const Endpoint &remoteEndpoint)>;
     using RecvCallback = std::move_only_function<void (const Endpoint &remoteEndpoint, std::string_view message)>;
 
     static Params defaultParams() {
@@ -117,8 +118,13 @@ public:
         return params_;
     }
 
+    void setConnectCallback(ConnectCallback connectCallback);
     void setRecvCallback(RecvCallback recvCallback);
+
+    void setConnectCallbackExecutor(Executor *connectCallbackExecutor);
     void setRecvCallbackExecutor(Executor *recvCallbackExecutor);
+
+    void dispatchConnect(const Endpoint &remoteEndpoint);
     void dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message);
 
     State state() const;
@@ -128,12 +134,15 @@ public:
 private:
     EventLoop *loop_;
     Params params_;
+    ConnectCallback connectCallback_;
     RecvCallback recvCallback_;
+    Executor *connectCallbackExecutor_ = nullptr;
     Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
     SocketMap sockets_;
     TopicMap topics_;
 
+    bool onFramingSocketConnect(FramingSocket *socket, int error);
     bool onFramingSocketRecv(FramingSocket *socket, std::string_view message);
 };
 

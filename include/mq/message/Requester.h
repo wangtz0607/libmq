@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <format>
+#include <functional>
 #include <memory>
 #include <string_view>
 
@@ -76,6 +77,7 @@ public:
         kOpened,
     };
 
+    using ConnectCallback = std::move_only_function<void ()>;
     using RecvCallback = std::move_only_function<void (std::string_view message)>;
 
     static Params defaultParams() {
@@ -111,8 +113,13 @@ public:
         return params_;
     }
 
+    void setConnectCallback(ConnectCallback connectCallback);
     void setRecvCallback(RecvCallback recvCallback);
+
+    void setConnectCallbackExecutor(Executor *connectCallbackExecutor);
     void setRecvCallbackExecutor(Executor *recvCallbackExecutor);
+
+    void dispatchConnect();
     void dispatchRecv(std::string_view message);
 
     State state() const;
@@ -123,11 +130,14 @@ private:
     EventLoop *loop_;
     std::unique_ptr<Endpoint> remoteEndpoint_;
     Params params_;
+    ConnectCallback connectCallback_;
     RecvCallback recvCallback_;
+    Executor *connectCallbackExecutor_ = nullptr;
     Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
     std::unique_ptr<FramingSocket> socket_;
 
+    bool onFramingSocketConnect(int error);
     bool onFramingSocketRecv(std::string_view message);
 };
 

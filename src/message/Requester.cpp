@@ -24,6 +24,18 @@ Requester::~Requester() {
     CHECK(state_ == State::kClosed);
 }
 
+void Requester::setConnectCallback(ConnectCallback connectCallback) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        connectCallback_ = std::move(connectCallback);
+    } else {
+        loop_->postAndWait([this, &connectCallback] {
+            connectCallback_ = std::move(connectCallback);
+        });
+    }
+}
+
 void Requester::setRecvCallback(RecvCallback recvCallback) {
     LOG(debug, "");
 
@@ -32,6 +44,18 @@ void Requester::setRecvCallback(RecvCallback recvCallback) {
     } else {
         loop_->postAndWait([this, &recvCallback] {
             recvCallback_ = std::move(recvCallback);
+        });
+    }
+}
+
+void Requester::setConnectCallbackExecutor(Executor *connectCallbackExecutor) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        connectCallbackExecutor_ = connectCallbackExecutor;
+    } else {
+        loop_->postAndWait([this, connectCallbackExecutor] {
+            connectCallbackExecutor_ = connectCallbackExecutor;
         });
     }
 }
@@ -45,6 +69,14 @@ void Requester::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
         loop_->postAndWait([this, recvCallbackExecutor] {
             recvCallbackExecutor_ = recvCallbackExecutor;
         });
+    }
+}
+
+void Requester::dispatchConnect() {
+    LOG(debug, "");
+
+    if (connectCallback_) {
+        connectCallback_();
     }
 }
 
@@ -86,6 +118,9 @@ void Requester::open() {
             socket_->open(*remoteEndpoint_);
         }
 
+        socket_->addConnectCallback([this](int error) {
+            return onFramingSocketConnect(error);
+        });
         socket_->addRecvCallback([this](std::string_view message) {
             return onFramingSocketRecv(message);
         });
@@ -114,6 +149,22 @@ void Requester::send(std::string_view message) {
             send(message);
         });
     }
+}
+
+bool Requester::onFramingSocketConnect(int error) {
+    LOG(debug, "");
+
+    if (!error) {
+        if (!connectCallbackExecutor_) {
+            dispatchConnect();
+        } else {
+            connectCallbackExecutor_->post([this] {
+                dispatchConnect();
+            });
+        }
+    }
+
+    return true;
 }
 
 bool Requester::onFramingSocketRecv(std::string_view message) {
