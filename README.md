@@ -4,7 +4,7 @@ Check the [examples](examples/).
 
 ## Benchmark
 
-### Req/Rep Ping-Pong Throughput
+### Req/Rep Ping-Pong Throughput (TCP)
 
 ![Req/Rep Ping-Pong Throughput](assets/benchmark_req_rep.svg)
 

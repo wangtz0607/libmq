@@ -7,6 +7,7 @@
 
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
 
 #include "mq/event/EventLoop.h"
@@ -14,6 +15,7 @@
 #include "mq/net/Socket.h"
 #include "mq/net/TCPV4Endpoint.h"
 #include "mq/net/TCPV6Endpoint.h"
+#include "mq/net/UnixEndpoint.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 
@@ -219,6 +221,15 @@ bool Acceptor::onWatcherRead() {
                                      SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
             remoteEndpoint = std::make_unique<TCPV6Endpoint>(addr);
+            break;
+        }
+        case AF_UNIX: {
+            while ((connFd = accept4(fd_,
+                                     nullptr,
+                                     nullptr,
+                                     SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
+            CHECK(connFd >= 0);
+            remoteEndpoint = std::make_unique<UnixEndpoint>("");
             break;
         }
     }

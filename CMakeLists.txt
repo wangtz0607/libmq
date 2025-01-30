@@ -21,6 +21,7 @@ add_library(mq
     src/net/Socket.cpp
     src/net/TCPV4Endpoint.cpp
     src/net/TCPV6Endpoint.cpp
+    src/net/UnixEndpoint.cpp
     src/utils/Buffer.cpp
     src/utils/Logging.cpp
     src/utils/ThreadPool.cpp

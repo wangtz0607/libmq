@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
 
 #include "mq/event/EventLoop.h"
@@ -18,6 +19,7 @@
 #include "mq/net/Endpoint.h"
 #include "mq/net/TCPV4Endpoint.h"
 #include "mq/net/TCPV6Endpoint.h"
+#include "mq/net/UnixEndpoint.h"
 #include "mq/utils/Buffer.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
@@ -45,6 +47,12 @@ std::unique_ptr<Endpoint> getSockName(int fd) {
             socklen_t addrLen = sizeof(addr);
             CHECK(getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrLen) == 0);
             return std::make_unique<TCPV6Endpoint>(addr);
+        }
+        case AF_UNIX: {
+            struct sockaddr_un addr;
+            socklen_t addrLen = sizeof(addr);
+            CHECK(getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrLen) == 0);
+            return std::make_unique<UnixEndpoint>(addr);
         }
         default:
             return nullptr;
@@ -293,8 +301,10 @@ void Socket::open(const Endpoint &remoteEndpoint) {
     CHECK((fd_ = socket(remoteEndpoint.domain(), SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)) >= 0);
     LOG(debug, "fd={}", fd_);
 
-    setNoDelay(fd_, params_.noDelay);
-    setKeepAlive(fd_, params_.keepAlive);
+    if (dynamic_cast<const TCPV4Endpoint *>(&remoteEndpoint) || dynamic_cast<const TCPV6Endpoint *>(&remoteEndpoint)) {
+        setNoDelay(fd_, params_.noDelay);
+        setKeepAlive(fd_, params_.keepAlive);
+    }
 
     watcher_ = std::make_unique<Watcher>(loop_, fd_);
     watcher_->registerSelf();
@@ -395,8 +405,10 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
     CHECK(getsockopt(fd, SOL_SOCKET, SO_TYPE, &optVal, &optLen) == 0);
     CHECK(optVal == SOCK_STREAM);
 
-    setNoDelay(fd, params_.noDelay);
-    setKeepAlive(fd, params_.keepAlive);
+    if (dynamic_cast<const TCPV4Endpoint *>(&remoteEndpoint) || dynamic_cast<const TCPV6Endpoint *>(&remoteEndpoint)) {
+        setNoDelay(fd, params_.noDelay);
+        setKeepAlive(fd, params_.keepAlive);
+    }
 
     fd_ = fd;
 
