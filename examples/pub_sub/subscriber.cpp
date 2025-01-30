@@ -15,11 +15,13 @@ int main() {
     mq::EventLoop loop;
     mq::ThreadPool pool;
 
-    mq::Subscriber subscriber(&loop, &pool);
+    mq::Subscriber subscriber(&loop);
 
     subscriber.setRecvCallback([](const mq::Endpoint &remoteEndpoint, std::string_view message) {
         std::println("{}: {}", remoteEndpoint, message);
     });
+
+    subscriber.setRecvCallbackExecutor(&pool);
 
     subscriber.subscribe(mq::TCPV4Endpoint("127.0.0.1", 9999), {"time"});
 

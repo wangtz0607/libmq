@@ -6,15 +6,13 @@
 #include "mq/net/FramingSocket.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
-#include "mq/utils/ThreadPool.h"
 
 #define TAG "Requester"
 
 using namespace mq;
 
-Requester::Requester(EventLoop *loop, ThreadPool *pool, const Endpoint &remoteEndpoint, Params params)
+Requester::Requester(EventLoop *loop, const Endpoint &remoteEndpoint, Params params)
     : loop_(loop),
-      pool_(pool),
       remoteEndpoint_(remoteEndpoint.clone()),
       params_(params) {
     LOG(debug, "");
@@ -34,6 +32,18 @@ void Requester::setRecvCallback(RecvCallback recvCallback) {
     } else {
         loop_->postAndWait([this, &recvCallback] {
             recvCallback_ = std::move(recvCallback);
+        });
+    }
+}
+
+void Requester::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        recvCallbackExecutor_ = recvCallbackExecutor;
+    } else {
+        loop_->postAndWait([this, recvCallbackExecutor] {
+            recvCallbackExecutor_ = recvCallbackExecutor;
         });
     }
 }
@@ -109,10 +119,10 @@ void Requester::send(std::string_view message) {
 bool Requester::onFramingSocketRecv(std::string_view message) {
     LOG(debug, "");
 
-    if (!pool_) {
+    if (!recvCallbackExecutor_) {
         dispatchRecv(message);
     } else {
-        pool_->post([this, message = std::string(message)] {
+        recvCallbackExecutor_->post([this, message = std::string(message)] {
             dispatchRecv(message);
         });
     }

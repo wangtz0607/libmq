@@ -17,13 +17,15 @@ int main() {
     mq::EventLoop loop;
     mq::ThreadPool pool;
 
-    mq::Replier replier(&loop, &pool, mq::TCPV4Endpoint("0.0.0.0", 9999));
+    mq::Replier replier(&loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
 
     replier.setRecvCallback([](const mq::Endpoint &remoteEndpoint, std::string_view message) {
         std::println("{}: {}", remoteEndpoint, message);
 
         return std::format("Hello, {}!", message);
     });
+
+    replier.setRecvCallbackExecutor(&pool);
 
     if (int error = replier.open()) {
         std::println(stderr, "error: {}", strerror(error));

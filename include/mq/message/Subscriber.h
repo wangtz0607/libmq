@@ -9,9 +9,9 @@
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingSocket.h"
+#include "mq/utils/Executor.h"
 #include "mq/utils/IndirectEqual.h"
 #include "mq/utils/IndirectHash.h"
-#include "mq/utils/ThreadPool.h"
 
 namespace mq {
 
@@ -100,7 +100,7 @@ public:
             .withKeepAliveOff();
     }
 
-    Subscriber(EventLoop *loop, ThreadPool *pool, Params params = defaultParams());
+    Subscriber(EventLoop *loop, Params params = defaultParams());
     ~Subscriber();
 
     Subscriber(const Subscriber &) = delete;
@@ -113,15 +113,12 @@ public:
         return loop_;
     }
 
-    ThreadPool *pool() const {
-        return pool_;
-    }
-
     const Params &params() const {
         return params_;
     }
 
     void setRecvCallback(RecvCallback recvCallback);
+    void setRecvCallbackExecutor(Executor *recvCallbackExecutor);
     void dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message);
 
     State state() const;
@@ -130,9 +127,9 @@ public:
 
 private:
     EventLoop *loop_;
-    ThreadPool *pool_;
     Params params_;
     RecvCallback recvCallback_;
+    Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
     SocketMap sockets_;
     TopicMap topics_;

@@ -14,9 +14,8 @@
 
 using namespace mq;
 
-Subscriber::Subscriber(EventLoop *loop, ThreadPool *pool, Params params)
+Subscriber::Subscriber(EventLoop *loop, Params params)
     : loop_(loop),
-      pool_(pool),
       params_(params) {
     LOG(debug, "");
 }
@@ -37,6 +36,18 @@ void Subscriber::setRecvCallback(RecvCallback recvCallback) {
     } else {
         loop_->postAndWait([this, &recvCallback] {
             recvCallback_ = std::move(recvCallback);
+        });
+    }
+}
+
+void Subscriber::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        recvCallbackExecutor_ = recvCallbackExecutor;
+    } else {
+        loop_->postAndWait([this, recvCallbackExecutor] {
+            recvCallbackExecutor_ = recvCallbackExecutor;
         });
     }
 }
@@ -118,7 +129,7 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
 bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view message) {
     LOG(debug, "");
 
-    if (!pool_) {
+    if (!recvCallbackExecutor_) {
         if (auto i = topics_.find(socket); i != topics_.end()) {
             for (const std::string &topic : i->second) {
                 if (message.starts_with(topic)) {
@@ -128,7 +139,7 @@ bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view mes
             }
         }
     } else {
-        pool_->post([this, socket, remoteEndpoint = socket->remoteEndpoint(), message = std::string(message)] {
+        recvCallbackExecutor_->post([this, socket, remoteEndpoint = socket->remoteEndpoint(), message = std::string(message)] {
             if (auto i = topics_.find(socket); i != topics_.end()) {
                 for (const std::string &topic : i->second) {
                     if (message.starts_with(topic)) {

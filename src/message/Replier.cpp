@@ -9,16 +9,15 @@
 #include "mq/net/FramingAcceptor.h"
 #include "mq/net/FramingSocket.h"
 #include "mq/utils/Check.h"
+#include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
-#include "mq/utils/ThreadPool.h"
 
 #define TAG "Replier"
 
 using namespace mq;
 
-Replier::Replier(EventLoop *loop, ThreadPool *pool, const Endpoint &localEndpoint, Params params)
+Replier::Replier(EventLoop *loop, const Endpoint &localEndpoint, Params params)
     : loop_(loop),
-      pool_(pool),
       localEndpoint_(localEndpoint.clone()),
       params_(params) {
     LOG(debug, "");
@@ -38,6 +37,18 @@ void Replier::setRecvCallback(RecvCallback recvCallback) {
     } else {
         loop_->postAndWait([this, &recvCallback] {
             recvCallback_ = std::move(recvCallback);
+        });
+    }
+}
+
+void Replier::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        recvCallbackExecutor_ = recvCallbackExecutor;
+    } else {
+        loop_->postAndWait([this, recvCallbackExecutor] {
+            recvCallbackExecutor_ = recvCallbackExecutor;
         });
     }
 }
@@ -129,7 +140,7 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
     std::unique_ptr<Endpoint> remoteEndpoint = socket->remoteEndpoint();
 
-    if (!pool_) {
+    if (!recvCallbackExecutor_) {
         std::optional<std::string> replyMessage = dispatchRecv(*remoteEndpoint, message);
 
         if (replyMessage) {
@@ -148,7 +159,7 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
             }
         }
     } else {
-        pool_->post([this, socket = socket->weak_from_this(), remoteEndpoint = std::move(remoteEndpoint), message = std::string(message)] {
+        recvCallbackExecutor_->post([this, socket = socket->weak_from_this(), remoteEndpoint = std::move(remoteEndpoint), message = std::string(message)] {
             if (socket.expired()) return;
 
             std::optional<std::string> replyMessage = dispatchRecv(*remoteEndpoint, message);

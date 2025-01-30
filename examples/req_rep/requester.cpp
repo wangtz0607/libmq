@@ -17,11 +17,13 @@ int main() {
     mq::EventLoop *loop = mq::EventLoop::background();
     mq::ThreadPool pool;
 
-    mq::Requester requester(loop, &pool, mq::TCPV4Endpoint("127.0.0.1", 9999));
+    mq::Requester requester(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
 
     requester.setRecvCallback([](std::string_view message) {
         std::println("{}", message);
     });
+
+    requester.setRecvCallbackExecutor(&pool);
 
     requester.open();
 

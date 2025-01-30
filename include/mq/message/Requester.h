@@ -8,7 +8,7 @@
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingSocket.h"
-#include "mq/utils/ThreadPool.h"
+#include "mq/utils/Executor.h"
 
 namespace mq {
 
@@ -90,7 +90,7 @@ public:
             .withKeepAliveOff();
     }
 
-    Requester(EventLoop *loop, ThreadPool *pool, const Endpoint &remoteEndpoint, Params params = defaultParams());
+    Requester(EventLoop *loop, const Endpoint &remoteEndpoint, Params params = defaultParams());
     ~Requester();
 
     Requester(const Requester &) = delete;
@@ -103,10 +103,6 @@ public:
         return loop_;
     }
 
-    ThreadPool *pool() const {
-        return pool_;
-    }
-
     std::unique_ptr<Endpoint> remoteEndpoint() const {
         return remoteEndpoint_->clone();
     }
@@ -116,6 +112,7 @@ public:
     }
 
     void setRecvCallback(RecvCallback recvCallback);
+    void setRecvCallbackExecutor(Executor *recvCallbackExecutor);
     void dispatchRecv(std::string_view message);
 
     State state() const;
@@ -124,10 +121,10 @@ public:
 
 private:
     EventLoop *loop_;
-    ThreadPool *pool_;
     std::unique_ptr<Endpoint> remoteEndpoint_;
     Params params_;
     RecvCallback recvCallback_;
+    Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
     std::unique_ptr<FramingSocket> socket_;
 

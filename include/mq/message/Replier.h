@@ -12,9 +12,9 @@
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingAcceptor.h"
 #include "mq/net/FramingSocket.h"
+#include "mq/utils/Executor.h"
 #include "mq/utils/PtrEqual.h"
 #include "mq/utils/PtrHash.h"
-#include "mq/utils/ThreadPool.h"
 
 namespace mq {
 
@@ -107,7 +107,7 @@ public:
             .withKeepAliveCount(3);
     }
 
-    Replier(EventLoop *loop, ThreadPool *pool, const Endpoint &localEndpoint, Params params = defaultParams());
+    Replier(EventLoop *loop, const Endpoint &localEndpoint, Params params = defaultParams());
     ~Replier();
 
     Replier(const Replier &) = delete;
@@ -129,6 +129,7 @@ public:
     }
 
     void setRecvCallback(RecvCallback recvCallback);
+    void setRecvCallbackExecutor(Executor *recvCallbackExecutor);
     std::optional<std::string> dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message);
 
     State state() const;
@@ -136,10 +137,10 @@ public:
 
 private:
     EventLoop *loop_;
-    ThreadPool *pool_;
     std::unique_ptr<Endpoint> localEndpoint_;
     Params params_;
     RecvCallback recvCallback_;
+    Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
     std::unique_ptr<FramingAcceptor> acceptor_;
     SocketSet sockets_;
