@@ -37,13 +37,13 @@ std::unique_ptr<Endpoint> getSockName(int fd) {
         case AF_INET: {
             struct sockaddr_in addr;
             socklen_t addrLen = sizeof(addr);
-            CHECK(::getsockname(fd, (struct sockaddr *)&addr, &addrLen) == 0);
+            CHECK(getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrLen) == 0);
             return std::make_unique<TCPV4Endpoint>(addr);
         }
         case AF_INET6: {
             struct sockaddr_in6 addr;
             socklen_t addrLen = sizeof(addr);
-            CHECK(::getsockname(fd, (struct sockaddr *)&addr, &addrLen) == 0);
+            CHECK(getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrLen) == 0);
             return std::make_unique<TCPV6Endpoint>(addr);
         }
         default:
@@ -394,10 +394,6 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
     socklen_t optLen = sizeof(optVal);
     CHECK(getsockopt(fd, SOL_SOCKET, SO_TYPE, &optVal, &optLen) == 0);
     CHECK(optVal == SOCK_STREAM);
-
-    struct sockaddr addr;
-    socklen_t addrLen = sizeof(addr);
-    CHECK(getpeername(fd, &addr, &addrLen) == 0);
 
     setNoDelay(fd, params_.noDelay);
     setKeepAlive(fd, params_.keepAlive);

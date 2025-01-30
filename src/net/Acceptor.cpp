@@ -202,7 +202,10 @@ bool Acceptor::onWatcherRead() {
         case AF_INET: {
             struct sockaddr_in addr;
             socklen_t addrLen = sizeof(addr);
-            while ((connFd = accept4(fd_, (struct sockaddr *)&addr, &addrLen, SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
+            while ((connFd = accept4(fd_,
+                                     reinterpret_cast<struct sockaddr *>(&addr),
+                                     &addrLen,
+                                     SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
             remoteEndpoint = std::make_unique<TCPV4Endpoint>(addr);
             break;
@@ -210,7 +213,10 @@ bool Acceptor::onWatcherRead() {
         case AF_INET6: {
             struct sockaddr_in6 addr;
             socklen_t addrLen = sizeof(addr);
-            while ((connFd = accept4(fd_, (struct sockaddr *)&addr, &addrLen, SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
+            while ((connFd = accept4(fd_,
+                                     reinterpret_cast<struct sockaddr *>(&addr),
+                                     &addrLen,
+                                     SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
             remoteEndpoint = std::make_unique<TCPV6Endpoint>(addr);
             break;

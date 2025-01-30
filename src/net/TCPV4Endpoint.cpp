@@ -41,7 +41,7 @@ std::unique_ptr<Endpoint> TCPV4Endpoint::clone() const {
 
 bool TCPV4Endpoint::equals(const Endpoint &other) const {
     if (typeid(*this) != typeid(other)) return false;
-    const TCPV4Endpoint &castOther = dynamic_cast<const TCPV4Endpoint &>(other);
+    const TCPV4Endpoint &castOther = static_cast<const TCPV4Endpoint &>(other);
     return host() == castOther.host() && port() == castOther.port();
 }
 

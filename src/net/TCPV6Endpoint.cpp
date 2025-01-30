@@ -1,7 +1,6 @@
 #include "mq/net/TCPV6Endpoint.h"
 
 #include <algorithm>
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -53,7 +52,7 @@ TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAndScopeId, uint16_t port) :
 }
 
 IPV6Host TCPV6Endpoint::host() const {
-    std::array<uint8_t, 16> host;
+    IPV6Host::Bytes host;
     memcpy(host.data(), &addr_.sin6_addr.s6_addr, 16);
     std::ranges::reverse(host);
     return IPV6Host(host);
@@ -81,7 +80,7 @@ std::unique_ptr<Endpoint> TCPV6Endpoint::clone() const {
 
 bool TCPV6Endpoint::equals(const Endpoint &other) const {
     if (typeid(*this) != typeid(other)) return false;
-    const TCPV6Endpoint &castOther = dynamic_cast<const TCPV6Endpoint &>(other);
+    const TCPV6Endpoint &castOther = static_cast<const TCPV6Endpoint &>(other);
     return host() == castOther.host() &&
            scopeId() == castOther.scopeId() &&
            port() == castOther.port();
