@@ -72,18 +72,6 @@ void EventLoop::post(Task task) {
     wakeUp();
 }
 
-void EventLoop::postAndWait(Task task) {
-    std::promise<void> promise;
-    std::future<void> future = promise.get_future();
-
-    post([task = std::move(task), promise = std::move(promise)] mutable {
-        task();
-        promise.set_value();
-    });
-
-    future.get();
-}
-
 void EventLoop::postTimed(TimedTask task, std::chrono::nanoseconds delay) {
     LOG(debug, "delay={}", delay);
 

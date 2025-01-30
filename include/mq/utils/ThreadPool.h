@@ -7,9 +7,11 @@
 #include <thread>
 #include <vector>
 
+#include "mq/utils/Executor.h"
+
 namespace mq {
 
-class ThreadPool {
+class ThreadPool final : public Executor {
 public:
     using Task = std::move_only_function<void ()>;
 
@@ -22,8 +24,7 @@ public:
     ThreadPool &operator=(const ThreadPool &) = delete;
     ThreadPool &operator=(ThreadPool &&) = delete;
 
-    void post(Task task);
-    void postAndWait(Task task);
+    void post(Task task) override;
 
 private:
     std::vector<std::thread> threads_;

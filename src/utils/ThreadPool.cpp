@@ -49,15 +49,3 @@ void ThreadPool::post(Task task) {
 
     condition_.notify_one();
 }
-
-void ThreadPool::postAndWait(Task task) {
-    std::promise<void> promise;
-    std::future<void> future = promise.get_future();
-
-    post([task = std::move(task), promise = std::move(promise)] mutable {
-        task();
-        promise.set_value();
-    });
-
-    future.get();
-}

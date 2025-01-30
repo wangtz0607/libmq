@@ -7,11 +7,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "mq/utils/Executor.h"
+
 namespace mq {
 
 class Watcher;
 
-class EventLoop {
+class EventLoop final : public Executor {
 public:
     enum class State {
         kIdle,
@@ -37,8 +39,7 @@ public:
     }
 
     State state() const;
-    void post(Task task);
-    void postAndWait(Task task);
+    void post(Task task) override;
     void postTimed(TimedTask task, std::chrono::nanoseconds delay);
     [[noreturn]] void run();
 
