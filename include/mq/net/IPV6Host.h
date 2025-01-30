@@ -12,11 +12,11 @@ namespace mq {
 
 class IPV6Host {
 public:
-    using ByteArray = std::array<uint8_t, 16>;
+    using Bytes = std::array<uint8_t, 16>;
 
     explicit IPV6Host(const uint8_t *host);
 
-    explicit IPV6Host(const ByteArray &host)
+    explicit IPV6Host(const Bytes &host)
         : IPV6Host(host.data()) {}
 
     explicit IPV6Host(const char *host);
@@ -24,18 +24,18 @@ public:
     explicit IPV6Host(const std::string &host)
         : IPV6Host(host.c_str()) {}
 
-    ByteArray binary() const {
+    Bytes bytes() const {
         return host_;
     }
 
     std::string string() const;
 
 private:
-    ByteArray host_;
+    Bytes host_;
 };
 
 inline bool operator==(IPV6Host lhs, IPV6Host rhs) {
-    return lhs.binary() == rhs.binary();
+    return lhs.bytes() == rhs.bytes();
 }
 
 } // namespace mq
@@ -44,7 +44,7 @@ template <>
 struct std::hash<mq::IPV6Host> {
     size_t operator()(mq::IPV6Host host) const noexcept {
         size_t seed = 0;
-        for (uint8_t byte : host.binary()) {
+        for (uint8_t byte : host.bytes()) {
             mq::hash_combine(seed, byte);
         }
         return seed;

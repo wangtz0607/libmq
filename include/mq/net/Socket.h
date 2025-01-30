@@ -191,10 +191,6 @@ private:
     bool onWatcherRead();
     bool onWatcherWrite();
     bool onTimerExpire();
-
-    static std::unique_ptr<Endpoint> getLocalEndpoint(int fd);
-    static void setNoDelay(int fd, bool noDelay);
-    static void setKeepAlive(int fd, const KeepAlive &keepAlive);
 };
 
 void enableAutoReconnectAndOpen(Socket &socket,

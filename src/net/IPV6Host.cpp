@@ -21,7 +21,7 @@ IPV6Host::IPV6Host(const char *host) {
 }
 
 std::string IPV6Host::string() const {
-    ByteArray host = host_;
+    Bytes host = host_;
     std::ranges::reverse(host);
     char buf[INET6_ADDRSTRLEN];
     CHECK(inet_ntop(AF_INET6, host.data(), buf, sizeof(buf)) != nullptr);

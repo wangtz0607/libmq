@@ -17,7 +17,7 @@ public:
     explicit IPV4Host(const std::string &host)
         : IPV4Host(host.c_str()) {}
 
-    uint32_t binary() const {
+    uint32_t uint() const {
         return host_;
     }
 
@@ -28,7 +28,7 @@ private:
 };
 
 inline bool operator==(IPV4Host lhs, IPV4Host rhs) {
-    return lhs.binary() == rhs.binary();
+    return lhs.uint() == rhs.uint();
 }
 
 } // namespace mq
@@ -36,7 +36,7 @@ inline bool operator==(IPV4Host lhs, IPV4Host rhs) {
 template <>
 struct std::hash<mq::IPV4Host> {
     size_t operator()(mq::IPV4Host host) const noexcept {
-        return std::hash<uint32_t>{}(host.binary());
+        return std::hash<uint32_t>{}(host.uint());
     }
 };
 

@@ -26,6 +26,59 @@
 
 using namespace mq;
 
+namespace {
+
+std::unique_ptr<Endpoint> getSockName(int fd) {
+    int optVal;
+    socklen_t optLen = sizeof(optVal);
+    CHECK(getsockopt(fd, SOL_SOCKET, SO_DOMAIN, &optVal, &optLen) == 0);
+
+    switch (optVal) {
+        case AF_INET: {
+            struct sockaddr_in addr;
+            socklen_t addrLen = sizeof(addr);
+            CHECK(::getsockname(fd, (struct sockaddr *)&addr, &addrLen) == 0);
+            return std::make_unique<TCPV4Endpoint>(addr);
+        }
+        case AF_INET6: {
+            struct sockaddr_in6 addr;
+            socklen_t addrLen = sizeof(addr);
+            CHECK(::getsockname(fd, (struct sockaddr *)&addr, &addrLen) == 0);
+            return std::make_unique<TCPV6Endpoint>(addr);
+        }
+        default:
+            return nullptr;
+    }
+}
+
+void setNoDelay(int fd, bool noDelay) {
+    int optVal = noDelay;
+    CHECK(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &optVal, sizeof(optVal)) == 0);
+}
+
+void setKeepAlive(int fd, const KeepAlive &keepAlive) {
+    int optVal;
+
+    if (keepAlive) {
+        optVal = 1;
+        CHECK(setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optVal, sizeof(optVal)) == 0);
+
+        optVal = keepAlive.idle.count();
+        CHECK(setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &optVal, sizeof(optVal)) == 0);
+
+        optVal = keepAlive.interval.count();
+        CHECK(setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &optVal, sizeof(optVal)) == 0);
+
+        optVal = keepAlive.count;
+        CHECK(setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &optVal, sizeof(optVal)) == 0);
+    } else {
+        optVal = 0;
+        CHECK(setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optVal, sizeof(optVal)) == 0);
+    }
+}
+
+} // namespace
+
 Socket::Socket(EventLoop *loop, Params params)
     : loop_(loop),
       params_(params),
@@ -247,7 +300,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
     watcher_->registerSelf();
 
     if (connect(fd_, remoteEndpoint.addr(), remoteEndpoint.addrLen()) == 0) {
-        localEndpoint_ = getLocalEndpoint(fd_);
+        localEndpoint_ = getSockName(fd_);
         remoteEndpoint_ = remoteEndpoint.clone();
 
         State oldState = state_;
@@ -290,7 +343,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
                 CHECK(getsockopt(fd_, SOL_SOCKET, SO_ERROR, &optVal, &optLen) == 0);
 
                 if (optVal == 0) {
-                    localEndpoint_ = getLocalEndpoint(fd_);
+                    localEndpoint_ = getSockName(fd_);
                     remoteEndpoint_ = remoteEndpoint->clone();
 
                     State oldState = state_;
@@ -354,7 +407,7 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
     watcher_ = std::make_unique<Watcher>(loop_, fd_);
     watcher_->registerSelf();
 
-    localEndpoint_ = getLocalEndpoint(fd_);
+    localEndpoint_ = getSockName(fd_);
     remoteEndpoint_ = remoteEndpoint.clone();
 
     State oldState = state_;
@@ -607,55 +660,6 @@ bool Socket::onTimerExpire() {
     active_ = false;
 
     return true;
-}
-
-std::unique_ptr<Endpoint> Socket::getLocalEndpoint(int fd) {
-    int optVal;
-    socklen_t optLen = sizeof(optVal);
-    CHECK(getsockopt(fd, SOL_SOCKET, SO_DOMAIN, &optVal, &optLen) == 0);
-
-    switch (optVal) {
-        case AF_INET: {
-            struct sockaddr_in addr;
-            socklen_t addrLen = sizeof(addr);
-            CHECK(::getsockname(fd, (struct sockaddr *)&addr, &addrLen) == 0);
-            return std::make_unique<TCPV4Endpoint>(addr);
-        }
-        case AF_INET6: {
-            struct sockaddr_in6 addr;
-            socklen_t addrLen = sizeof(addr);
-            CHECK(::getsockname(fd, (struct sockaddr *)&addr, &addrLen) == 0);
-            return std::make_unique<TCPV6Endpoint>(addr);
-        }
-        default:
-            return nullptr;
-    }
-}
-
-void Socket::setNoDelay(int fd, bool noDelay) {
-    int optVal = noDelay;
-    CHECK(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &optVal, sizeof(optVal)) == 0);
-}
-
-void Socket::setKeepAlive(int fd, const KeepAlive &keepAlive) {
-    int optVal;
-
-    if (keepAlive) {
-        optVal = 1;
-        CHECK(setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optVal, sizeof(optVal)) == 0);
-
-        optVal = keepAlive.idle.count();
-        CHECK(setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &optVal, sizeof(optVal)) == 0);
-
-        optVal = keepAlive.interval.count();
-        CHECK(setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &optVal, sizeof(optVal)) == 0);
-
-        optVal = keepAlive.count;
-        CHECK(setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &optVal, sizeof(optVal)) == 0);
-    } else {
-        optVal = 0;
-        CHECK(setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optVal, sizeof(optVal)) == 0);
-    }
 }
 
 void mq::enableAutoReconnectAndOpen(Socket &socket,

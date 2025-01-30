@@ -24,7 +24,7 @@ public:
         return scopeId_ != 0;
     }
 
-    uint32_t binary() const {
+    uint32_t uint() const {
         return scopeId_;
     }
 
@@ -35,7 +35,7 @@ private:
 };
 
 inline bool operator==(IPV6ScopeId lhs, IPV6ScopeId rhs) {
-    return lhs.binary() == rhs.binary();
+    return lhs.uint() == rhs.uint();
 }
 
 } // namespace mq
@@ -43,7 +43,7 @@ inline bool operator==(IPV6ScopeId lhs, IPV6ScopeId rhs) {
 template <>
 struct std::hash<mq::IPV6ScopeId> {
     size_t operator()(mq::IPV6ScopeId scopeId) const noexcept {
-        return std::hash<uint32_t>{}(scopeId.binary());
+        return std::hash<uint32_t>{}(scopeId.uint());
     }
 };
 
