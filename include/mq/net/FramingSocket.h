@@ -44,6 +44,10 @@ public:
             return {maxMessageLength, socket.withRecvChunkSize(recvChunkSize)};
         }
 
+        Params withRecvTimeout(std::chrono::nanoseconds recvTimeout) const {
+            return {maxMessageLength, socket.withRecvTimeout(recvTimeout)};
+        }
+
         Params withSendTimeout(std::chrono::nanoseconds sendTimeout) const {
             return {maxMessageLength, socket.withSendTimeout(sendTimeout)};
         }
@@ -86,6 +90,7 @@ public:
             .withRecvBufferMaxCapacity(16 * 1024 * 1024)
             .withSendBufferMaxCapacity(16 * 1024 * 1024)
             .withRecvChunkSize(4096)
+            .withRecvTimeout({})
             .withSendTimeout({})
             .withNoDelay(false)
             .withKeepAliveOff();

@@ -38,6 +38,7 @@ public:
         size_t recvBufferMaxCapacity;
         size_t sendBufferMaxCapacity;
         size_t recvChunkSize;
+        std::chrono::nanoseconds recvTimeout;
         std::chrono::nanoseconds sendTimeout;
         bool noDelay;
         KeepAlive keepAlive;
@@ -47,12 +48,14 @@ public:
         Params(size_t recvBufferMaxCapacity,
                size_t sendBufferMaxCapacity,
                size_t recvChunkSize,
+               std::chrono::nanoseconds recvTimeout,
                std::chrono::nanoseconds sendTimeout,
                bool noDelay,
                KeepAlive keepAlive)
             : recvBufferMaxCapacity(recvBufferMaxCapacity),
               sendBufferMaxCapacity(sendBufferMaxCapacity),
               recvChunkSize(recvChunkSize),
+              recvTimeout(recvTimeout),
               sendTimeout(sendTimeout),
               noDelay(noDelay),
               keepAlive(keepAlive) {}
@@ -60,41 +63,45 @@ public:
         bool operator==(const Params &) const = default;
 
         Params withRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay, keepAlive};
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
         }
 
         Params withSendBufferMaxCapacity(size_t sendBufferMaxCapacity) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay, keepAlive};
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
         }
 
         Params withRecvChunkSize(size_t recvChunkSize) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay, keepAlive};
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
+        }
+
+        Params withRecvTimeout(std::chrono::nanoseconds recvTimeout) const {
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
         }
 
         Params withSendTimeout(std::chrono::nanoseconds sendTimeout) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay, keepAlive};
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
         }
 
         Params withNoDelay(bool noDelay) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay, keepAlive};
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
         }
 
         Params withKeepAliveOff() const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay, {}};
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, {}};
         }
 
         Params withKeepAliveIdle(std::chrono::seconds idle) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay,
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay,
                 {idle, keepAlive.interval, keepAlive.count}};
         }
 
         Params withKeepAliveInterval(std::chrono::seconds interval) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay,
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay,
                 {keepAlive.idle, interval, keepAlive.count}};
         }
 
         Params withKeepAliveCount(int count) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, sendTimeout, noDelay,
+            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay,
                 {keepAlive.idle, keepAlive.interval, count}};
         }
     };
@@ -115,6 +122,7 @@ public:
             .withRecvBufferMaxCapacity(16 * 1024 * 1024)
             .withSendBufferMaxCapacity(16 * 1024 * 1024)
             .withRecvChunkSize(4096)
+            .withRecvTimeout({})
             .withSendTimeout({})
             .withNoDelay(false)
             .withKeepAliveOff();
@@ -181,8 +189,10 @@ private:
     std::unique_ptr<Endpoint> remoteEndpoint_;
     Buffer recvBuffer_;
     Buffer sendBuffer_;
-    std::unique_ptr<Timer> timer_;
-    bool active_ = false;
+    std::unique_ptr<Timer> recvTimer_;
+    std::unique_ptr<Timer> sendTimer_;
+    bool recvActive_ = false;
+    bool sendActive_ = false;
     std::vector<ConnectCallback> connectCallbacks_;
     std::vector<RecvCallback> recvCallbacks_;
     std::vector<SendCompleteCallback> sendCompleteCallbacks_;
@@ -190,7 +200,8 @@ private:
 
     bool onWatcherRead();
     bool onWatcherWrite();
-    bool onTimerExpire();
+    bool onRecvTimerExpire();
+    bool onSendTimerExpire();
 };
 
 void enableAutoReconnectAndOpen(Socket &socket,

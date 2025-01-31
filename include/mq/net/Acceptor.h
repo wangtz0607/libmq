@@ -41,6 +41,10 @@ public:
             return {reuseAddr, socket.withRecvChunkSize(recvChunkSize)};
         }
 
+        Params withRecvTimeout(std::chrono::nanoseconds recvTimeout) const {
+            return {reuseAddr, socket.withRecvTimeout(recvTimeout)};
+        }
+
         Params withSendTimeout(std::chrono::nanoseconds sendTimeout) const {
             return {reuseAddr, socket.withSendTimeout(sendTimeout)};
         }
@@ -79,6 +83,7 @@ public:
             .withRecvBufferMaxCapacity(16 * 1024 * 1024)
             .withSendBufferMaxCapacity(16 * 1024 * 1024)
             .withRecvChunkSize(4096)
+            .withRecvTimeout({})
             .withSendTimeout({})
             .withNoDelay(false)
             .withKeepAliveOff();

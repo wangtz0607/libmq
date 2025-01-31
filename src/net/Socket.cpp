@@ -321,11 +321,18 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
         watcher_->addReadCallback([this] { return onWatcherRead(); });
 
+        if (params_.recvTimeout.count() > 0) {
+            recvTimer_ = std::make_unique<Timer>(loop_);
+            recvTimer_->addExpireCallback([this] { return onRecvTimerExpire(); });
+            recvTimer_->open();
+            recvTimer_->setTime(params_.recvTimeout, params_.recvTimeout);
+        }
+
         if (params_.sendTimeout.count() > 0) {
-            timer_ = std::make_unique<Timer>(loop_);
-            timer_->addExpireCallback([this] { return onTimerExpire(); });
-            timer_->open();
-            timer_->setTime(params_.sendTimeout, params_.sendTimeout);
+            sendTimer_ = std::make_unique<Timer>(loop_);
+            sendTimer_->addExpireCallback([this] { return onSendTimerExpire(); });
+            sendTimer_->open();
+            sendTimer_->setTime(params_.sendTimeout, params_.sendTimeout);
         }
     } else {
         if (errno != EINPROGRESS) {
@@ -364,11 +371,18 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
                     watcher_->addReadCallback([this] { return onWatcherRead(); });
 
+                    if (params_.recvTimeout.count() > 0) {
+                        recvTimer_ = std::make_unique<Timer>(loop_);
+                        recvTimer_->addExpireCallback([this] { return onRecvTimerExpire(); });
+                        recvTimer_->open();
+                        recvTimer_->setTime(params_.recvTimeout, params_.recvTimeout);
+                    }
+
                     if (params_.sendTimeout.count() > 0) {
-                        timer_ = std::make_unique<Timer>(loop_);
-                        timer_->addExpireCallback([this] { return onTimerExpire(); });
-                        timer_->open();
-                        timer_->setTime(params_.sendTimeout, params_.sendTimeout);
+                        sendTimer_ = std::make_unique<Timer>(loop_);
+                        sendTimer_->addExpireCallback([this] { return onSendTimerExpire(); });
+                        sendTimer_->open();
+                        sendTimer_->setTime(params_.sendTimeout, params_.sendTimeout);
                     }
                 } else {
                     LOG(warning, "connect: optVal={}", strerrorname_np(optVal));
@@ -426,11 +440,18 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
 
     watcher_->addReadCallback([this] { return onWatcherRead(); });
 
+    if (params_.recvTimeout.count() > 0) {
+        recvTimer_ = std::make_unique<Timer>(loop_);
+        recvTimer_->addExpireCallback([this] { return onRecvTimerExpire(); });
+        recvTimer_->open();
+        recvTimer_->setTime(params_.recvTimeout, params_.recvTimeout);
+    }
+
     if (params_.sendTimeout.count() > 0) {
-        timer_ = std::make_unique<Timer>(loop_);
-        timer_->addExpireCallback([this] { return onTimerExpire(); });
-        timer_->open();
-        timer_->setTime(params_.sendTimeout, params_.sendTimeout);
+        sendTimer_ = std::make_unique<Timer>(loop_);
+        sendTimer_->addExpireCallback([this] { return onSendTimerExpire(); });
+        sendTimer_->open();
+        sendTimer_->setTime(params_.sendTimeout, params_.sendTimeout);
     }
 }
 
@@ -522,18 +543,26 @@ void Socket::close(int error) {
     watcher_->clearReadCallbacks();
     watcher_->clearWriteCallbacks();
 
-    if (params_.sendTimeout.count() > 0) {
-        timer_->reset();
+    if (params_.recvTimeout.count() > 0) {
+        recvTimer_->reset();
     }
 
-    loop_->post([watcher = std::move(watcher_), fd = fd_, timer = std::move(timer_)] {
+    if (params_.sendTimeout.count() > 0) {
+        sendTimer_->reset();
+    }
+
+    loop_->post([watcher = std::move(watcher_),
+                 fd = fd_,
+                 recvTimer = std::move(recvTimer_),
+                 sendTimer = std::move(sendTimer_)] {
         watcher->unregisterSelf();
 
         CHECK(::close(fd) == 0);
     });
 
     watcher_ = nullptr;
-    timer_ = nullptr;
+    recvTimer_ = nullptr;
+    sendTimer_ = nullptr;
 
     localEndpoint_ = nullptr;
     remoteEndpoint_ = nullptr;
@@ -566,18 +595,26 @@ void Socket::reset() {
     watcher_->clearReadCallbacks();
     watcher_->clearWriteCallbacks();
 
-    if (params_.sendTimeout.count() > 0) {
-        timer_->reset();
+    if (params_.recvTimeout.count() > 0) {
+        recvTimer_->reset();
     }
 
-    loop_->post([watcher = std::move(watcher_), fd = fd_, timer = std::move(timer_)] {
+    if (params_.sendTimeout.count() > 0) {
+        sendTimer_->reset();
+    }
+
+    loop_->post([watcher = std::move(watcher_),
+                 fd = fd_,
+                 sendTimer = std::move(sendTimer_),
+                 recvTimer = std::move(recvTimer_)] {
         watcher->unregisterSelf();
 
         CHECK(::close(fd) == 0);
     });
 
     watcher_ = nullptr;
-    timer_ = nullptr;
+    recvTimer_ = nullptr;
+    sendTimer_ = nullptr;
 
     localEndpoint_ = nullptr;
     remoteEndpoint_ = nullptr;
@@ -603,7 +640,9 @@ bool Socket::onWatcherRead() {
     if (n > 0) {
         recvBuffer_.retractBack(size - n);
 
+        size_t size = recvBuffer_.size();
         dispatchRecv(recvBuffer_);
+        if (recvBuffer_.size() < size) recvActive_ = true;
     } else {
         recvBuffer_.retractBack(size);
 
@@ -649,15 +688,31 @@ bool Socket::onWatcherWrite() {
         dispatchSendComplete();
     }
 
-    active_ = true;
+    sendActive_ = true;
 
     return !sendBuffer_.empty();
 }
 
-bool Socket::onTimerExpire() {
+bool Socket::onRecvTimerExpire() {
     LOG(debug, "");
 
-    if (!sendBuffer_.empty() && !active_) {
+    if (!recvBuffer_.empty() && !recvActive_) {
+        LOG(warning, "Recv timed out");
+
+        close(ETIMEDOUT);
+
+        return false;
+    }
+
+    recvActive_ = false;
+
+    return true;
+}
+
+bool Socket::onSendTimerExpire() {
+    LOG(debug, "");
+
+    if (!sendBuffer_.empty() && !sendActive_) {
         LOG(warning, "Send timed out");
 
         close(ETIMEDOUT);
@@ -665,7 +720,7 @@ bool Socket::onTimerExpire() {
         return false;
     }
 
-    active_ = false;
+    sendActive_ = false;
 
     return true;
 }
