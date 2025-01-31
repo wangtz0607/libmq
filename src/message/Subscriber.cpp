@@ -161,6 +161,22 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
     }
 }
 
+bool Subscriber::onFramingSocketConnect(FramingSocket *socket, int error) {
+    LOG(debug, "");
+
+    if (!error) {
+        if (!connectCallbackExecutor_) {
+            dispatchConnect(*socket->remoteEndpoint());
+        } else {
+            connectCallbackExecutor_->post([this, remoteEndpoint = socket->remoteEndpoint()] {
+                dispatchConnect(*remoteEndpoint);
+            });
+        }
+    }
+
+    return true;
+}
+
 bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view message) {
     LOG(debug, "");
 
@@ -184,22 +200,6 @@ bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view mes
                 }
             }
         });
-    }
-
-    return true;
-}
-
-bool Subscriber::onFramingSocketConnect(FramingSocket *socket, int error) {
-    LOG(debug, "");
-
-    if (!error) {
-        if (!connectCallbackExecutor_) {
-            dispatchConnect(*socket->remoteEndpoint());
-        } else {
-            connectCallbackExecutor_->post([this, remoteEndpoint = socket->remoteEndpoint()] {
-                dispatchConnect(*remoteEndpoint);
-            });
-        }
     }
 
     return true;
