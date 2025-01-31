@@ -17,7 +17,7 @@ add_library(mq
     src/net/FramingSocket.cpp
     src/net/IPV4Host.cpp
     src/net/IPV6Host.cpp
-    src/net/IPV6ScopeId.cpp
+    src/net/NetworkInterface.cpp
     src/net/Socket.cpp
     src/net/TCPV4Endpoint.cpp
     src/net/TCPV6Endpoint.cpp

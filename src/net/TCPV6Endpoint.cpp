@@ -15,7 +15,7 @@
 
 #include "mq/net/Endpoint.h"
 #include "mq/net/IPV6Host.h"
-#include "mq/net/IPV6ScopeId.h"
+#include "mq/net/NetworkInterface.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Endian.h"
 #include "mq/utils/Hash.h"
@@ -24,32 +24,32 @@
 
 using namespace mq;
 
-TCPV6Endpoint::TCPV6Endpoint(IPV6Host host, IPV6ScopeId scopeId, uint16_t port) : addr_{} {
+TCPV6Endpoint::TCPV6Endpoint(IPV6Host host, NetworkInterface interface, uint16_t port) : addr_{} {
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
     IPV6Host::Bytes src = host.bytes();
     toBigEndian(src.data(), 16);
     memcpy(&addr_.sin6_addr, src.data(), 16);
-    addr_.sin6_scope_id = scopeId.uint();
+    addr_.sin6_scope_id = interface.index();
 }
 
-TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAndScopeId, uint16_t port) : addr_{} {
+TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAndInterface, uint16_t port) : addr_{} {
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
 
-    if (size_t i = hostAndScopeId.find('%'); i != std::string::npos) {
-        std::string host = hostAndScopeId.substr(0, i);
-        std::string scopeId = hostAndScopeId.substr(i + 1);
+    if (size_t i = hostAndInterface.find('%'); i != std::string::npos) {
+        std::string host = hostAndInterface.substr(0, i);
+        std::string interface = hostAndInterface.substr(i + 1);
 
         CHECK(inet_pton(AF_INET6, host.c_str(), &addr_.sin6_addr) == 1);
 
-        if (!scopeId.empty() && std::ranges::all_of(scopeId, isdigit)) {
-            addr_.sin6_scope_id = std::stoi(scopeId);
+        if (!interface.empty() && std::ranges::all_of(interface, isdigit)) {
+            addr_.sin6_scope_id = std::stoi(interface);
         } else {
-            CHECK((addr_.sin6_scope_id = if_nametoindex(scopeId.c_str())) != 0);
+            CHECK((addr_.sin6_scope_id = if_nametoindex(interface.c_str())) != 0);
         }
     } else {
-        CHECK(inet_pton(AF_INET6, hostAndScopeId.c_str(), &addr_.sin6_addr) == 1);
+        CHECK(inet_pton(AF_INET6, hostAndInterface.c_str(), &addr_.sin6_addr) == 1);
     }
 }
 
@@ -60,8 +60,8 @@ IPV6Host TCPV6Endpoint::host() const {
     return IPV6Host(dst);
 }
 
-IPV6ScopeId TCPV6Endpoint::scopeId() const {
-    return IPV6ScopeId(addr_.sin6_scope_id);
+NetworkInterface TCPV6Endpoint::interface() const {
+    return NetworkInterface(addr_.sin6_scope_id);
 }
 
 uint16_t TCPV6Endpoint::port() const {
@@ -69,8 +69,8 @@ uint16_t TCPV6Endpoint::port() const {
 }
 
 std::string TCPV6Endpoint::format() const {
-    if (scopeId()) {
-        return std::format("tcp://[{}%{}]:{}", host(), scopeId(), port());
+    if (interface().index() != 0) {
+        return std::format("tcp://[{}%{}]:{}", host(), interface(), port());
     } else {
         return std::format("tcp://[{}]:{}", host(), port());
     }
@@ -84,14 +84,14 @@ bool TCPV6Endpoint::equals(const Endpoint &other) const {
     if (typeid(*this) != typeid(other)) return false;
     const TCPV6Endpoint &castOther = static_cast<const TCPV6Endpoint &>(other);
     return host() == castOther.host() &&
-           scopeId() == castOther.scopeId() &&
+           interface() == castOther.interface() &&
            port() == castOther.port();
 }
 
 size_t TCPV6Endpoint::hashCode() const noexcept {
     size_t seed = 0;
     hash_combine(seed, host());
-    hash_combine(seed, scopeId());
+    hash_combine(seed, interface());
     hash_combine(seed, port());
     return seed;
 }
