@@ -16,8 +16,8 @@ class UnixEndpoint final : public Endpoint {
 public:
     explicit UnixEndpoint(const std::filesystem::path &path);
 
-    explicit UnixEndpoint(const struct sockaddr_un &addr)
-        : addr_(addr) {}
+    explicit UnixEndpoint(const struct sockaddr_un &addr, socklen_t addrLen)
+        : addr_(addr), addrLen_(addrLen) {}
 
     std::filesystem::path path() const;
 
@@ -30,7 +30,7 @@ public:
     }
 
     socklen_t addrLen() const override {
-        return sizeof(addr_);
+        return addrLen_;
     }
 
     std::string format() const override;
@@ -42,6 +42,7 @@ protected:
 
 private:
     struct sockaddr_un addr_;
+    socklen_t addrLen_;
 };
 
 } // namespace mq

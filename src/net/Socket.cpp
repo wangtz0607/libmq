@@ -52,7 +52,7 @@ std::unique_ptr<Endpoint> getSockName(int fd) {
             struct sockaddr_un addr;
             socklen_t addrLen = sizeof(addr);
             CHECK(getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrLen) == 0);
-            return std::make_unique<UnixEndpoint>(addr);
+            return std::make_unique<UnixEndpoint>(addr, addrLen);
         }
         default:
             return nullptr;

@@ -1,5 +1,6 @@
 #include "mq/net/UnixEndpoint.h"
 
+#include <cstddef>
 #include <cstring>
 #include <filesystem>
 #include <format>
@@ -21,10 +22,12 @@ UnixEndpoint::UnixEndpoint(const std::filesystem::path &path) : addr_{} {
 
     addr_.sun_family = AF_UNIX;
     strcpy(addr_.sun_path, path.c_str());
+    addrLen_ = offsetof(struct sockaddr_un, sun_path) + path.string().size() + 1;
 }
 
 std::filesystem::path UnixEndpoint::path() const {
-    return addr_.sun_path;
+    size_t len = addrLen_ - offsetof(struct sockaddr_un, sun_path);
+    return std::filesystem::path(addr_.sun_path, addr_.sun_path + len);
 }
 
 std::string UnixEndpoint::format() const {
@@ -32,7 +35,7 @@ std::string UnixEndpoint::format() const {
 }
 
 std::unique_ptr<Endpoint> UnixEndpoint::clone() const {
-    return std::make_unique<UnixEndpoint>(addr_);
+    return std::make_unique<UnixEndpoint>(addr_, addrLen_);
 }
 
 bool UnixEndpoint::equals(const Endpoint &other) const {

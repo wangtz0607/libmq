@@ -224,12 +224,14 @@ bool Acceptor::onWatcherRead() {
             break;
         }
         case AF_UNIX: {
+            struct sockaddr_un addr;
+            socklen_t addrLen = sizeof(addr);
             while ((connFd = accept4(fd_,
-                                     nullptr,
-                                     nullptr,
+                                     reinterpret_cast<struct sockaddr *>(&addr),
+                                     &addrLen,
                                      SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
-            remoteEndpoint = std::make_unique<UnixEndpoint>("");
+            remoteEndpoint = std::make_unique<UnixEndpoint>(addr, addrLen);
             break;
         }
     }
