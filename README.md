@@ -6,7 +6,11 @@ Check the [examples](examples/).
 
 ### Req/Rep Ping-Pong Throughput (TCP)
 
-![Req/Rep Ping-Pong Throughput](assets/benchmark_req_rep.svg)
+![Req/Rep Ping-Pong Throughput](assets/req_rep_throughput.svg)
+
+### Req/Rep Latency (TCP)
+
+![Req/Rep Latency](assets/req_rep_latency.svg)
 
 ## License
 
