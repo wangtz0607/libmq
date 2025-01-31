@@ -17,6 +17,7 @@
 #include "mq/net/IPV6Host.h"
 #include "mq/net/IPV6ScopeId.h"
 #include "mq/utils/Check.h"
+#include "mq/utils/Endian.h"
 #include "mq/utils/Hash.h"
 
 #define TAG "TCPV6Endpoint"
@@ -27,7 +28,7 @@ TCPV6Endpoint::TCPV6Endpoint(IPV6Host host, IPV6ScopeId scopeId, uint16_t port) 
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
     IPV6Host::Bytes src = host.bytes();
-    std::ranges::reverse(src);
+    toBigEndian(src.data(), 16);
     memcpy(&addr_.sin6_addr, src.data(), 16);
     addr_.sin6_scope_id = scopeId.uint();
 }
@@ -55,7 +56,7 @@ TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAndScopeId, uint16_t port) :
 IPV6Host TCPV6Endpoint::host() const {
     IPV6Host::Bytes dst;
     memcpy(dst.data(), &addr_.sin6_addr, 16);
-    std::ranges::reverse(dst);
+    fromBigEndian(dst.data(), 16);
     return IPV6Host(dst);
 }
 
