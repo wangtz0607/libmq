@@ -26,8 +26,9 @@ using namespace mq;
 TCPV6Endpoint::TCPV6Endpoint(IPV6Host host, IPV6ScopeId scopeId, uint16_t port) : addr_{} {
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
-    memcpy(&addr_.sin6_addr.s6_addr, host.bytes().data(), 16);
-    std::ranges::reverse(addr_.sin6_addr.s6_addr);
+    IPV6Host::Bytes src = host.bytes();
+    std::ranges::reverse(src);
+    memcpy(&addr_.sin6_addr, src.data(), 16);
     addr_.sin6_scope_id = scopeId.uint();
 }
 
@@ -52,10 +53,10 @@ TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAndScopeId, uint16_t port) :
 }
 
 IPV6Host TCPV6Endpoint::host() const {
-    IPV6Host::Bytes host;
-    memcpy(host.data(), &addr_.sin6_addr.s6_addr, 16);
-    std::ranges::reverse(host);
-    return IPV6Host(host);
+    IPV6Host::Bytes dst;
+    memcpy(dst.data(), &addr_.sin6_addr, 16);
+    std::ranges::reverse(dst);
+    return IPV6Host(dst);
 }
 
 IPV6ScopeId TCPV6Endpoint::scopeId() const {

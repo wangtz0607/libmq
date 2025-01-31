@@ -1,5 +1,7 @@
 #include "mq/net/IPV4Host.h"
 
+#include <cstdint>
+
 #include <arpa/inet.h>
 
 #include "mq/utils/Check.h"
@@ -9,13 +11,14 @@
 using namespace mq;
 
 IPV4Host::IPV4Host(const char *host) {
-    CHECK(inet_pton(AF_INET, host, &host_) == 1);
-    host_ = ntohl(host_);
+    uint32_t dst;
+    CHECK(inet_pton(AF_INET, host, &dst) == 1);
+    host_ = ntohl(dst);
 }
 
 std::string IPV4Host::string() const {
-    uint32_t host = htonl(host_);
-    char buf[INET_ADDRSTRLEN];
-    CHECK(inet_ntop(AF_INET, &host, buf, sizeof(buf)) != nullptr);
-    return buf;
+    uint32_t src = htonl(host_);
+    char dst[INET_ADDRSTRLEN];
+    CHECK(inet_ntop(AF_INET, &src, dst, sizeof(dst)) != nullptr);
+    return dst;
 }
