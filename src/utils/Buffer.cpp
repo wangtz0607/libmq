@@ -55,6 +55,11 @@ void Buffer::retractFront(size_t size) {
 
     begin_ += size;
 
+    if (begin_ == end_) {
+        begin_ = 0;
+        end_ = 0;
+    }
+
     if (begin_ > capacity_ / 2) {
         move();
     }
@@ -64,6 +69,11 @@ void Buffer::retractBack(size_t size) {
     CHECK(end_ - begin_ >= size);
 
     end_ -= size;
+
+    if (begin_ == end_) {
+        begin_ = 0;
+        end_ = 0;
+    }
 }
 
 void Buffer::clear() {
