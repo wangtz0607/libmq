@@ -301,7 +301,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
     CHECK((fd_ = socket(remoteEndpoint.domain(), SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)) >= 0);
     LOG(debug, "fd={}", fd_);
 
-    if (dynamic_cast<const TCPV4Endpoint *>(&remoteEndpoint) || dynamic_cast<const TCPV6Endpoint *>(&remoteEndpoint)) {
+    if (remoteEndpoint.domain() == AF_INET || remoteEndpoint.domain() == AF_INET6) {
         setNoDelay(fd_, params_.noDelay);
         setKeepAlive(fd_, params_.keepAlive);
     }
@@ -419,7 +419,7 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
     CHECK(getsockopt(fd, SOL_SOCKET, SO_TYPE, &optVal, &optLen) == 0);
     CHECK(optVal == SOCK_STREAM);
 
-    if (dynamic_cast<const TCPV4Endpoint *>(&remoteEndpoint) || dynamic_cast<const TCPV6Endpoint *>(&remoteEndpoint)) {
+    if (remoteEndpoint.domain() == AF_INET || remoteEndpoint.domain() == AF_INET6) {
         setNoDelay(fd, params_.noDelay);
         setKeepAlive(fd, params_.keepAlive);
     }
