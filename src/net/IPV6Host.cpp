@@ -22,6 +22,18 @@ IPV6Host::IPV6Host(const char *host) {
     host_ = dst;
 }
 
+IPV6Host::Bits IPV6Host::bits() const {
+    Bytes bytes = host_;
+    toLittleEndian(bytes.data(), 16);
+    Bits bits;
+    for (size_t i = 0; i < 16; ++i) {
+        for (size_t j = 0; j < 8; ++j) {
+            bits.set(i * 8 + j, (bytes[i] >> j) & 1);
+        }
+    }
+    return bits;
+}
+
 std::string IPV6Host::string() const {
     Bytes src = host_;
     toBigEndian(src.data(), 16);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <cstdint>
 #include <format>
 #include <functional>
@@ -13,6 +14,7 @@ namespace mq {
 class IPV6Host {
 public:
     using Bytes = std::array<uint8_t, 16>;
+    using Bits = std::bitset<128>;
 
     explicit IPV6Host(const uint8_t *host);
 
@@ -28,6 +30,7 @@ public:
         return host_;
     }
 
+    Bits bits() const;
     std::string string() const;
 
 private:
