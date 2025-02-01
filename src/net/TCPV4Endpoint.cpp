@@ -20,7 +20,7 @@ using namespace mq;
 TCPV4Endpoint::TCPV4Endpoint(IPV4Host host, uint16_t port) : addr_{} {
     addr_.sin_family = AF_INET;
     addr_.sin_port = htons(port);
-    addr_.sin_addr.s_addr = ntohl(host.uint());
+    addr_.sin_addr.s_addr = htonl(host.uint());
 }
 
 IPV4Host TCPV4Endpoint::host() const {
