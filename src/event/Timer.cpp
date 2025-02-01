@@ -103,7 +103,7 @@ void Timer::open() {
 
     watcher_ = std::make_unique<Watcher>(loop_, fd_);
     watcher_->registerSelf();
-    watcher_->addReadCallback([this] { return onWatcherRead(); });
+    watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
 
     State oldState = state_;
     state_ = State::kOpened;
@@ -162,7 +162,7 @@ void Timer::close() {
     state_ = State::kClosed;
     LOG(info, "{} -> {}", oldState, state_);
 
-    watcher_->clearReadCallbacks();
+    watcher_->clearReadReadyCallbacks();
 
     loop_->post([watcher = std::move(watcher_), fd = fd_] {
         watcher->unregisterSelf();
@@ -186,7 +186,7 @@ void Timer::reset() {
     state_ = State::kClosed;
     LOG(info, "{} -> {}", oldState, state_);
 
-    watcher_->clearReadCallbacks();
+    watcher_->clearReadReadyCallbacks();
 
     loop_->post([watcher = std::move(watcher_), fd = fd_] {
         watcher->unregisterSelf();
@@ -197,7 +197,7 @@ void Timer::reset() {
     watcher_ = nullptr;
 }
 
-bool Timer::onWatcherRead() {
+bool Timer::onWatcherReadReady() {
     LOG(debug, "");
 
     uint64_t value;

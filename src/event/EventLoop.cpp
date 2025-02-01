@@ -176,10 +176,10 @@ void EventLoop::run() {
                         LOG(debug, "fd={}, EPOLLIN", fd);
 
                         state_ = State::kCallback;
-                        watcher->dispatchRead();
+                        watcher->dispatchReadReady();
                         state_ = State::kIdle;
 
-                        if (!watcher->hasReadCallback()) {
+                        if (!watcher->hasReadReadyCallback()) {
                             updateWatcher(watcher);
                         }
                     }
@@ -188,10 +188,10 @@ void EventLoop::run() {
                         LOG(debug, "fd={}, EPOLLOUT", fd);
 
                         state_ = State::kCallback;
-                        watcher->dispatchWrite();
+                        watcher->dispatchWriteReady();
                         state_ = State::kIdle;
 
-                        if (!watcher->hasWriteCallback()) {
+                        if (!watcher->hasWriteReadyCallback()) {
                             updateWatcher(watcher);
                         }
                     }
@@ -244,10 +244,10 @@ void EventLoop::addWatcher(Watcher *watcher) {
     CHECK(watchers_.emplace(watcher->fd_, watcher).second);
 
     struct epoll_event event{};
-    if (watcher->hasReadCallback()) {
+    if (watcher->hasReadReadyCallback()) {
         event.events |= EPOLLIN;
     }
-    if (watcher->hasWriteCallback()) {
+    if (watcher->hasWriteReadyCallback()) {
         event.events |= EPOLLOUT;
     }
     event.data.fd = watcher->fd_;
@@ -265,10 +265,10 @@ void EventLoop::updateWatcher(Watcher *watcher) {
     std::unique_lock lock(watchersMutex_);
 
     struct epoll_event event{};
-    if (watcher->hasReadCallback()) {
+    if (watcher->hasReadReadyCallback()) {
         event.events |= EPOLLIN;
     }
-    if (watcher->hasWriteCallback()) {
+    if (watcher->hasWriteReadyCallback()) {
         event.events |= EPOLLOUT;
     }
     event.data.fd = watcher->fd_;
@@ -288,10 +288,10 @@ void EventLoop::updateWatcherIfRegistered(Watcher *watcher) {
     if (watchers_.find(watcher->fd_) == watchers_.end()) return;
 
     struct epoll_event event{};
-    if (watcher->hasReadCallback()) {
+    if (watcher->hasReadReadyCallback()) {
         event.events |= EPOLLIN;
     }
-    if (watcher->hasWriteCallback()) {
+    if (watcher->hasWriteReadyCallback()) {
         event.events |= EPOLLOUT;
     }
     event.data.fd = watcher->fd_;

@@ -198,8 +198,8 @@ private:
     std::vector<SendCompleteCallback> sendCompleteCallbacks_;
     std::vector<CloseCallback> closeCallbacks_;
 
-    bool onWatcherRead();
-    bool onWatcherWrite();
+    bool onWatcherReadReady();
+    bool onWatcherWriteReady();
     bool onRecvTimerExpire();
     bool onSendTimerExpire();
 };

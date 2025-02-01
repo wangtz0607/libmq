@@ -22,92 +22,92 @@ Watcher::~Watcher() {
     CHECK(!loop_->hasWatcher(fd_));
 }
 
-bool Watcher::hasReadCallback() const {
+bool Watcher::hasReadReadyCallback() const {
     CHECK(loop_->isInLoopThread());
 
-    return !readCallbacks_.empty();
+    return !readReadyCallbacks_.empty();
 }
 
-bool Watcher::hasWriteCallback() const {
+bool Watcher::hasWriteReadyCallback() const {
     CHECK(loop_->isInLoopThread());
 
-    return !writeCallbacks_.empty();
+    return !writeReadyCallbacks_.empty();
 }
 
-void Watcher::addReadCallback(ReadCallback readCallback) {
+void Watcher::addReadReadyCallback(ReadReadyCallback readReadyCallback) {
     LOG(debug, "");
 
     CHECK(loop_->isInLoopThread());
 
-    readCallbacks_.emplace_back(std::move(readCallback));
+    readReadyCallbacks_.emplace_back(std::move(readReadyCallback));
 
-    if (readCallbacks_.size() == 1) {
+    if (readReadyCallbacks_.size() == 1) {
         loop_->updateWatcherIfRegistered(this);
     }
 }
 
-void Watcher::addWriteCallback(WriteCallback writeCallback) {
+void Watcher::addWriteReadyCallback(WriteReadyCallback writeReadyCallback) {
     LOG(debug, "");
 
     CHECK(loop_->isInLoopThread());
 
-    writeCallbacks_.emplace_back(std::move(writeCallback));
+    writeReadyCallbacks_.emplace_back(std::move(writeReadyCallback));
 
-    if (writeCallbacks_.size() == 1) {
+    if (writeReadyCallbacks_.size() == 1) {
         loop_->updateWatcherIfRegistered(this);
     }
 }
 
-void Watcher::clearReadCallbacks() {
+void Watcher::clearReadReadyCallbacks() {
     LOG(debug, "");
 
     CHECK(loop_->isInLoopThread());
 
-    if (!readCallbacks_.empty()) {
-        readCallbacks_.clear();
-
-        loop_->updateWatcherIfRegistered(this);
-    }
-}
-
-void Watcher::clearWriteCallbacks() {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-
-    if (!writeCallbacks_.empty()) {
-        writeCallbacks_.clear();
+    if (!readReadyCallbacks_.empty()) {
+        readReadyCallbacks_.clear();
 
         loop_->updateWatcherIfRegistered(this);
     }
 }
 
-void Watcher::dispatchRead() {
+void Watcher::clearWriteReadyCallbacks() {
     LOG(debug, "");
 
     CHECK(loop_->isInLoopThread());
 
-    std::vector<ReadCallback> readCallbacks(std::move(readCallbacks_));
-    readCallbacks_.clear();
+    if (!writeReadyCallbacks_.empty()) {
+        writeReadyCallbacks_.clear();
 
-    for (ReadCallback &readCallback : readCallbacks) {
-        if (readCallback()) {
-            readCallbacks_.emplace_back(std::move(readCallback));
+        loop_->updateWatcherIfRegistered(this);
+    }
+}
+
+void Watcher::dispatchReadReady() {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+
+    std::vector<ReadReadyCallback> readReadyCallbacks(std::move(readReadyCallbacks_));
+    readReadyCallbacks_.clear();
+
+    for (ReadReadyCallback &readReadyCallback : readReadyCallbacks) {
+        if (readReadyCallback()) {
+            readReadyCallbacks_.emplace_back(std::move(readReadyCallback));
         }
     }
 }
 
-void Watcher::dispatchWrite() {
+void Watcher::dispatchWriteReady() {
     LOG(debug, "");
 
     CHECK(loop_->isInLoopThread());
 
-    std::vector<WriteCallback> writeCallbacks(std::move(writeCallbacks_));
-    writeCallbacks_.clear();
+    std::vector<WriteReadyCallback> writeReadyCallbacks(std::move(writeReadyCallbacks_));
+    writeReadyCallbacks_.clear();
 
-    for (WriteCallback &writeCallback : writeCallbacks) {
-        if (writeCallback()) {
-            writeCallbacks_.emplace_back(std::move(writeCallback));
+    for (WriteReadyCallback &writeReadyCallback : writeReadyCallbacks) {
+        if (writeReadyCallback()) {
+            writeReadyCallbacks_.emplace_back(std::move(writeReadyCallback));
         }
     }
 }

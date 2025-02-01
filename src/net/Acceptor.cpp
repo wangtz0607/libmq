@@ -131,7 +131,7 @@ int Acceptor::open(const Endpoint &localEndpoint) {
 
     watcher_ = std::make_unique<Watcher>(loop_, fd_);
     watcher_->registerSelf();
-    watcher_->addReadCallback([this] { return onWatcherRead(); });
+    watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
 
     localEndpoint_ = localEndpoint.clone();
 
@@ -153,8 +153,8 @@ void Acceptor::close() {
     state_ = State::kClosed;
     LOG(info, "{} -> {}", oldState, state_);
 
-    watcher_->clearReadCallbacks();
-    watcher_->clearWriteCallbacks();
+    watcher_->clearReadReadyCallbacks();
+    watcher_->clearWriteReadyCallbacks();
 
     loop_->post([watcher = std::move(watcher_), fd = fd_] {
         watcher->unregisterSelf();
@@ -180,8 +180,8 @@ void Acceptor::reset() {
     state_ = State::kClosed;
     LOG(info, "{} -> {}", oldState, state_);
 
-    watcher_->clearReadCallbacks();
-    watcher_->clearWriteCallbacks();
+    watcher_->clearReadReadyCallbacks();
+    watcher_->clearWriteReadyCallbacks();
 
     loop_->post([watcher = std::move(watcher_), fd = fd_] {
         watcher->unregisterSelf();
@@ -194,7 +194,7 @@ void Acceptor::reset() {
     localEndpoint_ = nullptr;
 }
 
-bool Acceptor::onWatcherRead() {
+bool Acceptor::onWatcherReadReady() {
     LOG(debug, "");
 
     int connFd;

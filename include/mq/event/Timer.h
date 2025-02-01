@@ -57,7 +57,7 @@ private:
     std::unique_ptr<Watcher> watcher_;
     std::vector<ExpireCallback> expireCallbacks_;
 
-    bool onWatcherRead();
+    bool onWatcherReadReady();
 };
 
 } // namespace mq

@@ -319,7 +319,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
         dispatchConnect(0);
 
-        watcher_->addReadCallback([this] { return onWatcherRead(); });
+        watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
 
         if (params_.recvTimeout.count() > 0) {
             recvTimer_ = std::make_unique<Timer>(loop_);
@@ -354,7 +354,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
             state_ = State::kConnecting;
             LOG(info, "{} -> {}", oldState, state_);
 
-            watcher_->addWriteCallback([this, remoteEndpoint = remoteEndpoint.clone()] {
+            watcher_->addWriteReadyCallback([this, remoteEndpoint = remoteEndpoint.clone()] {
                 int optVal;
                 socklen_t optLen = sizeof(optVal);
                 CHECK(getsockopt(fd_, SOL_SOCKET, SO_ERROR, &optVal, &optLen) == 0);
@@ -369,7 +369,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
                     dispatchConnect(0);
 
-                    watcher_->addReadCallback([this] { return onWatcherRead(); });
+                    watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
 
                     if (params_.recvTimeout.count() > 0) {
                         recvTimer_ = std::make_unique<Timer>(loop_);
@@ -438,7 +438,7 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
 
     dispatchConnect(0);
 
-    watcher_->addReadCallback([this] { return onWatcherRead(); });
+    watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
 
     if (params_.recvTimeout.count() > 0) {
         recvTimer_ = std::make_unique<Timer>(loop_);
@@ -494,7 +494,7 @@ int Socket::send(const char *data, size_t size) {
         memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
 
         if (sendBuffer_.size() == size) {
-            watcher_->addWriteCallback([this] { return onWatcherWrite(); });
+            watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
         }
     }
 
@@ -523,7 +523,7 @@ int Socket::send(const std::vector<std::pair<const char *, size_t>> &buffers) {
     }
 
     if (!sendBuffer_.empty() && sendBuffer_.size() == totalSize) {
-        watcher_->addWriteCallback([this] { return onWatcherWrite(); });
+        watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
     }
 
     return 0;
@@ -540,8 +540,8 @@ void Socket::close(int error) {
     state_ = State::kClosed;
     LOG(info, "{} -> {}", oldState, state_);
 
-    watcher_->clearReadCallbacks();
-    watcher_->clearWriteCallbacks();
+    watcher_->clearReadReadyCallbacks();
+    watcher_->clearWriteReadyCallbacks();
 
     if (params_.recvTimeout.count() > 0) {
         recvTimer_->reset();
@@ -592,8 +592,8 @@ void Socket::reset() {
     state_ = State::kClosed;
     LOG(info, "{} -> {}", oldState, state_);
 
-    watcher_->clearReadCallbacks();
-    watcher_->clearWriteCallbacks();
+    watcher_->clearReadReadyCallbacks();
+    watcher_->clearWriteReadyCallbacks();
 
     if (params_.recvTimeout.count() > 0) {
         recvTimer_->reset();
@@ -620,7 +620,7 @@ void Socket::reset() {
     remoteEndpoint_ = nullptr;
 }
 
-bool Socket::onWatcherRead() {
+bool Socket::onWatcherReadReady() {
     LOG(debug, "");
 
     if (recvBuffer_.size() == recvBuffer_.maxCapacity()) {
@@ -671,7 +671,7 @@ bool Socket::onWatcherRead() {
     return true;
 }
 
-bool Socket::onWatcherWrite() {
+bool Socket::onWatcherWriteReady() {
     LOG(debug, "");
 
     if (!sendBuffer_.empty()) {

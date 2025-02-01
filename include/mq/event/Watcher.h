@@ -9,8 +9,8 @@ class EventLoop;
 
 class Watcher {
 public:
-    using ReadCallback = std::move_only_function<bool ()>;
-    using WriteCallback = std::move_only_function<bool ()>;
+    using ReadReadyCallback = std::move_only_function<bool ()>;
+    using WriteReadyCallback = std::move_only_function<bool ()>;
 
     explicit Watcher(EventLoop *loop, int fd);
     ~Watcher();
@@ -29,17 +29,17 @@ public:
         return fd_;
     }
 
-    bool hasReadCallback() const;
-    bool hasWriteCallback() const;
+    bool hasReadReadyCallback() const;
+    bool hasWriteReadyCallback() const;
 
-    void addReadCallback(ReadCallback readCallback);
-    void addWriteCallback(WriteCallback writeCallback);
+    void addReadReadyCallback(ReadReadyCallback readReadyCallback);
+    void addWriteReadyCallback(WriteReadyCallback writeReadyCallback);
 
-    void clearReadCallbacks();
-    void clearWriteCallbacks();
+    void clearReadReadyCallbacks();
+    void clearWriteReadyCallbacks();
 
-    void dispatchRead();
-    void dispatchWrite();
+    void dispatchReadReady();
+    void dispatchWriteReady();
 
     void registerSelf();
     void unregisterSelf();
@@ -47,8 +47,8 @@ public:
 private:
     EventLoop *loop_;
     int fd_;
-    std::vector<ReadCallback> readCallbacks_;
-    std::vector<WriteCallback> writeCallbacks_;
+    std::vector<ReadReadyCallback> readReadyCallbacks_;
+    std::vector<WriteReadyCallback> writeReadyCallbacks_;
 
     friend class EventLoop;
 };

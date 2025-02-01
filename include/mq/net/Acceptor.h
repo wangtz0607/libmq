@@ -130,7 +130,7 @@ private:
     std::unique_ptr<Endpoint> localEndpoint_;
     std::vector<AcceptCallback> acceptCallbacks_;
 
-    bool onWatcherRead();
+    bool onWatcherReadReady();
 };
 
 } // namespace mq
