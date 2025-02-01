@@ -31,7 +31,7 @@ EventLoop::EventLoop() {
 
     CHECK(loop_ == nullptr);
 
-    CHECK((epollFd_ = epoll_create1(0)) >= 0);
+    CHECK((epollFd_ = epoll_create1(EPOLL_CLOEXEC)) >= 0);
     CHECK((eventFd_ = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC)) >= 0);
 
     LOG(debug, "epollFd={}, eventFd={}", epollFd_, eventFd_);
