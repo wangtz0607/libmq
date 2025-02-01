@@ -10,7 +10,6 @@
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/Socket.h"
-#include "mq/utils/Buffer.h"
 
 namespace mq {
 
@@ -158,7 +157,7 @@ private:
     std::vector<SendCompleteCallback> sendCompleteCallbacks_;
     std::vector<CloseCallback> closeCallbacks_;
 
-    bool onSocketRecv(Buffer &recvBuffer);
+    bool onSocketRecv(const char *data, size_t size, size_t &newSize);
     bool onSocketSendComplete();
     bool onSocketClose(int error);
 };

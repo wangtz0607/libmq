@@ -113,9 +113,9 @@ public:
     };
 
     using ConnectCallback = std::move_only_function<bool (int error)>;
-    using RecvCallback = std::move_only_function<bool (Buffer &recvBuffer)>;
+    using RecvCallback = std::move_only_function<bool (const char *data, size_t size, size_t &newSize)>;
     using SendCompleteCallback = std::move_only_function<bool ()>;
-    using CloseCallback = std::move_only_function<bool (int error, const Buffer &sendBuffer)>;
+    using CloseCallback = std::move_only_function<bool (int error, const char *data, size_t size)>;
 
     static Params defaultParams() {
         return Params()
@@ -168,9 +168,9 @@ public:
     void clearCloseCallbacks();
 
     void dispatchConnect(int error);
-    void dispatchRecv(Buffer &recvBuffer);
+    void dispatchRecv(const char *data, size_t size, size_t &newSize);
     void dispatchSendComplete();
-    void dispatchClose(int error, const Buffer &sendBuffer);
+    void dispatchClose(int error, const char *data, size_t size);
 
     void open(const Endpoint &remoteEndpoint);
     void open(int fd, const Endpoint &remoteEndpoint);

@@ -247,7 +247,7 @@ void Socket::dispatchConnect(int error) {
     }
 }
 
-void Socket::dispatchRecv(Buffer &recvBuffer) {
+void Socket::dispatchRecv(const char *data, size_t size, size_t &newSize) {
     LOG(debug, "");
 
     CHECK(loop_->isInLoopThread());
@@ -256,7 +256,7 @@ void Socket::dispatchRecv(Buffer &recvBuffer) {
     recvCallbacks_.clear();
 
     for (RecvCallback &recvCallback : recvCallbacks) {
-        if (recvCallback(recvBuffer)) {
+        if (recvCallback(data, size, newSize)) {
             recvCallbacks_.emplace_back(std::move(recvCallback));
         }
     }
@@ -277,7 +277,7 @@ void Socket::dispatchSendComplete() {
     }
 }
 
-void Socket::dispatchClose(int error, const Buffer &sendBuffer) {
+void Socket::dispatchClose(int error, const char *data, size_t size) {
     LOG(debug, "");
 
     CHECK(loop_->isInLoopThread());
@@ -286,7 +286,7 @@ void Socket::dispatchClose(int error, const Buffer &sendBuffer) {
     closeCallbacks_.clear();
 
     for (CloseCallback &closeCallback : closeCallbacks) {
-        if (closeCallback(error, sendBuffer)) {
+        if (closeCallback(error, data, size)) {
             closeCallbacks_.emplace_back(std::move(closeCallback));
         }
     }
@@ -567,7 +567,7 @@ void Socket::close(int error) {
     localEndpoint_ = nullptr;
     remoteEndpoint_ = nullptr;
 
-    dispatchClose(error, sendBuffer_);
+    dispatchClose(error, sendBuffer_.data(), sendBuffer_.size());
 
     recvBuffer_.clear();
     sendBuffer_.clear();
@@ -631,20 +631,27 @@ bool Socket::onWatcherRead() {
         return false;
     }
 
-    size_t size = std::min(params_.recvChunkSize, recvBuffer_.maxCapacity() - recvBuffer_.size());
-    recvBuffer_.extendBack(size);
+    size_t chunkSize = std::min(params_.recvChunkSize, recvBuffer_.maxCapacity() - recvBuffer_.size());
+    recvBuffer_.extendBack(chunkSize);
 
-    ssize_t n = recv(fd_, recvBuffer_.data() + recvBuffer_.size() - size, size, 0);
+    ssize_t n = recv(fd_, recvBuffer_.data() + recvBuffer_.size() - chunkSize, chunkSize, 0);
     LOG(debug, "recv: n={}", n);
 
     if (n > 0) {
-        recvBuffer_.retractBack(size - n);
+        recvBuffer_.retractBack(chunkSize - n);
 
+        const char *data = recvBuffer_.data();
         size_t size = recvBuffer_.size();
-        dispatchRecv(recvBuffer_);
-        if (recvBuffer_.size() < size) recvActive_ = true;
+        size_t newSize;
+
+        dispatchRecv(data, size, newSize);
+
+        if (newSize < size) {
+            recvBuffer_.retractFront(size - newSize);
+            recvActive_ = true;
+        }
     } else {
-        recvBuffer_.retractBack(size);
+        recvBuffer_.retractBack(chunkSize);
 
         if (n == 0) {
             close();
@@ -746,7 +753,7 @@ void mq::enableAutoReconnectAndOpen(Socket &socket,
         return true;
     });
 
-    socket.addCloseCallback([&socket, remoteEndpoint = remoteEndpoint.clone(), interval](int, const Buffer &) {
+    socket.addCloseCallback([&socket, remoteEndpoint = remoteEndpoint.clone(), interval](int, const char *, size_t) {
         socket.loop()->postTimed([&socket, remoteEndpoint = remoteEndpoint->clone()] {
             if (socket.state() == Socket::State::kClosed) {
                 socket.open(*remoteEndpoint);

@@ -11,7 +11,6 @@
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/Socket.h"
-#include "mq/utils/Buffer.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Endian.h"
 #include "mq/utils/Logging.h"
@@ -235,9 +234,15 @@ void FramingSocket::open(const Endpoint &remoteEndpoint) {
 
             dispatchConnect(0);
 
-            socket_->addRecvCallback([this](Buffer &recvBuffer) { return onSocketRecv(recvBuffer); });
-            socket_->addSendCompleteCallback([this] { return onSocketSendComplete(); });
-            socket_->addCloseCallback([this](int error, const Buffer &) { return onSocketClose(error); });
+            socket_->addRecvCallback([this](const char *data, size_t size, size_t &newSize) {
+                return onSocketRecv(data, size, newSize);
+            });
+            socket_->addSendCompleteCallback([this] {
+                return onSocketSendComplete();
+            });
+            socket_->addCloseCallback([this](int error, const char *, size_t) {
+                return onSocketClose(error);
+            });
         } else {
             State oldState = state_;
             state_ = State::kClosed;
@@ -279,9 +284,15 @@ void FramingSocket::open(std::unique_ptr<Socket> socket, const Endpoint &remoteE
 
     dispatchConnect(0);
 
-    socket_->addRecvCallback([this](Buffer &recvBuffer) { return onSocketRecv(recvBuffer); });
-    socket_->addSendCompleteCallback([this] { return onSocketSendComplete(); });
-    socket_->addCloseCallback([this](int error, const Buffer &sendBuffer) { return onSocketClose(error); });
+    socket_->addRecvCallback([this](const char *data, size_t size, size_t &newSize) {
+        return onSocketRecv(data, size, newSize);
+    });
+    socket_->addSendCompleteCallback([this] {
+        return onSocketSendComplete();
+    });
+    socket_->addCloseCallback([this](int error, const char *, size_t) {
+        return onSocketClose(error);
+    });
 }
 
 int FramingSocket::send(std::string_view message) {
@@ -371,14 +382,14 @@ void FramingSocket::reset() {
     remoteEndpoint_ = nullptr;
 }
 
-bool FramingSocket::onSocketRecv(Buffer &recvBuffer) {
+bool FramingSocket::onSocketRecv(const char *data, size_t size, size_t &newSize) {
     LOG(debug, "");
 
     for (;;) {
-        if (recvBuffer.size() < 4) break;
+        if (size < 4) break;
 
         uint32_t length;
-        memcpy(&length, recvBuffer.data(), 4);
+        memcpy(&length, data, 4);
         length = fromLittleEndian(length);
 
         if (length > params_.maxMessageLength) {
@@ -389,12 +400,15 @@ bool FramingSocket::onSocketRecv(Buffer &recvBuffer) {
             return false;
         }
 
-        if (recvBuffer.size() < 4 + length) break;
+        if (size < 4 + length) break;
 
-        dispatchRecv(std::string_view(recvBuffer.data() + 4, length));
+        dispatchRecv(std::string_view(data + 4, length));
 
-        recvBuffer.retractFront(4 + length);
+        data += 4 + length;
+        size -= 4 + length;
     }
+
+    newSize = size;
 
     return true;
 }
