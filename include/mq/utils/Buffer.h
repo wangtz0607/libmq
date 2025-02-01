@@ -53,6 +53,7 @@ public:
     void retractFront(size_t size);
     void retractBack(size_t size);
     void clear();
+    void shrinkToFit();
     void swap(Buffer &other) noexcept;
 
 private:

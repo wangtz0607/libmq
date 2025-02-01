@@ -87,6 +87,12 @@ void Buffer::clear() {
     end_ = 0;
 }
 
+void Buffer::shrinkToFit() {
+    if (capacity_ > end_ - begin_) {
+        reallocate(end_ - begin_);
+    }
+}
+
 void Buffer::swap(Buffer &other) noexcept {
     using std::swap;
     swap(maxCapacity_, other.maxCapacity_);
