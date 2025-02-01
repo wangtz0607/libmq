@@ -59,12 +59,12 @@ std::unique_ptr<Endpoint> getSockName(int fd) {
     }
 }
 
-void setNoDelay(int fd, bool noDelay) {
+void setNoDelaySockOpt(int fd, bool noDelay) {
     int optVal = noDelay;
     CHECK(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &optVal, sizeof(optVal)) == 0);
 }
 
-void setKeepAlive(int fd, const KeepAlive &keepAlive) {
+void setKeepAliveSockOpt(int fd, const KeepAlive &keepAlive) {
     int optVal;
 
     if (keepAlive) {
@@ -87,11 +87,10 @@ void setKeepAlive(int fd, const KeepAlive &keepAlive) {
 
 } // namespace
 
-Socket::Socket(EventLoop *loop, Params params)
+Socket::Socket(EventLoop *loop)
     : loop_(loop),
-      params_(params),
-      recvBuffer_(params.recvBufferMaxCapacity),
-      sendBuffer_(params.sendBufferMaxCapacity) {
+      recvBuffer_(16 * 1024 * 1024),
+      sendBuffer_(16 * 1024 * 1024) {
     LOG(debug, "");
 }
 
@@ -101,6 +100,69 @@ Socket::~Socket() {
     CHECK(loop_->isInLoopThread());
     CHECK(loop_->state() == EventLoop::State::kTask);
     CHECK(state_ == State::kClosed);
+}
+
+void Socket::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvBuffer_.setMaxCapacity(recvBufferMaxCapacity);
+}
+
+void Socket::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sendBuffer_.setMaxCapacity(sendBufferMaxCapacity);
+}
+
+void Socket::setRecvChunkSize(size_t recvChunkSize) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvChunkSize_ = recvChunkSize;
+}
+
+void Socket::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvTimeout_ = recvTimeout;
+}
+
+void Socket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sendTimeout_ = sendTimeout;
+}
+
+void Socket::setNoDelay(bool noDelay) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    noDelay_ = noDelay;
+}
+
+void Socket::setKeepAlive(KeepAlive keepAlive) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    keepAlive_ = keepAlive;
 }
 
 Socket::State Socket::state() const {
@@ -302,8 +364,8 @@ void Socket::open(const Endpoint &remoteEndpoint) {
     LOG(debug, "fd={}", fd_);
 
     if (remoteEndpoint.domain() == AF_INET || remoteEndpoint.domain() == AF_INET6) {
-        setNoDelay(fd_, params_.noDelay);
-        setKeepAlive(fd_, params_.keepAlive);
+        setNoDelaySockOpt(fd_, noDelay_);
+        setKeepAliveSockOpt(fd_, keepAlive_);
     }
 
     watcher_ = std::make_unique<Watcher>(loop_, fd_);
@@ -321,18 +383,18 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
         watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
 
-        if (params_.recvTimeout.count() > 0) {
+        if (recvTimeout_.count() > 0) {
             recvTimer_ = std::make_unique<Timer>(loop_);
             recvTimer_->addExpireCallback([this] { return onRecvTimerExpire(); });
             recvTimer_->open();
-            recvTimer_->setTime(params_.recvTimeout, params_.recvTimeout);
+            recvTimer_->setTime(recvTimeout_, recvTimeout_);
         }
 
-        if (params_.sendTimeout.count() > 0) {
+        if (sendTimeout_.count() > 0) {
             sendTimer_ = std::make_unique<Timer>(loop_);
             sendTimer_->addExpireCallback([this] { return onSendTimerExpire(); });
             sendTimer_->open();
-            sendTimer_->setTime(params_.sendTimeout, params_.sendTimeout);
+            sendTimer_->setTime(sendTimeout_, sendTimeout_);
         }
     } else {
         if (errno != EINPROGRESS) {
@@ -371,18 +433,18 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
                     watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
 
-                    if (params_.recvTimeout.count() > 0) {
+                    if (recvTimeout_.count() > 0) {
                         recvTimer_ = std::make_unique<Timer>(loop_);
                         recvTimer_->addExpireCallback([this] { return onRecvTimerExpire(); });
                         recvTimer_->open();
-                        recvTimer_->setTime(params_.recvTimeout, params_.recvTimeout);
+                        recvTimer_->setTime(recvTimeout_, recvTimeout_);
                     }
 
-                    if (params_.sendTimeout.count() > 0) {
+                    if (sendTimeout_.count() > 0) {
                         sendTimer_ = std::make_unique<Timer>(loop_);
                         sendTimer_->addExpireCallback([this] { return onSendTimerExpire(); });
                         sendTimer_->open();
-                        sendTimer_->setTime(params_.sendTimeout, params_.sendTimeout);
+                        sendTimer_->setTime(sendTimeout_, sendTimeout_);
                     }
                 } else {
                     LOG(warning, "connect: optVal={}", strerrorname_np(optVal));
@@ -420,8 +482,8 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
     CHECK(optVal == SOCK_STREAM);
 
     if (remoteEndpoint.domain() == AF_INET || remoteEndpoint.domain() == AF_INET6) {
-        setNoDelay(fd, params_.noDelay);
-        setKeepAlive(fd, params_.keepAlive);
+        setNoDelaySockOpt(fd, noDelay_);
+        setKeepAliveSockOpt(fd, keepAlive_);
     }
 
     fd_ = fd;
@@ -440,18 +502,18 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
 
     watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
 
-    if (params_.recvTimeout.count() > 0) {
+    if (recvTimeout_.count() > 0) {
         recvTimer_ = std::make_unique<Timer>(loop_);
         recvTimer_->addExpireCallback([this] { return onRecvTimerExpire(); });
         recvTimer_->open();
-        recvTimer_->setTime(params_.recvTimeout, params_.recvTimeout);
+        recvTimer_->setTime(recvTimeout_, recvTimeout_);
     }
 
-    if (params_.sendTimeout.count() > 0) {
+    if (sendTimeout_.count() > 0) {
         sendTimer_ = std::make_unique<Timer>(loop_);
         sendTimer_->addExpireCallback([this] { return onSendTimerExpire(); });
         sendTimer_->open();
-        sendTimer_->setTime(params_.sendTimeout, params_.sendTimeout);
+        sendTimer_->setTime(sendTimeout_, sendTimeout_);
     }
 }
 
@@ -543,11 +605,11 @@ void Socket::close(int error) {
     watcher_->clearReadReadyCallbacks();
     watcher_->clearWriteReadyCallbacks();
 
-    if (params_.recvTimeout.count() > 0) {
+    if (recvTimeout_.count() > 0) {
         recvTimer_->reset();
     }
 
-    if (params_.sendTimeout.count() > 0) {
+    if (sendTimeout_.count() > 0) {
         sendTimer_->reset();
     }
 
@@ -595,11 +657,11 @@ void Socket::reset() {
     watcher_->clearReadReadyCallbacks();
     watcher_->clearWriteReadyCallbacks();
 
-    if (params_.recvTimeout.count() > 0) {
+    if (recvTimeout_.count() > 0) {
         recvTimer_->reset();
     }
 
-    if (params_.sendTimeout.count() > 0) {
+    if (sendTimeout_.count() > 0) {
         sendTimer_->reset();
     }
 
@@ -631,7 +693,7 @@ bool Socket::onWatcherReadReady() {
         return false;
     }
 
-    size_t chunkSize = std::min(params_.recvChunkSize, recvBuffer_.maxCapacity() - recvBuffer_.size());
+    size_t chunkSize = std::min(recvChunkSize_, recvBuffer_.maxCapacity() - recvBuffer_.size());
     recvBuffer_.extendBack(chunkSize);
 
     ssize_t n = recv(fd_, recvBuffer_.data() + recvBuffer_.size() - chunkSize, chunkSize, 0);

@@ -11,10 +11,9 @@
 
 using namespace mq;
 
-Requester::Requester(EventLoop *loop, const Endpoint &remoteEndpoint, Params params)
+Requester::Requester(EventLoop *loop, const Endpoint &remoteEndpoint)
     : loop_(loop),
-      remoteEndpoint_(remoteEndpoint.clone()),
-      params_(params) {
+      remoteEndpoint_(remoteEndpoint.clone()) {
     LOG(debug, "");
 }
 
@@ -22,6 +21,150 @@ Requester::~Requester() {
     LOG(debug, "");
 
     CHECK(state_ == State::kClosed);
+}
+
+void Requester::setReconnectInterval(std::chrono::nanoseconds reconnectInterval) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        reconnectInterval_ = reconnectInterval;
+    } else {
+        loop_->postAndWait([this, reconnectInterval] {
+            CHECK(state_ == State::kClosed);
+
+            reconnectInterval_ = reconnectInterval;
+        });
+    }
+}
+
+void Requester::setMaxMessageLength(size_t maxMessageLength) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        maxMessageLength_ = maxMessageLength;
+    } else {
+        loop_->postAndWait([this, maxMessageLength] {
+            CHECK(state_ == State::kClosed);
+
+            maxMessageLength_ = maxMessageLength;
+        });
+    }
+}
+
+void Requester::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        recvBufferMaxCapacity_ = recvBufferMaxCapacity;
+    } else {
+        loop_->postAndWait([this, recvBufferMaxCapacity] {
+            CHECK(state_ == State::kClosed);
+
+            recvBufferMaxCapacity_ = recvBufferMaxCapacity;
+        });
+    }
+}
+
+void Requester::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        sendBufferMaxCapacity_ = sendBufferMaxCapacity;
+    } else {
+        loop_->postAndWait([this, sendBufferMaxCapacity] {
+            CHECK(state_ == State::kClosed);
+
+            sendBufferMaxCapacity_ = sendBufferMaxCapacity;
+        });
+    }
+}
+
+void Requester::setRecvChunkSize(size_t recvChunkSize) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        recvChunkSize_ = recvChunkSize;
+    } else {
+        loop_->postAndWait([this, recvChunkSize] {
+            CHECK(state_ == State::kClosed);
+
+            recvChunkSize_ = recvChunkSize;
+        });
+    }
+}
+
+void Requester::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        recvTimeout_ = recvTimeout;
+    } else {
+        loop_->postAndWait([this, recvTimeout] {
+            CHECK(state_ == State::kClosed);
+
+            recvTimeout_ = recvTimeout;
+        });
+    }
+}
+
+void Requester::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        sendTimeout_ = sendTimeout;
+    } else {
+        loop_->postAndWait([this, sendTimeout] {
+            CHECK(state_ == State::kClosed);
+
+            sendTimeout_ = sendTimeout;
+        });
+    }
+}
+
+void Requester::setNoDelay(bool noDelay) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        noDelay_ = noDelay;
+    } else {
+        loop_->postAndWait([this, noDelay] {
+            CHECK(state_ == State::kClosed);
+
+            noDelay_ = noDelay;
+        });
+    }
+}
+
+void Requester::setKeepAlive(KeepAlive keepAlive) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        keepAlive_ = keepAlive;
+    } else {
+        loop_->postAndWait([this, keepAlive] {
+            CHECK(state_ == State::kClosed);
+
+            keepAlive_ = keepAlive;
+        });
+    }
 }
 
 void Requester::setConnectCallback(ConnectCallback connectCallback) {
@@ -109,11 +252,20 @@ void Requester::open() {
 
     CHECK(state_ == State::kClosed);
 
-    socket_ = std::make_unique<FramingSocket>(loop_, params_.framingSocket);
-
     if (loop_->isInLoopThread()) {
-        if (params_.reconnectInterval.count() > 0) {
-            enableAutoReconnectAndOpen(*socket_, *remoteEndpoint_, params_.reconnectInterval);
+        socket_ = std::make_unique<FramingSocket>(loop_);
+
+        socket_->setMaxMessageLength(maxMessageLength_);
+        socket_->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
+        socket_->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
+        socket_->setRecvChunkSize(recvChunkSize_);
+        socket_->setRecvTimeout(recvTimeout_);
+        socket_->setSendTimeout(sendTimeout_);
+        socket_->setNoDelay(noDelay_);
+        socket_->setKeepAlive(keepAlive_);
+
+        if (reconnectInterval_.count() > 0) {
+            enableAutoReconnectAndOpen(*socket_, *remoteEndpoint_, reconnectInterval_);
         } else {
             socket_->open(*remoteEndpoint_);
         }

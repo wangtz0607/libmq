@@ -40,6 +40,12 @@ Buffer &Buffer::operator=(Buffer other) noexcept {
     return *this;
 }
 
+void Buffer::setMaxCapacity(size_t maxCapacity) {
+    CHECK(maxCapacity >= capacity_);
+
+    maxCapacity_ = maxCapacity;
+}
+
 void Buffer::extendBack(size_t size) {
     CHECK(end_ - begin_ + size <= maxCapacity_);
 

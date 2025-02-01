@@ -14,9 +14,7 @@
 
 using namespace mq;
 
-Subscriber::Subscriber(EventLoop *loop, Params params)
-    : loop_(loop),
-      params_(params) {
+Subscriber::Subscriber(EventLoop *loop) : loop_(loop) {
     LOG(debug, "");
 }
 
@@ -24,6 +22,134 @@ Subscriber::~Subscriber() {
     LOG(debug, "");
 
     CHECK(state_ == State::kClosed);
+}
+
+void Subscriber::setMaxMessageLength(size_t maxMessageLength) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        maxMessageLength_ = maxMessageLength;
+    } else {
+        loop_->postAndWait([this, maxMessageLength] {
+            CHECK(state_ == State::kClosed);
+
+            maxMessageLength_ = maxMessageLength;
+        });
+    }
+}
+
+void Subscriber::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        recvBufferMaxCapacity_ = recvBufferMaxCapacity;
+    } else {
+        loop_->postAndWait([this, recvBufferMaxCapacity] {
+            CHECK(state_ == State::kClosed);
+
+            recvBufferMaxCapacity_ = recvBufferMaxCapacity;
+        });
+    }
+}
+
+void Subscriber::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        sendBufferMaxCapacity_ = sendBufferMaxCapacity;
+    } else {
+        loop_->postAndWait([this, sendBufferMaxCapacity] {
+            CHECK(state_ == State::kClosed);
+
+            sendBufferMaxCapacity_ = sendBufferMaxCapacity;
+        });
+    }
+}
+
+void Subscriber::setRecvChunkSize(size_t recvChunkSize) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        recvChunkSize_ = recvChunkSize;
+    } else {
+        loop_->postAndWait([this, recvChunkSize] {
+            CHECK(state_ == State::kClosed);
+
+            recvChunkSize_ = recvChunkSize;
+        });
+    }
+}
+
+void Subscriber::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        recvTimeout_ = recvTimeout;
+    } else {
+        loop_->postAndWait([this, recvTimeout] {
+            CHECK(state_ == State::kClosed);
+
+            recvTimeout_ = recvTimeout;
+        });
+    }
+}
+
+void Subscriber::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        sendTimeout_ = sendTimeout;
+    } else {
+        loop_->postAndWait([this, sendTimeout] {
+            CHECK(state_ == State::kClosed);
+
+            sendTimeout_ = sendTimeout;
+        });
+    }
+}
+
+void Subscriber::setNoDelay(bool noDelay) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        noDelay_ = noDelay;
+    } else {
+        loop_->postAndWait([this, noDelay] {
+            CHECK(state_ == State::kClosed);
+
+            noDelay_ = noDelay;
+        });
+    }
+}
+
+void Subscriber::setKeepAlive(KeepAlive keepAlive) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        keepAlive_ = keepAlive;
+    } else {
+        loop_->postAndWait([this, keepAlive] {
+            CHECK(state_ == State::kClosed);
+
+            keepAlive_ = keepAlive;
+        });
+    }
 }
 
 void Subscriber::setConnectCallback(ConnectCallback connectCallback) {
@@ -120,7 +246,16 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
             LOG(info, "{} -> {}", oldState, state_);
         }
 
-        std::unique_ptr<FramingSocket> socket = std::make_unique<FramingSocket>(loop_, params_.framingSocket);
+        std::unique_ptr<FramingSocket> socket = std::make_unique<FramingSocket>(loop_);
+
+        socket->setMaxMessageLength(maxMessageLength_);
+        socket->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
+        socket->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
+        socket->setRecvChunkSize(recvChunkSize_);
+        socket->setRecvTimeout(recvTimeout_);
+        socket->setSendTimeout(sendTimeout_);
+        socket->setNoDelay(noDelay_);
+        socket->setKeepAlive(keepAlive_);
 
         socket->addConnectCallback([this, socket = socket.get()](int error) {
             return onFramingSocketConnect(socket, error);
@@ -129,7 +264,7 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
             return onFramingSocketRecv(socket, message);
         });
 
-        enableAutoReconnectAndOpen(*socket, remoteEndpoint, params_.reconnectInterval);
+        enableAutoReconnectAndOpen(*socket, remoteEndpoint, reconnectInterval_);
 
         topics_.emplace(socket.get(), std::move(topics));
         sockets_.emplace(remoteEndpoint.clone(), std::move(socket));

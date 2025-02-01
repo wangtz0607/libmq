@@ -14,66 +14,6 @@ namespace mq {
 
 class FramingAcceptor {
 public:
-    struct Params {
-        bool reuseAddr;
-        FramingSocket::Params framingSocket;
-
-        Params() = default;
-
-        Params(bool reuseAddr, FramingSocket::Params framingSocket)
-            : reuseAddr(reuseAddr), framingSocket(framingSocket) {}
-
-        bool operator==(const Params &) const = default;
-
-        Params withReuseAddr(bool reuseAddr) const {
-            return {reuseAddr, framingSocket};
-        }
-
-        Params withMaxMessageLength(size_t maxMessageLength) const {
-            return {reuseAddr, framingSocket.withMaxMessageLength(maxMessageLength)};
-        }
-
-        Params withRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) const {
-            return {reuseAddr, framingSocket.withRecvBufferMaxCapacity(recvBufferMaxCapacity)};
-        }
-
-        Params withSendBufferMaxCapacity(size_t sendBufferMaxCapacity) const {
-            return {reuseAddr, framingSocket.withSendBufferMaxCapacity(sendBufferMaxCapacity)};
-        }
-
-        Params withRecvChunkSize(size_t recvChunkSize) const {
-            return {reuseAddr, framingSocket.withRecvChunkSize(recvChunkSize)};
-        }
-
-        Params withRecvTimeout(std::chrono::nanoseconds recvTimeout) const {
-            return {reuseAddr, framingSocket.withRecvTimeout(recvTimeout)};
-        }
-
-        Params withSendTimeout(std::chrono::nanoseconds sendTimeout) const {
-            return {reuseAddr, framingSocket.withSendTimeout(sendTimeout)};
-        }
-
-        Params withNoDelay(bool noDelay) const {
-            return {reuseAddr, framingSocket.withNoDelay(noDelay)};
-        }
-
-        Params withKeepAliveOff() const {
-            return {reuseAddr, framingSocket.withKeepAliveOff()};
-        }
-
-        Params withKeepAliveIdle(std::chrono::seconds idle) const {
-            return {reuseAddr, framingSocket.withKeepAliveIdle(idle)};
-        }
-
-        Params withKeepAliveInterval(std::chrono::seconds interval) const {
-            return {reuseAddr, framingSocket.withKeepAliveInterval(interval)};
-        }
-
-        Params withKeepAliveCount(int count) const {
-            return {reuseAddr, framingSocket.withKeepAliveCount(count)};
-        }
-    };
-
     enum class State {
         kClosed,
         kListening,
@@ -81,20 +21,7 @@ public:
 
     using AcceptCallback = std::function<bool (std::unique_ptr<FramingSocket> socket, const Endpoint &remoteEndpoint)>;
 
-    static Params defaultParams() {
-        return Params()
-            .withReuseAddr(true)
-            .withMaxMessageLength(8 * 1024 * 1024)
-            .withRecvBufferMaxCapacity(16 * 1024 * 1024)
-            .withSendBufferMaxCapacity(16 * 1024 * 1024)
-            .withRecvChunkSize(4096)
-            .withRecvTimeout({})
-            .withSendTimeout({})
-            .withNoDelay(false)
-            .withKeepAliveOff();
-    }
-
-    explicit FramingAcceptor(EventLoop *loop, Params params = defaultParams());
+    explicit FramingAcceptor(EventLoop *loop);
     ~FramingAcceptor();
 
     FramingAcceptor(const FramingAcceptor &) = delete;
@@ -107,9 +34,15 @@ public:
         return loop_;
     }
 
-    const Params &params() const {
-        return params_;
-    }
+    void setReuseAddr(bool reuseAddr);
+    void setMaxMessageLength(size_t maxMessageLength);
+    void setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity);
+    void setSendBufferMaxCapacity(size_t sendBufferMaxCapacity);
+    void setRecvChunkSize(size_t recvChunkSize);
+    void setRecvTimeout(std::chrono::nanoseconds recvTimeout);
+    void setSendTimeout(std::chrono::nanoseconds sendTimeout);
+    void setNoDelay(bool noDelay);
+    void setKeepAlive(KeepAlive keepAlive);
 
     State state();
     Acceptor &acceptor();
@@ -127,7 +60,15 @@ public:
 
 private:
     EventLoop *loop_;
-    Params params_;
+    bool reuseAddr_ = true;
+    size_t maxMessageLength_ = 8 * 1024 * 1024;
+    size_t recvBufferMaxCapacity_ = 16 * 1024 * 1024;
+    size_t sendBufferMaxCapacity_ = 16 * 1024 * 1024;
+    size_t recvChunkSize_ = 4096;
+    std::chrono::nanoseconds recvTimeout_{};
+    std::chrono::nanoseconds sendTimeout_{};
+    bool noDelay_ = false;
+    KeepAlive keepAlive_{};
     State state_ = State::kClosed;
     std::unique_ptr<Acceptor> acceptor_;
     std::unique_ptr<Endpoint> localEndpoint_;

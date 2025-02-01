@@ -19,9 +19,7 @@
 
 using namespace mq;
 
-FramingSocket::FramingSocket(EventLoop *loop, Params params)
-    : loop_(loop),
-      params_(params) {
+FramingSocket::FramingSocket(EventLoop *loop) : loop_(loop) {
     LOG(debug, "");
 }
 
@@ -31,6 +29,78 @@ FramingSocket::~FramingSocket() {
     CHECK(loop_->isInLoopThread());
     CHECK(loop_->state() == EventLoop::State::kTask);
     CHECK(state_ == State::kClosed);
+}
+
+void FramingSocket::setMaxMessageLength(size_t maxMessageLength) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    maxMessageLength_ = maxMessageLength;
+}
+
+void FramingSocket::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvBufferMaxCapacity_ = recvBufferMaxCapacity;
+}
+
+void FramingSocket::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sendBufferMaxCapacity_ = sendBufferMaxCapacity;
+}
+
+void FramingSocket::setRecvChunkSize(size_t recvChunkSize) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvChunkSize_ = recvChunkSize;
+}
+
+void FramingSocket::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvTimeout_ = recvTimeout;
+}
+
+void FramingSocket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sendTimeout_ = sendTimeout;
+}
+
+void FramingSocket::setNoDelay(bool noDelay) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    noDelay_ = noDelay;
+}
+
+void FramingSocket::setKeepAlive(KeepAlive keepAlive) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    keepAlive_ = keepAlive;
 }
 
 FramingSocket::State FramingSocket::state() const {
@@ -221,7 +291,15 @@ void FramingSocket::open(const Endpoint &remoteEndpoint) {
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
-    socket_ = std::make_unique<Socket>(loop_, params_.socket);
+    socket_ = std::make_unique<Socket>(loop_);
+
+    socket_->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
+    socket_->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
+    socket_->setRecvChunkSize(recvChunkSize_);
+    socket_->setRecvTimeout(recvTimeout_);
+    socket_->setSendTimeout(sendTimeout_);
+    socket_->setNoDelay(noDelay_);
+    socket_->setKeepAlive(keepAlive_);
 
     socket_->addConnectCallback([this, remoteEndpoint = remoteEndpoint.clone()](int error) {
         if (error == 0) {
@@ -269,7 +347,6 @@ void FramingSocket::open(std::unique_ptr<Socket> socket, const Endpoint &remoteE
     LOG(debug, "");
 
     CHECK(loop_->isInLoopThread());
-    CHECK(socket->params() == params_.socket);
     CHECK(socket->state() == Socket::State::kConnected);
     CHECK(state_ == State::kClosed);
 
@@ -299,7 +376,7 @@ int FramingSocket::send(std::string_view message) {
     LOG(debug, "message: size={}", message.size());
 
     CHECK(loop_->isInLoopThread());
-    CHECK(message.size() <= params_.maxMessageLength);
+    CHECK(message.size() <= maxMessageLength_);
 
     if (state_ != State::kConnected) return ENOTCONN;
 
@@ -315,7 +392,7 @@ int FramingSocket::send(const std::vector<std::string_view> &messages) {
     CHECK(loop_->isInLoopThread());
 
     for (std::string_view message : messages) {
-        CHECK(message.size() <= params_.maxMessageLength);
+        CHECK(message.size() <= maxMessageLength_);
     }
 
     if (state_ != State::kConnected) return ENOTCONN;
@@ -392,7 +469,7 @@ bool FramingSocket::onSocketRecv(const char *data, size_t size, size_t &newSize)
         memcpy(&length, data, 4);
         length = fromLittleEndian(length);
 
-        if (length > params_.maxMessageLength) {
+        if (length > maxMessageLength_) {
             LOG(warning, "Message too long ({})", length);
 
             close(EMSGSIZE);

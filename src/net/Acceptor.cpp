@@ -23,8 +23,7 @@
 
 using namespace mq;
 
-Acceptor::Acceptor(EventLoop *loop, Params params)
-    : loop_(loop), params_(params) {
+Acceptor::Acceptor(EventLoop *loop) : loop_(loop) {
     LOG(debug, "");
 }
 
@@ -34,6 +33,78 @@ Acceptor::~Acceptor() {
     CHECK(loop_->isInLoopThread());
     CHECK(loop_->state() == EventLoop::State::kTask);
     CHECK(state_ == State::kClosed);
+}
+
+void Acceptor::setReuseAddr(bool reuseAddr) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    reuseAddr_ = reuseAddr;
+}
+
+void Acceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvBufferMaxCapacity_ = recvBufferMaxCapacity;
+}
+
+void Acceptor::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sendBufferMaxCapacity_ = sendBufferMaxCapacity;
+}
+
+void Acceptor::setRecvChunkSize(size_t recvChunkSize) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvChunkSize_ = recvChunkSize;
+}
+
+void Acceptor::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvTimeout_ = recvTimeout;
+}
+
+void Acceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sendTimeout_ = sendTimeout;
+}
+
+void Acceptor::setNoDelay(bool noDelay) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    noDelay_ = noDelay;
+}
+
+void Acceptor::setKeepAlive(KeepAlive keepAlive) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    keepAlive_ = keepAlive;
 }
 
 Acceptor::State Acceptor::state() const {
@@ -116,7 +187,7 @@ int Acceptor::open(const Endpoint &localEndpoint) {
     CHECK((fd_ = socket(localEndpoint.domain(), SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)) >= 0);
     LOG(debug, "fd={}", fd_);
 
-    if (params_.reuseAddr) {
+    if (reuseAddr_) {
         int optVal = 1;
         CHECK(setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &optVal, sizeof(optVal)) == 0);
     }
@@ -238,7 +309,16 @@ bool Acceptor::onWatcherReadReady() {
 
     LOG(debug, "accept: connFd={}, remoteEndpoint={}", connFd, *remoteEndpoint);
 
-    std::unique_ptr<Socket> socket = std::make_unique<Socket>(loop_, params_.socket);
+    std::unique_ptr<Socket> socket = std::make_unique<Socket>(loop_);
+
+    socket->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
+    socket->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
+    socket->setRecvChunkSize(recvChunkSize_);
+    socket->setRecvTimeout(recvTimeout_);
+    socket->setSendTimeout(sendTimeout_);
+    socket->setNoDelay(noDelay_);
+    socket->setKeepAlive(keepAlive_);
+
     socket->open(connFd, *remoteEndpoint);
 
     dispatchAccept(std::move(socket), *remoteEndpoint);

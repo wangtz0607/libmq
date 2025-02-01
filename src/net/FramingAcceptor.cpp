@@ -11,8 +11,7 @@
 
 using namespace mq;
 
-FramingAcceptor::FramingAcceptor(EventLoop *loop, Params params)
-    : loop_(loop), params_(params) {
+FramingAcceptor::FramingAcceptor(EventLoop *loop): loop_(loop) {
     LOG(debug, "");
 }
 
@@ -22,6 +21,87 @@ FramingAcceptor::~FramingAcceptor() {
     CHECK(loop_->isInLoopThread());
     CHECK(loop_->state() == EventLoop::State::kTask);
     CHECK(state_ == State::kClosed);
+}
+
+void FramingAcceptor::setReuseAddr(bool reuseAddr) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    reuseAddr_ = reuseAddr;
+}
+
+void FramingAcceptor::setMaxMessageLength(size_t maxMessageLength) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    maxMessageLength_ = maxMessageLength;
+}
+
+void FramingAcceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvBufferMaxCapacity_ = recvBufferMaxCapacity;
+}
+
+void FramingAcceptor::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sendBufferMaxCapacity_ = sendBufferMaxCapacity;
+}
+
+void FramingAcceptor::setRecvChunkSize(size_t recvChunkSize) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvChunkSize_ = recvChunkSize;
+}
+
+void FramingAcceptor::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    recvTimeout_ = recvTimeout;
+}
+
+void FramingAcceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sendTimeout_ = sendTimeout;
+}
+
+void FramingAcceptor::setNoDelay(bool noDelay) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    noDelay_ = noDelay;
+}
+
+void FramingAcceptor::setKeepAlive(KeepAlive keepAlive) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    keepAlive_ = keepAlive;
 }
 
 FramingAcceptor::State FramingAcceptor::state() {
@@ -94,11 +174,21 @@ int FramingAcceptor::open(const Endpoint &localEndpoint) {
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
-    Acceptor::Params params{params_.reuseAddr, params_.framingSocket.socket};
-    acceptor_ = std::make_unique<Acceptor>(loop_, params);
+    acceptor_ = std::make_unique<Acceptor>(loop_);
+
+    acceptor_->setReuseAddr(reuseAddr_);
+    acceptor_->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
+    acceptor_->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
+    acceptor_->setRecvChunkSize(recvChunkSize_);
+    acceptor_->setRecvTimeout(recvTimeout_);
+    acceptor_->setSendTimeout(sendTimeout_);
+    acceptor_->setNoDelay(noDelay_);
+    acceptor_->setKeepAlive(keepAlive_);
+
     acceptor_->addAcceptCallback([this](std::unique_ptr<Socket> socket, const Endpoint &remoteEndpoint) {
         return onAcceptorAccept(std::move(socket), remoteEndpoint);
     });
+
     if (int error = acceptor_->open(localEndpoint)) {
         return error;
     }
@@ -157,7 +247,17 @@ void FramingAcceptor::reset() {
 bool FramingAcceptor::onAcceptorAccept(std::unique_ptr<Socket> socket, const Endpoint &remoteEndpoint) {
     LOG(debug, "");
 
-    std::unique_ptr<FramingSocket> framingSocket = std::make_unique<FramingSocket>(loop_, params_.framingSocket);
+    std::unique_ptr<FramingSocket> framingSocket = std::make_unique<FramingSocket>(loop_);
+
+    framingSocket->setMaxMessageLength(maxMessageLength_);
+    framingSocket->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
+    framingSocket->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
+    framingSocket->setRecvChunkSize(recvChunkSize_);
+    framingSocket->setRecvTimeout(recvTimeout_);
+    framingSocket->setSendTimeout(sendTimeout_);
+    framingSocket->setNoDelay(noDelay_);
+    framingSocket->setKeepAlive(keepAlive_);
+
     framingSocket->open(std::move(socket), remoteEndpoint);
 
     dispatchAccept(std::move(framingSocket), remoteEndpoint);

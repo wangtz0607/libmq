@@ -34,78 +34,6 @@ struct KeepAlive {
 
 class Socket : public std::enable_shared_from_this<Socket> {
 public:
-    struct Params {
-        size_t recvBufferMaxCapacity;
-        size_t sendBufferMaxCapacity;
-        size_t recvChunkSize;
-        std::chrono::nanoseconds recvTimeout;
-        std::chrono::nanoseconds sendTimeout;
-        bool noDelay;
-        KeepAlive keepAlive;
-
-        Params() = default;
-
-        Params(size_t recvBufferMaxCapacity,
-               size_t sendBufferMaxCapacity,
-               size_t recvChunkSize,
-               std::chrono::nanoseconds recvTimeout,
-               std::chrono::nanoseconds sendTimeout,
-               bool noDelay,
-               KeepAlive keepAlive)
-            : recvBufferMaxCapacity(recvBufferMaxCapacity),
-              sendBufferMaxCapacity(sendBufferMaxCapacity),
-              recvChunkSize(recvChunkSize),
-              recvTimeout(recvTimeout),
-              sendTimeout(sendTimeout),
-              noDelay(noDelay),
-              keepAlive(keepAlive) {}
-
-        bool operator==(const Params &) const = default;
-
-        Params withRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
-        }
-
-        Params withSendBufferMaxCapacity(size_t sendBufferMaxCapacity) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
-        }
-
-        Params withRecvChunkSize(size_t recvChunkSize) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
-        }
-
-        Params withRecvTimeout(std::chrono::nanoseconds recvTimeout) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
-        }
-
-        Params withSendTimeout(std::chrono::nanoseconds sendTimeout) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
-        }
-
-        Params withNoDelay(bool noDelay) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, keepAlive};
-        }
-
-        Params withKeepAliveOff() const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay, {}};
-        }
-
-        Params withKeepAliveIdle(std::chrono::seconds idle) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay,
-                {idle, keepAlive.interval, keepAlive.count}};
-        }
-
-        Params withKeepAliveInterval(std::chrono::seconds interval) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay,
-                {keepAlive.idle, interval, keepAlive.count}};
-        }
-
-        Params withKeepAliveCount(int count) const {
-            return {recvBufferMaxCapacity, sendBufferMaxCapacity, recvChunkSize, recvTimeout, sendTimeout, noDelay,
-                {keepAlive.idle, keepAlive.interval, count}};
-        }
-    };
-
     enum class State {
         kClosed,
         kConnecting,
@@ -117,18 +45,7 @@ public:
     using SendCompleteCallback = std::move_only_function<bool ()>;
     using CloseCallback = std::move_only_function<bool (int error, const char *data, size_t size)>;
 
-    static Params defaultParams() {
-        return Params()
-            .withRecvBufferMaxCapacity(16 * 1024 * 1024)
-            .withSendBufferMaxCapacity(16 * 1024 * 1024)
-            .withRecvChunkSize(4096)
-            .withRecvTimeout({})
-            .withSendTimeout({})
-            .withNoDelay(false)
-            .withKeepAliveOff();
-    }
-
-    explicit Socket(EventLoop *loop, Params params = defaultParams());
+    explicit Socket(EventLoop *loop);
     ~Socket();
 
     Socket(const Socket &) = delete;
@@ -141,9 +58,13 @@ public:
         return loop_;
     }
 
-    const Params &params() const {
-        return params_;
-    }
+    void setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity);
+    void setSendBufferMaxCapacity(size_t sendBufferMaxCapacity);
+    void setRecvChunkSize(size_t recvChunkSize);
+    void setRecvTimeout(std::chrono::nanoseconds recvTimeout);
+    void setSendTimeout(std::chrono::nanoseconds sendTimeout);
+    void setNoDelay(bool noDelay);
+    void setKeepAlive(KeepAlive keepAlive);
 
     State state() const;
     int fd() const;
@@ -181,7 +102,11 @@ public:
 
 private:
     EventLoop *loop_;
-    Params params_;
+    size_t recvChunkSize_ = 4096;
+    std::chrono::nanoseconds recvTimeout_{};
+    std::chrono::nanoseconds sendTimeout_{};
+    bool noDelay_ = false;
+    KeepAlive keepAlive_{};
     State state_ = State::kClosed;
     int fd_;
     std::unique_ptr<Watcher> watcher_;

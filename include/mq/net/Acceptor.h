@@ -14,62 +14,6 @@ namespace mq {
 
 class Acceptor {
 public:
-    struct Params {
-        bool reuseAddr;
-        Socket::Params socket;
-
-        Params() = default;
-
-        Params(bool reuseAddr, Socket::Params socket)
-            : reuseAddr(reuseAddr), socket(socket) {}
-
-        bool operator==(const Params &) const = default;
-
-        Params withReuseAddr(bool reuseAddr) const {
-            return {reuseAddr, socket};
-        }
-
-        Params withRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) const {
-            return {reuseAddr, socket.withRecvBufferMaxCapacity(recvBufferMaxCapacity)};
-        }
-
-        Params withSendBufferMaxCapacity(size_t sendBufferMaxCapacity) const {
-            return {reuseAddr, socket.withSendBufferMaxCapacity(sendBufferMaxCapacity)};
-        }
-
-        Params withRecvChunkSize(size_t recvChunkSize) const {
-            return {reuseAddr, socket.withRecvChunkSize(recvChunkSize)};
-        }
-
-        Params withRecvTimeout(std::chrono::nanoseconds recvTimeout) const {
-            return {reuseAddr, socket.withRecvTimeout(recvTimeout)};
-        }
-
-        Params withSendTimeout(std::chrono::nanoseconds sendTimeout) const {
-            return {reuseAddr, socket.withSendTimeout(sendTimeout)};
-        }
-
-        Params withNoDelay(bool noDelay) const {
-            return {reuseAddr, socket.withNoDelay(noDelay)};
-        }
-
-        Params withKeepAliveOff() const {
-            return {reuseAddr, socket.withKeepAliveOff()};
-        }
-
-        Params withKeepAliveIdle(std::chrono::seconds idle) const {
-            return {reuseAddr, socket.withKeepAliveIdle(idle)};
-        }
-
-        Params withKeepAliveInterval(std::chrono::seconds interval) const {
-            return {reuseAddr, socket.withKeepAliveInterval(interval)};
-        }
-
-        Params withKeepAliveCount(int count) const {
-            return {reuseAddr, socket.withKeepAliveCount(count)};
-        }
-    };
-
     enum class State {
         kClosed,
         kListening,
@@ -77,19 +21,7 @@ public:
 
     using AcceptCallback = std::function<bool (std::unique_ptr<Socket> socket, const Endpoint &remoteEndpoint)>;
 
-    static Params defaultParams() {
-        return Params()
-            .withReuseAddr(true)
-            .withRecvBufferMaxCapacity(16 * 1024 * 1024)
-            .withSendBufferMaxCapacity(16 * 1024 * 1024)
-            .withRecvChunkSize(4096)
-            .withRecvTimeout({})
-            .withSendTimeout({})
-            .withNoDelay(false)
-            .withKeepAliveOff();
-    }
-
-    explicit Acceptor(EventLoop *loop, Params params = defaultParams());
+    explicit Acceptor(EventLoop *loop);
     ~Acceptor();
 
     Acceptor(const Acceptor &) = delete;
@@ -102,9 +34,14 @@ public:
         return loop_;
     }
 
-    const Params &params() const {
-        return params_;
-    }
+    void setReuseAddr(bool reuseAddr);
+    void setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity);
+    void setSendBufferMaxCapacity(size_t sendBufferMaxCapacity);
+    void setRecvChunkSize(size_t recvChunkSize);
+    void setRecvTimeout(std::chrono::nanoseconds recvTimeout);
+    void setSendTimeout(std::chrono::nanoseconds sendTimeout);
+    void setNoDelay(bool noDelay);
+    void setKeepAlive(KeepAlive keepAlive);
 
     State state() const;
     int fd() const;
@@ -123,7 +60,14 @@ public:
 
 private:
     EventLoop *loop_;
-    Params params_;
+    bool reuseAddr_ = true;
+    size_t recvBufferMaxCapacity_ = 16 * 1024 * 1024;
+    size_t sendBufferMaxCapacity_ = 16 * 1024 * 1024;
+    size_t recvChunkSize_ = 4096;
+    std::chrono::nanoseconds recvTimeout_{};
+    std::chrono::nanoseconds sendTimeout_{};
+    bool noDelay_ = false;
+    KeepAlive keepAlive_{};
     State state_ = State::kClosed;
     int fd_;
     std::unique_ptr<Watcher> watcher_;

@@ -24,67 +24,6 @@ class Subscriber {
     using TopicMap = std::unordered_map<FramingSocket *, std::vector<std::string>>;
 
 public:
-    struct Params {
-        std::chrono::nanoseconds reconnectInterval;
-        FramingSocket::Params framingSocket;
-
-        Params() = default;
-
-        Params(std::chrono::nanoseconds reconnectInterval, FramingSocket::Params framingSocket)
-            : reconnectInterval(reconnectInterval),
-              framingSocket(framingSocket) {}
-
-        bool operator==(const Params &) const = default;
-
-        Params withReconnectInterval(std::chrono::nanoseconds reconnectInterval) const {
-            return {reconnectInterval, framingSocket};
-        }
-
-        Params withMaxMessageLength(size_t maxMessageLength) const {
-            return {reconnectInterval, framingSocket.withMaxMessageLength(maxMessageLength)};
-        }
-
-        Params withRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) const {
-            return {reconnectInterval, framingSocket.withRecvBufferMaxCapacity(recvBufferMaxCapacity)};
-        }
-
-        Params withSendBufferMaxCapacity(size_t sendBufferMaxCapacity) const {
-            return {reconnectInterval, framingSocket.withSendBufferMaxCapacity(sendBufferMaxCapacity)};
-        }
-
-        Params withRecvChunkSize(size_t recvChunkSize) const {
-            return {reconnectInterval, framingSocket.withRecvChunkSize(recvChunkSize)};
-        }
-
-        Params withRecvTimeout(std::chrono::nanoseconds recvTimeout) const {
-            return {reconnectInterval, framingSocket.withRecvTimeout(recvTimeout)};
-        }
-
-        Params withSendTimeout(std::chrono::nanoseconds sendTimeout) const {
-            return {reconnectInterval, framingSocket.withSendTimeout(sendTimeout)};
-        }
-
-        Params withNoDelay(bool noDelay) const {
-            return {reconnectInterval, framingSocket.withNoDelay(noDelay)};
-        }
-
-        Params withKeepAliveOff() const {
-            return {reconnectInterval, framingSocket.withKeepAliveOff()};
-        }
-
-        Params withKeepAliveIdle(std::chrono::seconds idle) const {
-            return {reconnectInterval, framingSocket.withKeepAliveIdle(idle)};
-        }
-
-        Params withKeepAliveInterval(std::chrono::seconds interval) const {
-            return {reconnectInterval, framingSocket.withKeepAliveInterval(interval)};
-        }
-
-        Params withKeepAliveCount(int count) const {
-            return {reconnectInterval, framingSocket.withKeepAliveCount(count)};
-        }
-    };
-
     enum class State {
         kClosed,
         kOpened,
@@ -93,20 +32,7 @@ public:
     using ConnectCallback = std::move_only_function<void (const Endpoint &remoteEndpoint)>;
     using RecvCallback = std::move_only_function<void (const Endpoint &remoteEndpoint, std::string_view message)>;
 
-    static Params defaultParams() {
-        return Params()
-            .withReconnectInterval(std::chrono::milliseconds(100))
-            .withMaxMessageLength(8 * 1024 * 1024)
-            .withRecvBufferMaxCapacity(16 * 1024 * 1024)
-            .withSendBufferMaxCapacity(16 * 1024 * 1024)
-            .withRecvChunkSize(4096)
-            .withRecvTimeout({})
-            .withSendTimeout({})
-            .withNoDelay(true)
-            .withKeepAliveOff();
-    }
-
-    Subscriber(EventLoop *loop, Params params = defaultParams());
+    explicit Subscriber(EventLoop *loop);
     ~Subscriber();
 
     Subscriber(const Subscriber &) = delete;
@@ -119,9 +45,15 @@ public:
         return loop_;
     }
 
-    const Params &params() const {
-        return params_;
-    }
+    void setReconnectInterval(std::chrono::nanoseconds reconnectInterval);
+    void setMaxMessageLength(size_t maxMessageLength);
+    void setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity);
+    void setSendBufferMaxCapacity(size_t sendBufferMaxCapacity);
+    void setRecvChunkSize(size_t recvChunkSize);
+    void setRecvTimeout(std::chrono::nanoseconds recvTimeout);
+    void setSendTimeout(std::chrono::nanoseconds sendTimeout);
+    void setNoDelay(bool noDelay);
+    void setKeepAlive(KeepAlive keepAlive);
 
     void setConnectCallback(ConnectCallback connectCallback);
     void setRecvCallback(RecvCallback recvCallback);
@@ -138,7 +70,15 @@ public:
 
 private:
     EventLoop *loop_;
-    Params params_;
+    std::chrono::nanoseconds reconnectInterval_ = std::chrono::milliseconds(100);
+    size_t maxMessageLength_ = 8 * 1024 * 1024;
+    size_t recvBufferMaxCapacity_ = 16 * 1024 * 1024;
+    size_t sendBufferMaxCapacity_ = 16 * 1024 * 1024;
+    size_t recvChunkSize_ = 4096;
+    std::chrono::nanoseconds recvTimeout_{};
+    std::chrono::nanoseconds sendTimeout_{};
+    bool noDelay_ = true;
+    KeepAlive keepAlive_{};
     ConnectCallback connectCallback_;
     RecvCallback recvCallback_;
     Executor *connectCallbackExecutor_ = nullptr;
