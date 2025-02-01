@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <format>
 #include <print>
@@ -29,6 +31,7 @@ int main() {
 
     if (int error = replier.open()) {
         std::println(stderr, "error: {}", strerror(error));
+        exit(1);
     }
 
     loop.run();

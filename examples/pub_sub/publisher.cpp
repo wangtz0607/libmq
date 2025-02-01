@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <format>
 #include <print>
@@ -20,6 +21,7 @@ int main() {
 
     if (int error = publisher.open()) {
         std::println(stderr, "error: {}", strerror(error));
+        exit(1);
     }
 
     for (;;) {
