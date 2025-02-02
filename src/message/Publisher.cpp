@@ -195,6 +195,7 @@ int Publisher::open() {
     if (loop_->isInLoopThread()) {
         acceptor_ = std::make_unique<FramingAcceptor>(loop_);
 
+        acceptor_->setReuseAddr(reuseAddr_);
         acceptor_->setMaxMessageLength(maxMessageLength_);
         acceptor_->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
         acceptor_->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
