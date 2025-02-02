@@ -23,7 +23,7 @@ public:
 
     TCPV6Endpoint(const std::string &hostAndInterface, uint16_t port);
 
-    explicit TCPV6Endpoint(const struct sockaddr_in6 &addr)
+    explicit TCPV6Endpoint(const sockaddr_in6 &addr)
         : addr_(addr) {}
 
     IPV6Host host() const;
@@ -34,8 +34,8 @@ public:
         return AF_INET6;
     }
 
-    const struct sockaddr *addr() const override {
-        return reinterpret_cast<const struct sockaddr *>(&addr_);
+    const sockaddr *addr() const override {
+        return reinterpret_cast<const sockaddr *>(&addr_);
     }
 
     socklen_t addrLen() const override {
@@ -50,7 +50,7 @@ protected:
     size_t hashCode() const noexcept override;
 
 private:
-    struct sockaddr_in6 addr_;
+    sockaddr_in6 addr_;
 };
 
 } // namespace mq

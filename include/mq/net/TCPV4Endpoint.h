@@ -23,7 +23,7 @@ public:
     TCPV4Endpoint(const std::string &host, uint16_t port)
         : TCPV4Endpoint(IPV4Host(host), port) {}
 
-    explicit TCPV4Endpoint(const struct sockaddr_in &addr)
+    explicit TCPV4Endpoint(const sockaddr_in &addr)
         : addr_(addr) {}
 
     IPV4Host host() const;
@@ -33,8 +33,8 @@ public:
         return AF_INET;
     }
 
-    const struct sockaddr *addr() const override {
-        return reinterpret_cast<const struct sockaddr *>(&addr_);
+    const sockaddr *addr() const override {
+        return reinterpret_cast<const sockaddr *>(&addr_);
     }
 
     socklen_t addrLen() const override {
@@ -49,7 +49,7 @@ protected:
     size_t hashCode() const noexcept override;
 
 private:
-    struct sockaddr_in addr_;
+    sockaddr_in addr_;
 };
 
 } // namespace mq

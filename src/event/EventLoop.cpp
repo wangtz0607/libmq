@@ -36,7 +36,7 @@ EventLoop::EventLoop() {
 
     LOG(debug, "epollFd={}, eventFd={}", epollFd_, eventFd_);
 
-    struct epoll_event event{};
+    epoll_event event{};
     event.events = EPOLLIN;
     event.data.fd = eventFd_;
     CHECK(epoll_ctl(epollFd_, EPOLL_CTL_ADD, eventFd_, &event) == 0);
@@ -82,7 +82,7 @@ void EventLoop::postTimed(TimedTask task, std::chrono::nanoseconds delay) {
 
     LOG(debug, "timerFd={}", timerFd);
 
-    struct itimerspec newValue{};
+    itimerspec newValue{};
     newValue.it_value.tv_sec = delay.count() / 1'000'000'000;
     newValue.it_value.tv_nsec = delay.count() % 1'000'000'000;
 
@@ -93,7 +93,7 @@ void EventLoop::postTimed(TimedTask task, std::chrono::nanoseconds delay) {
         timedTasks_.emplace(timerFd, std::move(task));
     }
 
-    struct epoll_event event{};
+    epoll_event event{};
     event.events = EPOLLIN;
     event.data.fd = timerFd;
     CHECK(epoll_ctl(epollFd_, EPOLL_CTL_ADD, timerFd, &event) == 0);
@@ -107,7 +107,7 @@ void EventLoop::run() {
     CHECK(isInLoopThread());
 
     constexpr size_t kMaxEvents = 256;
-    struct epoll_event events[kMaxEvents];
+    epoll_event events[kMaxEvents];
 
     for (;;) {
         int n = epoll_wait(epollFd_, events, kMaxEvents, -1);
@@ -154,7 +154,7 @@ void EventLoop::run() {
                         CHECK(epoll_ctl(epollFd_, EPOLL_CTL_DEL, fd, nullptr) == 0);
                         CHECK(close(fd) == 0);
                     } else {
-                        struct itimerspec newValue{};
+                        itimerspec newValue{};
                         newValue.it_value.tv_sec = delay.count() / 1'000'000'000;
                         newValue.it_value.tv_nsec = delay.count() % 1'000'000'000;
 
@@ -243,7 +243,7 @@ void EventLoop::addWatcher(Watcher *watcher) {
 
     CHECK(watchers_.emplace(watcher->fd_, watcher).second);
 
-    struct epoll_event event{};
+    epoll_event event{};
     if (watcher->hasReadReadyCallback()) {
         event.events |= EPOLLIN;
     }
@@ -264,7 +264,7 @@ void EventLoop::updateWatcher(Watcher *watcher) {
 
     std::unique_lock lock(watchersMutex_);
 
-    struct epoll_event event{};
+    epoll_event event{};
     if (watcher->hasReadReadyCallback()) {
         event.events |= EPOLLIN;
     }
@@ -287,7 +287,7 @@ void EventLoop::updateWatcherIfRegistered(Watcher *watcher) {
 
     if (watchers_.find(watcher->fd_) == watchers_.end()) return;
 
-    struct epoll_event event{};
+    epoll_event event{};
     if (watcher->hasReadReadyCallback()) {
         event.events |= EPOLLIN;
     }

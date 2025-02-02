@@ -117,7 +117,7 @@ void Timer::setTime(std::chrono::nanoseconds delay) {
     CHECK(state_ == State::kOpened);
     CHECK(delay.count() > 0);
 
-    struct itimerspec newValue{};
+    itimerspec newValue{};
     newValue.it_value.tv_sec = delay.count() / 1'000'000'000;
     newValue.it_value.tv_nsec = delay.count() % 1'000'000'000;
 
@@ -132,7 +132,7 @@ void Timer::setTime(std::chrono::nanoseconds delay, std::chrono::nanoseconds int
     CHECK(delay.count() > 0);
     CHECK(interval.count() > 0);
 
-    struct itimerspec newValue{};
+    itimerspec newValue{};
     newValue.it_value.tv_sec = delay.count() / 1'000'000'000;
     newValue.it_value.tv_nsec = delay.count() % 1'000'000'000;
     newValue.it_interval.tv_sec = interval.count() / 1'000'000'000;
@@ -147,7 +147,7 @@ void Timer::cancel() {
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kOpened);
 
-    struct itimerspec newValue{};
+    itimerspec newValue{};
     CHECK(timerfd_settime(fd_, 0, &newValue, nullptr) == 0);
 }
 

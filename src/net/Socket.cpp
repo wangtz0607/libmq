@@ -37,21 +37,21 @@ std::unique_ptr<Endpoint> getSockName(int fd) {
 
     switch (optVal) {
         case AF_INET: {
-            struct sockaddr_in addr;
+            sockaddr_in addr;
             socklen_t addrLen = sizeof(addr);
-            CHECK(getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrLen) == 0);
+            CHECK(getsockname(fd, reinterpret_cast<sockaddr *>(&addr), &addrLen) == 0);
             return std::make_unique<TCPV4Endpoint>(addr);
         }
         case AF_INET6: {
-            struct sockaddr_in6 addr;
+            sockaddr_in6 addr;
             socklen_t addrLen = sizeof(addr);
-            CHECK(getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrLen) == 0);
+            CHECK(getsockname(fd, reinterpret_cast<sockaddr *>(&addr), &addrLen) == 0);
             return std::make_unique<TCPV6Endpoint>(addr);
         }
         case AF_UNIX: {
-            struct sockaddr_un addr;
+            sockaddr_un addr;
             socklen_t addrLen = sizeof(addr);
-            CHECK(getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrLen) == 0);
+            CHECK(getsockname(fd, reinterpret_cast<sockaddr *>(&addr), &addrLen) == 0);
             return std::make_unique<UnixEndpoint>(addr, addrLen);
         }
         default:

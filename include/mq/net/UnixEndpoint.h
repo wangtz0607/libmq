@@ -16,7 +16,7 @@ class UnixEndpoint final : public Endpoint {
 public:
     explicit UnixEndpoint(const std::filesystem::path &path);
 
-    explicit UnixEndpoint(const struct sockaddr_un &addr, socklen_t addrLen)
+    explicit UnixEndpoint(const sockaddr_un &addr, socklen_t addrLen)
         : addr_(addr), addrLen_(addrLen) {}
 
     std::filesystem::path path() const;
@@ -25,8 +25,8 @@ public:
         return AF_UNIX;
     }
 
-    const struct sockaddr *addr() const override {
-        return reinterpret_cast<const struct sockaddr *>(&addr_);
+    const sockaddr *addr() const override {
+        return reinterpret_cast<const sockaddr *>(&addr_);
     }
 
     socklen_t addrLen() const override {
@@ -41,7 +41,7 @@ protected:
     size_t hashCode() const noexcept override;
 
 private:
-    struct sockaddr_un addr_;
+    sockaddr_un addr_;
     socklen_t addrLen_;
 };
 

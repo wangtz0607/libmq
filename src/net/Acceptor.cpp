@@ -273,10 +273,10 @@ bool Acceptor::onWatcherReadReady() {
 
     switch (localEndpoint()->domain()) {
         case AF_INET: {
-            struct sockaddr_in addr;
+            sockaddr_in addr;
             socklen_t addrLen = sizeof(addr);
             while ((connFd = accept4(fd_,
-                                     reinterpret_cast<struct sockaddr *>(&addr),
+                                     reinterpret_cast<sockaddr *>(&addr),
                                      &addrLen,
                                      SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
@@ -284,10 +284,10 @@ bool Acceptor::onWatcherReadReady() {
             break;
         }
         case AF_INET6: {
-            struct sockaddr_in6 addr;
+            sockaddr_in6 addr;
             socklen_t addrLen = sizeof(addr);
             while ((connFd = accept4(fd_,
-                                     reinterpret_cast<struct sockaddr *>(&addr),
+                                     reinterpret_cast<sockaddr *>(&addr),
                                      &addrLen,
                                      SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
@@ -295,10 +295,10 @@ bool Acceptor::onWatcherReadReady() {
             break;
         }
         case AF_UNIX: {
-            struct sockaddr_un addr;
+            sockaddr_un addr;
             socklen_t addrLen = sizeof(addr);
             while ((connFd = accept4(fd_,
-                                     reinterpret_cast<struct sockaddr *>(&addr),
+                                     reinterpret_cast<sockaddr *>(&addr),
                                      &addrLen,
                                      SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
