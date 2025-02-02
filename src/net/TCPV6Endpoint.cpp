@@ -16,7 +16,6 @@
 #include "mq/net/Endpoint.h"
 #include "mq/net/IPV6Host.h"
 #include "mq/net/NetworkInterface.h"
-#include "mq/utils/Check.h"
 #include "mq/utils/Endian.h"
 #include "mq/utils/Hash.h"
 
@@ -24,34 +23,46 @@
 
 using namespace mq;
 
-TCPV6Endpoint::TCPV6Endpoint(IPV6Host host, NetworkInterface interface, uint16_t port) : addr_{} {
+namespace {
+
+IPV6Host parseHost(const std::string &hostAndInterface) {
+    if (size_t i = hostAndInterface.find('%'); i != std::string::npos) {
+        return IPV6Host(hostAndInterface.substr(0, i));
+    } else {
+        return IPV6Host(hostAndInterface);
+    }
+}
+
+NetworkInterface parseInterface(const std::string &hostAndInterface) {
+    if (size_t i = hostAndInterface.find('%'); i != std::string::npos) {
+        std::string interface = hostAndInterface.substr(i + 1);
+        if (!interface.empty() && std::ranges::all_of(interface, isdigit)) {
+            return NetworkInterface(std::stoi(interface));
+        } else {
+            return NetworkInterface(interface);
+        }
+    } else {
+        return NetworkInterface();
+    }
+}
+
+} // namespace
+
+TCPV6Endpoint::TCPV6Endpoint(IPV6Host host, uint16_t port) : addr_{} {
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
     IPV6Host::Bytes src = host.bytes();
     toBigEndian(src.data(), 16);
     memcpy(&addr_.sin6_addr, src.data(), 16);
+}
+
+TCPV6Endpoint::TCPV6Endpoint(IPV6Host host, NetworkInterface interface, uint16_t port)
+    : TCPV6Endpoint(host, port) {
     addr_.sin6_scope_id = interface.index();
 }
 
-TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAndInterface, uint16_t port) : addr_{} {
-    addr_.sin6_family = AF_INET6;
-    addr_.sin6_port = htons(port);
-
-    if (size_t i = hostAndInterface.find('%'); i != std::string::npos) {
-        std::string host = hostAndInterface.substr(0, i);
-        std::string interface = hostAndInterface.substr(i + 1);
-
-        CHECK(inet_pton(AF_INET6, host.c_str(), &addr_.sin6_addr) == 1);
-
-        if (!interface.empty() && std::ranges::all_of(interface, isdigit)) {
-            addr_.sin6_scope_id = std::stoi(interface);
-        } else {
-            CHECK((addr_.sin6_scope_id = if_nametoindex(interface.c_str())) != 0);
-        }
-    } else {
-        CHECK(inet_pton(AF_INET6, hostAndInterface.c_str(), &addr_.sin6_addr) == 1);
-    }
-}
+TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAndInterface, uint16_t port)
+    : TCPV6Endpoint(parseHost(hostAndInterface), parseInterface(hostAndInterface), port) {}
 
 IPV6Host TCPV6Endpoint::host() const {
     IPV6Host::Bytes dst;

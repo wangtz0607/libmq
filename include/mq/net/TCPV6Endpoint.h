@@ -16,10 +16,9 @@ namespace mq {
 
 class TCPV6Endpoint final : public Endpoint {
 public:
-    TCPV6Endpoint(IPV6Host host, NetworkInterface interface, uint16_t port);
+    TCPV6Endpoint(IPV6Host host, uint16_t port);
 
-    TCPV6Endpoint(IPV6Host host, uint16_t port)
-        : TCPV6Endpoint(host, {}, port) {}
+    TCPV6Endpoint(IPV6Host host, NetworkInterface interface, uint16_t port);
 
     TCPV6Endpoint(const std::string &hostAndInterface, uint16_t port);
 
