@@ -14,6 +14,9 @@ class IPV6Host {
 public:
     using Bytes = std::array<uint8_t, 16>;
 
+    IPV6Host()
+        : host_() {}
+
     explicit IPV6Host(const uint8_t *host);
 
     explicit IPV6Host(const Bytes &host)

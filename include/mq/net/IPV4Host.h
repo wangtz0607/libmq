@@ -9,6 +9,9 @@ namespace mq {
 
 class IPV4Host {
 public:
+    explicit IPV4Host()
+        : host_(0) {}
+
     explicit IPV4Host(uint32_t host)
         : host_(host) {}
 
