@@ -317,36 +317,28 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
             if (int error = socket->send(*replyMessage)) {
                 LOG(warning, "send: error={}", strerrorname_np(error));
 
-                loop_->post([this, socket = socket->weak_from_this()] {
-                    if (socket.expired()) return;
+                loop_->post([this, socket = socket->shared_from_this()] {
+                    socket->reset();
 
-                    socket.lock()->reset();
-
-                    if (auto i = sockets_.find(socket.lock().get()); i != sockets_.end()) {
+                    if (auto i = sockets_.find(socket.get()); i != sockets_.end()) {
                         sockets_.erase(i);
                     }
                 });
             }
         }
     } else {
-        recvCallbackExecutor_->post([this, socket = socket->weak_from_this(), remoteEndpoint = std::move(remoteEndpoint), message = std::string(message)] {
-            if (socket.expired()) return;
-
+        recvCallbackExecutor_->post([this, socket = socket->shared_from_this(), remoteEndpoint = std::move(remoteEndpoint), message = std::string(message)] {
             std::optional<std::string> replyMessage = dispatchRecv(*remoteEndpoint, message);
 
             if (replyMessage) {
                 loop_->post([this, socket, replyMessage = std::move(replyMessage)] {
-                    if (socket.expired()) return;
-
-                    if (int error = socket.lock()->send(*replyMessage)) {
+                    if (int error = socket->send(*replyMessage)) {
                         LOG(warning, "send: error={}", strerrorname_np(error));
 
-                        socket.lock()->reset();
+                        socket->reset();
 
                         loop_->post([this, socket] {
-                            if (socket.expired()) return;
-
-                            if (auto i = sockets_.find(socket.lock().get()); i != sockets_.end()) {
+                            if (auto i = sockets_.find(socket.get()); i != sockets_.end()) {
                                 sockets_.erase(i);
                             }
                         });
