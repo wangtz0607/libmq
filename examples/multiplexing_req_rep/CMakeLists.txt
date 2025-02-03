@@ -1,0 +1,5 @@
+add_executable(multiplexing_requester multiplexing_requester.cpp)
+target_link_libraries(multiplexing_requester mq::mq)
+
+add_executable(multiplexing_replier multiplexing_replier.cpp)
+target_link_libraries(multiplexing_replier mq::mq)

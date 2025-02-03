@@ -8,6 +8,8 @@ add_library(mq
     src/event/EventLoop.cpp
     src/event/Timer.cpp
     src/event/Watcher.cpp
+    src/message/MultiplexingReplier.cpp
+    src/message/MultiplexingRequester.cpp
     src/message/Publisher.cpp
     src/message/Subscriber.cpp
     src/message/Replier.cpp
