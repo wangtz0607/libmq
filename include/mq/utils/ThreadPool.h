@@ -1,7 +1,6 @@
 #pragma once
 
 #include <condition_variable>
-#include <functional>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -13,7 +12,7 @@ namespace mq {
 
 class ThreadPool final : public Executor {
 public:
-    using Task = std::move_only_function<void ()>;
+    using Task = Executor::Task;
 
     explicit ThreadPool(size_t numThreads = std::thread::hardware_concurrency());
     ~ThreadPool();

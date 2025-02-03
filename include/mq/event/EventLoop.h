@@ -2,18 +2,17 @@
 
 #include <chrono>
 #include <format>
-#include <functional>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
 
-#include "mq/utils/Executor.h"
+#include "mq/utils/TimedExecutor.h"
 
 namespace mq {
 
 class Watcher;
 
-class EventLoop final : public Executor {
+class EventLoop final : public TimedExecutor {
 public:
     enum class State {
         kIdle,
@@ -22,8 +21,8 @@ public:
         kTimedTask,
     };
 
-    using Task = std::move_only_function<void ()>;
-    using TimedTask = std::move_only_function<std::chrono::nanoseconds ()>;
+    using Task = TimedExecutor::Task;
+    using TimedTask = TimedExecutor::TimedTask;
 
     EventLoop();
     ~EventLoop();
@@ -40,7 +39,7 @@ public:
 
     State state() const;
     void post(Task task) override;
-    void postTimed(TimedTask task, std::chrono::nanoseconds delay);
+    void postTimed(TimedTask task, std::chrono::nanoseconds delay) override;
     [[noreturn]] void run();
 
     static EventLoop *background();
