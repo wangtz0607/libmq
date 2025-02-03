@@ -253,6 +253,10 @@ void Requester::open() {
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
+        State oldState = state_;
+        state_ = State::kOpened;
+        LOG(info, "{} -> {}", oldState, state_);
+
         socket_ = std::make_unique<FramingSocket>(loop_);
 
         socket_->setMaxMessageLength(maxMessageLength_);
@@ -264,27 +268,23 @@ void Requester::open() {
         socket_->setNoDelay(noDelay_);
         socket_->setKeepAlive(keepAlive_);
 
-        if (reconnectInterval_.count() > 0) {
-            enableAutoReconnectAndOpen(*socket_, *remoteEndpoint_, reconnectInterval_);
-        } else {
-            socket_->open(*remoteEndpoint_);
-        }
-
         socket_->addConnectCallback([this](int error) {
             return onFramingSocketConnect(error);
         });
         socket_->addRecvCallback([this](std::string_view message) {
             return onFramingSocketRecv(message);
         });
+
+        if (reconnectInterval_.count() > 0) {
+            enableAutoReconnectAndOpen(*socket_, *remoteEndpoint_, reconnectInterval_);
+        } else {
+            socket_->open(*remoteEndpoint_);
+        }
     } else {
         loop_->postAndWait([this] {
             open();
         });
     }
-
-    State oldState = state_;
-    state_ = State::kOpened;
-    LOG(info, "{} -> {}", oldState, state_);
 }
 
 void Requester::send(std::string_view message) {
