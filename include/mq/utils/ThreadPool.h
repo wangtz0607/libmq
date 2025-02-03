@@ -15,7 +15,7 @@ public:
     using Task = Executor::Task;
 
     explicit ThreadPool(size_t numThreads = std::thread::hardware_concurrency());
-    ~ThreadPool();
+    ~ThreadPool() override;
 
     ThreadPool(const ThreadPool &) = delete;
     ThreadPool(ThreadPool &&) = delete;

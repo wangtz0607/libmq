@@ -25,7 +25,7 @@ public:
     using TimedTask = TimedExecutor::TimedTask;
 
     EventLoop();
-    ~EventLoop();
+    ~EventLoop() override;
 
     EventLoop(const EventLoop &) = delete;
     EventLoop(EventLoop &&) = delete;
