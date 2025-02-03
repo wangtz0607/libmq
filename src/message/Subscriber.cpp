@@ -264,7 +264,11 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
             return onFramingSocketRecv(socket, message);
         });
 
-        enableAutoReconnectAndOpen(*socket, remoteEndpoint, reconnectInterval_);
+        if (reconnectInterval_.count() > 0) {
+            enableAutoReconnectAndOpen(*socket, remoteEndpoint, reconnectInterval_);
+        } else {
+            socket->open(remoteEndpoint);
+        }
 
         topics_.emplace(socket.get(), std::move(topics));
         sockets_.emplace(remoteEndpoint.clone(), std::move(socket));
