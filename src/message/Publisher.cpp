@@ -205,6 +205,10 @@ int Publisher::open() {
         acceptor_->setNoDelay(noDelay_);
         acceptor_->setKeepAlive(keepAlive_);
 
+        acceptor_->addAcceptCallback([this](std::unique_ptr<FramingSocket> socket, const Endpoint &) {
+            return onFramingAcceptorAccept(std::move(socket));
+        });
+
         error = acceptor_->open(*localEndpoint_);
         if (error) {
             loop_->post([acceptor = std::move(acceptor_)] {});
@@ -214,10 +218,6 @@ int Publisher::open() {
             State oldState = state_;
             state_ = State::kOpened;
             LOG(info, "{} -> {}", oldState, state_);
-
-            acceptor_->addAcceptCallback([this](std::unique_ptr<FramingSocket> socket, const Endpoint &) {
-                return onFramingAcceptorAccept(std::move(socket));
-            });
         }
     } else {
         loop_->postAndWait([this, &error] {
