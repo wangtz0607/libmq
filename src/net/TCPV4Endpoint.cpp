@@ -17,13 +17,13 @@
 
 using namespace mq;
 
-TCPV4Endpoint::TCPV4Endpoint(IPV4Addr host, uint16_t port) : addr_{} {
+TCPV4Endpoint::TCPV4Endpoint(IPV4Addr hostAddr, uint16_t port) : addr_{} {
     addr_.sin_family = AF_INET;
     addr_.sin_port = htons(port);
-    addr_.sin_addr.s_addr = htonl(host.uint());
+    addr_.sin_addr.s_addr = htonl(hostAddr.uint());
 }
 
-IPV4Addr TCPV4Endpoint::host() const {
+IPV4Addr TCPV4Endpoint::hostAddr() const {
     return IPV4Addr(ntohl(addr_.sin_addr.s_addr));
 }
 
@@ -32,7 +32,7 @@ uint16_t TCPV4Endpoint::port() const {
 }
 
 std::string TCPV4Endpoint::format() const {
-    return std::format("tcp://{}:{}", host(), port());
+    return std::format("tcp://{}:{}", hostAddr(), port());
 }
 
 std::unique_ptr<Endpoint> TCPV4Endpoint::clone() const {
@@ -42,12 +42,12 @@ std::unique_ptr<Endpoint> TCPV4Endpoint::clone() const {
 bool TCPV4Endpoint::equals(const Endpoint &other) const {
     if (typeid(*this) != typeid(other)) return false;
     const TCPV4Endpoint &castOther = static_cast<const TCPV4Endpoint &>(other);
-    return host() == castOther.host() && port() == castOther.port();
+    return hostAddr() == castOther.hostAddr() && port() == castOther.port();
 }
 
 size_t TCPV4Endpoint::hashCode() const noexcept {
     size_t seed = 0;
-    hash_combine(seed, host());
+    hash_combine(seed, hostAddr());
     hash_combine(seed, port());
     return seed;
 }

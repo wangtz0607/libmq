@@ -15,18 +15,18 @@ namespace mq {
 
 class TCPV4Endpoint final : public Endpoint {
 public:
-    TCPV4Endpoint(IPV4Addr host, uint16_t port);
+    TCPV4Endpoint(IPV4Addr hostAddr, uint16_t port);
 
-    TCPV4Endpoint(const char *host, uint16_t port)
-        : TCPV4Endpoint(IPV4Addr(host), port) {}
+    TCPV4Endpoint(const char *hostAddr, uint16_t port)
+        : TCPV4Endpoint(IPV4Addr(hostAddr), port) {}
 
-    TCPV4Endpoint(const std::string &host, uint16_t port)
-        : TCPV4Endpoint(IPV4Addr(host), port) {}
+    TCPV4Endpoint(const std::string &hostAddr, uint16_t port)
+        : TCPV4Endpoint(IPV4Addr(hostAddr), port) {}
 
     explicit TCPV4Endpoint(const sockaddr_in &addr)
         : addr_(addr) {}
 
-    IPV4Addr host() const;
+    IPV4Addr hostAddr() const;
     uint16_t port() const;
 
     int domain() const override {

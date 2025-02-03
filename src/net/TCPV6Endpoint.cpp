@@ -25,17 +25,17 @@ using namespace mq;
 
 namespace {
 
-IPV6Addr parseHost(const std::string &hostAndInterface) {
-    if (size_t i = hostAndInterface.find('%'); i != std::string::npos) {
-        return IPV6Addr(hostAndInterface.substr(0, i));
+IPV6Addr parseHostAddr(const std::string &hostAddrAndInterface) {
+    if (size_t i = hostAddrAndInterface.find('%'); i != std::string::npos) {
+        return IPV6Addr(hostAddrAndInterface.substr(0, i));
     } else {
-        return IPV6Addr(hostAndInterface);
+        return IPV6Addr(hostAddrAndInterface);
     }
 }
 
-NetworkInterface parseInterface(const std::string &hostAndInterface) {
-    if (size_t i = hostAndInterface.find('%'); i != std::string::npos) {
-        std::string interface = hostAndInterface.substr(i + 1);
+NetworkInterface parseInterface(const std::string &hostAddrAndInterface) {
+    if (size_t i = hostAddrAndInterface.find('%'); i != std::string::npos) {
+        std::string interface = hostAddrAndInterface.substr(i + 1);
         if (!interface.empty() && std::ranges::all_of(interface, isdigit)) {
             return NetworkInterface(std::stoi(interface));
         } else {
@@ -48,23 +48,23 @@ NetworkInterface parseInterface(const std::string &hostAndInterface) {
 
 } // namespace
 
-TCPV6Endpoint::TCPV6Endpoint(IPV6Addr host, uint16_t port) : addr_{} {
+TCPV6Endpoint::TCPV6Endpoint(IPV6Addr hostAddr, uint16_t port) : addr_{} {
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
-    IPV6Addr::Bytes src = host.bytes();
+    IPV6Addr::Bytes src = hostAddr.bytes();
     toBigEndian(src.data(), 16);
     memcpy(&addr_.sin6_addr, src.data(), 16);
 }
 
-TCPV6Endpoint::TCPV6Endpoint(IPV6Addr host, NetworkInterface interface, uint16_t port)
-    : TCPV6Endpoint(host, port) {
+TCPV6Endpoint::TCPV6Endpoint(IPV6Addr hostAddr, NetworkInterface interface, uint16_t port)
+    : TCPV6Endpoint(hostAddr, port) {
     addr_.sin6_scope_id = interface.index();
 }
 
-TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAndInterface, uint16_t port)
-    : TCPV6Endpoint(parseHost(hostAndInterface), parseInterface(hostAndInterface), port) {}
+TCPV6Endpoint::TCPV6Endpoint(const std::string &hostAddrAndInterface, uint16_t port)
+    : TCPV6Endpoint(parseHostAddr(hostAddrAndInterface), parseInterface(hostAddrAndInterface), port) {}
 
-IPV6Addr TCPV6Endpoint::host() const {
+IPV6Addr TCPV6Endpoint::hostAddr() const {
     IPV6Addr::Bytes dst;
     memcpy(dst.data(), &addr_.sin6_addr, 16);
     fromBigEndian(dst.data(), 16);
@@ -81,9 +81,9 @@ uint16_t TCPV6Endpoint::port() const {
 
 std::string TCPV6Endpoint::format() const {
     if (interface().index() != 0) {
-        return std::format("tcp://[{}%{}]:{}", host(), interface(), port());
+        return std::format("tcp://[{}%{}]:{}", hostAddr(), interface(), port());
     } else {
-        return std::format("tcp://[{}]:{}", host(), port());
+        return std::format("tcp://[{}]:{}", hostAddr(), port());
     }
 }
 
@@ -94,14 +94,14 @@ std::unique_ptr<Endpoint> TCPV6Endpoint::clone() const {
 bool TCPV6Endpoint::equals(const Endpoint &other) const {
     if (typeid(*this) != typeid(other)) return false;
     const TCPV6Endpoint &castOther = static_cast<const TCPV6Endpoint &>(other);
-    return host() == castOther.host() &&
+    return hostAddr() == castOther.hostAddr() &&
            interface() == castOther.interface() &&
            port() == castOther.port();
 }
 
 size_t TCPV6Endpoint::hashCode() const noexcept {
     size_t seed = 0;
-    hash_combine(seed, host());
+    hash_combine(seed, hostAddr());
     hash_combine(seed, interface());
     hash_combine(seed, port());
     return seed;
