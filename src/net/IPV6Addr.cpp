@@ -1,4 +1,4 @@
-#include "mq/net/IPV6Host.h"
+#include "mq/net/IPV6Addr.h"
 
 #include <cstring>
 
@@ -7,23 +7,23 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Endian.h"
 
-#define TAG "IPV6Host"
+#define TAG "IPV6Addr"
 
 using namespace mq;
 
-IPV6Host::IPV6Host(const uint8_t *host) {
-    memcpy(host_.data(), host, 16);
+IPV6Addr::IPV6Addr(const uint8_t *addr) {
+    memcpy(addr_.data(), addr, 16);
 }
 
-IPV6Host::IPV6Host(const char *host) {
+IPV6Addr::IPV6Addr(const char *addr) {
     Bytes dst;
-    CHECK(inet_pton(AF_INET6, host, dst.data()) == 1);
+    CHECK(inet_pton(AF_INET6, addr, dst.data()) == 1);
     fromBigEndian(dst.data(), 16);
-    host_ = dst;
+    addr_ = dst;
 }
 
-std::string IPV6Host::string() const {
-    Bytes src = host_;
+std::string IPV6Addr::string() const {
+    Bytes src = addr_;
     toBigEndian(src.data(), 16);
     char dst[INET6_ADDRSTRLEN];
     CHECK(inet_ntop(AF_INET6, src.data(), dst, sizeof(dst)) != nullptr);

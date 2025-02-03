@@ -10,21 +10,21 @@
 #include <netinet/in.h>
 
 #include "mq/net/Endpoint.h"
-#include "mq/net/IPV4Host.h"
+#include "mq/net/IPV4Addr.h"
 #include "mq/utils/Hash.h"
 
 #define TAG "TCPV4Endpoint"
 
 using namespace mq;
 
-TCPV4Endpoint::TCPV4Endpoint(IPV4Host host, uint16_t port) : addr_{} {
+TCPV4Endpoint::TCPV4Endpoint(IPV4Addr host, uint16_t port) : addr_{} {
     addr_.sin_family = AF_INET;
     addr_.sin_port = htons(port);
     addr_.sin_addr.s_addr = htonl(host.uint());
 }
 
-IPV4Host TCPV4Endpoint::host() const {
-    return IPV4Host(ntohl(addr_.sin_addr.s_addr));
+IPV4Addr TCPV4Endpoint::host() const {
+    return IPV4Addr(ntohl(addr_.sin_addr.s_addr));
 }
 
 uint16_t TCPV4Endpoint::port() const {

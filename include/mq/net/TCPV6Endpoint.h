@@ -9,23 +9,23 @@
 #include <sys/types.h>
 
 #include "mq/net/Endpoint.h"
-#include "mq/net/IPV6Host.h"
+#include "mq/net/IPV6Addr.h"
 #include "mq/net/NetworkInterface.h"
 
 namespace mq {
 
 class TCPV6Endpoint final : public Endpoint {
 public:
-    TCPV6Endpoint(IPV6Host host, uint16_t port);
+    TCPV6Endpoint(IPV6Addr host, uint16_t port);
 
-    TCPV6Endpoint(IPV6Host host, NetworkInterface interface, uint16_t port);
+    TCPV6Endpoint(IPV6Addr host, NetworkInterface interface, uint16_t port);
 
     TCPV6Endpoint(const std::string &hostAndInterface, uint16_t port);
 
     explicit TCPV6Endpoint(const sockaddr_in6 &addr)
         : addr_(addr) {}
 
-    IPV6Host host() const;
+    IPV6Addr host() const;
     NetworkInterface interface() const;
     uint16_t port() const;
 
