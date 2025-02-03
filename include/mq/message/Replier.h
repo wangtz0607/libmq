@@ -12,6 +12,7 @@
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingAcceptor.h"
 #include "mq/net/FramingSocket.h"
+#include "mq/net/Socket.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/PtrEqual.h"
 #include "mq/utils/PtrHash.h"

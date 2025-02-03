@@ -9,6 +9,7 @@
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingSocket.h"
+#include "mq/net/Socket.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/IndirectEqual.h"
 #include "mq/utils/IndirectHash.h"
