@@ -250,9 +250,9 @@ Requester::State Requester::state() const {
 void Requester::open() {
     LOG(debug, "");
 
-    CHECK(state_ == State::kClosed);
-
     if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
         socket_ = std::make_unique<FramingSocket>(loop_);
 
         socket_->setMaxMessageLength(maxMessageLength_);

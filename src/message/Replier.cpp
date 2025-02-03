@@ -239,11 +239,11 @@ Replier::State Replier::state() const {
 int Replier::open() {
     LOG(debug, "");
 
-    CHECK(state_ == State::kClosed);
-
     int error;
 
     if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
         acceptor_ = std::make_unique<FramingAcceptor>(loop_);
 
         acceptor_->setReuseAddr(reuseAddr_);
