@@ -37,7 +37,9 @@ UnixEndpoint::UnixEndpoint(const std::filesystem::path &path) : addr_{} {
 std::filesystem::path UnixEndpoint::path() const {
     size_t len = addrLen_ - offsetof(sockaddr_un, sun_path);
 
-    if (addr_.sun_path[0] == '\0') {
+    if (len == 0) {
+        return "";
+    } else if (addr_.sun_path[0] == '\0') {
         return std::filesystem::path("@").concat(addr_.sun_path + 1, addr_.sun_path + len);
     } else {
         return std::filesystem::path(addr_.sun_path, addr_.sun_path + len - 1);
