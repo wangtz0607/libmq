@@ -30,7 +30,8 @@ public:
         kOpened,
     };
 
-    using RecvCallback = std::move_only_function<std::string (const Endpoint &remoteEndpoint, std::string_view message)>;
+    using RecvCallback =
+        std::move_only_function<std::optional<std::string> (const Endpoint &remoteEndpoint, std::string_view message)>;
 
     Replier(EventLoop *loop, const Endpoint &localEndpoint);
     ~Replier();

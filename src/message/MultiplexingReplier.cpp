@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -38,7 +39,7 @@ void MultiplexingReplier::setRecvCallback(RecvCallback recvCallback) {
     }
 }
 
-std::string MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message) {
+std::optional<std::string> MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message) {
     if (message.size() < 8) {
         LOG(warning, "Bad request");
 
@@ -49,9 +50,11 @@ std::string MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, s
     memcpy(&requestId, message.data(), 8);
     requestId = fromLittleEndian(requestId);
 
-    std::string replyMessage = recvCallback_(remoteEndpoint, message.substr(8));
+    std::optional<std::string> replyMessage = recvCallback_(remoteEndpoint, message.substr(8));
 
-    replyMessage.insert(0, reinterpret_cast<const char *>(&requestId), 8);
+    if (replyMessage) {
+        replyMessage->insert(0, reinterpret_cast<const char *>(&requestId), 8);
+    }
 
     return replyMessage;
 }

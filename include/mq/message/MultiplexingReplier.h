@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -103,7 +104,7 @@ private:
     Replier replier_;
     RecvCallback recvCallback_;
 
-    std::string onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message);
+    std::optional<std::string> onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message);
 };
 
 } // namespace mq
