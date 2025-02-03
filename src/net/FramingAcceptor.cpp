@@ -86,6 +86,24 @@ void FramingAcceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
     sendTimeout_ = sendTimeout;
 }
 
+void FramingAcceptor::setRcvBuf(int rcvBuf) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    rcvBuf_ = rcvBuf;
+}
+
+void FramingAcceptor::setSndBuf(int sndBuf) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sndBuf_ = sndBuf;
+}
+
 void FramingAcceptor::setNoDelay(bool noDelay) {
     LOG(debug, "");
 
@@ -182,6 +200,8 @@ int FramingAcceptor::open(const Endpoint &localEndpoint) {
     acceptor_->setRecvChunkSize(recvChunkSize_);
     acceptor_->setRecvTimeout(recvTimeout_);
     acceptor_->setSendTimeout(sendTimeout_);
+    acceptor_->setRcvBuf(rcvBuf_);
+    acceptor_->setSndBuf(sndBuf_);
     acceptor_->setNoDelay(noDelay_);
     acceptor_->setKeepAlive(keepAlive_);
 
@@ -255,6 +275,8 @@ bool FramingAcceptor::onAcceptorAccept(std::unique_ptr<Socket> socket, const End
     framingSocket->setRecvChunkSize(recvChunkSize_);
     framingSocket->setRecvTimeout(recvTimeout_);
     framingSocket->setSendTimeout(sendTimeout_);
+    framingSocket->setRcvBuf(rcvBuf_);
+    framingSocket->setSndBuf(sndBuf_);
     framingSocket->setNoDelay(noDelay_);
     framingSocket->setKeepAlive(keepAlive_);
 

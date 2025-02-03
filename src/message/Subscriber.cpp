@@ -120,6 +120,38 @@ void Subscriber::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
     }
 }
 
+void Subscriber::setRcvBuf(int rcvBuf) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        rcvBuf_ = rcvBuf;
+    } else {
+        loop_->postAndWait([this, rcvBuf] {
+            CHECK(state_ == State::kClosed);
+
+            rcvBuf_ = rcvBuf;
+        });
+    }
+}
+
+void Subscriber::setSndBuf(int sndBuf) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        sndBuf_ = sndBuf;
+    } else {
+        loop_->postAndWait([this, sndBuf] {
+            CHECK(state_ == State::kClosed);
+
+            sndBuf_ = sndBuf;
+        });
+    }
+}
+
 void Subscriber::setNoDelay(bool noDelay) {
     LOG(debug, "");
 
@@ -254,6 +286,8 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
         socket->setRecvChunkSize(recvChunkSize_);
         socket->setRecvTimeout(recvTimeout_);
         socket->setSendTimeout(sendTimeout_);
+        socket->setRcvBuf(rcvBuf_);
+        socket->setSndBuf(sndBuf_);
         socket->setNoDelay(noDelay_);
         socket->setKeepAlive(keepAlive_);
 

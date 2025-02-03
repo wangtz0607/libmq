@@ -41,6 +41,8 @@ public:
     void setRecvChunkSize(size_t recvChunkSize);
     void setRecvTimeout(std::chrono::nanoseconds recvTimeout);
     void setSendTimeout(std::chrono::nanoseconds sendTimeout);
+    void setRcvBuf(int rcvBuf);
+    void setSndBuf(int sndBuf);
     void setNoDelay(bool noDelay);
     void setKeepAlive(KeepAlive keepAlive);
 
@@ -67,6 +69,8 @@ private:
     size_t recvChunkSize_ = 4096;
     std::chrono::nanoseconds recvTimeout_{};
     std::chrono::nanoseconds sendTimeout_{};
+    int rcvBuf_ = 212992;
+    int sndBuf_ = 212992;
     bool noDelay_ = false;
     KeepAlive keepAlive_{};
     State state_ = State::kClosed;

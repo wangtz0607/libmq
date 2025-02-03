@@ -59,6 +59,14 @@ std::unique_ptr<Endpoint> getSockName(int fd) {
     }
 }
 
+void setRcvBufSockOpt(int fd, int rcvBuf) {
+    CHECK(setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcvBuf, sizeof(rcvBuf)) == 0);
+}
+
+void setSndBufSockOpt(int fd, int sndBuf) {
+    CHECK(setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &sndBuf, sizeof(sndBuf)) == 0);
+}
+
 void setNoDelaySockOpt(int fd, bool noDelay) {
     int optVal = noDelay;
     CHECK(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &optVal, sizeof(optVal)) == 0);
@@ -145,6 +153,24 @@ void Socket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
     CHECK(state_ == State::kClosed);
 
     sendTimeout_ = sendTimeout;
+}
+
+void Socket::setRcvBuf(int rcvBuf) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    rcvBuf_ = rcvBuf;
+}
+
+void Socket::setSndBuf(int sndBuf) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    sndBuf_ = sndBuf;
 }
 
 void Socket::setNoDelay(bool noDelay) {
@@ -362,6 +388,9 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
     CHECK((fd_ = socket(remoteEndpoint.domain(), SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)) >= 0);
     LOG(debug, "fd={}", fd_);
+
+    setRcvBufSockOpt(fd_, rcvBuf_);
+    setSndBufSockOpt(fd_, sndBuf_);
 
     if (remoteEndpoint.domain() == AF_INET || remoteEndpoint.domain() == AF_INET6) {
         setNoDelaySockOpt(fd_, noDelay_);
