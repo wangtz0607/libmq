@@ -371,7 +371,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
     watcher_ = std::make_unique<Watcher>(loop_, fd_);
     watcher_->registerSelf();
 
-    if (connect(fd_, remoteEndpoint.addr(), remoteEndpoint.addrLen()) == 0) {
+    if (connect(fd_, remoteEndpoint.data(), remoteEndpoint.size()) == 0) {
         localEndpoint_ = getSockName(fd_);
         remoteEndpoint_ = remoteEndpoint.clone();
 

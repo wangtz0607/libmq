@@ -33,11 +33,11 @@ public:
         return AF_INET;
     }
 
-    const sockaddr *addr() const override {
+    const sockaddr *data() const override {
         return reinterpret_cast<const sockaddr *>(&addr_);
     }
 
-    socklen_t addrLen() const override {
+    socklen_t size() const override {
         return sizeof(addr_);
     }
 

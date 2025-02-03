@@ -192,7 +192,7 @@ int Acceptor::open(const Endpoint &localEndpoint) {
         CHECK(setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &optVal, sizeof(optVal)) == 0);
     }
 
-    if (bind(fd_, localEndpoint.addr(), localEndpoint.addrLen()) < 0) {
+    if (bind(fd_, localEndpoint.data(), localEndpoint.size()) < 0) {
         return errno;
     }
 

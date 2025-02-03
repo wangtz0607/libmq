@@ -23,8 +23,8 @@ public:
     Endpoint &operator=(Endpoint &&) = delete;
 
     virtual int domain() const = 0;
-    virtual const sockaddr *addr() const = 0;
-    virtual socklen_t addrLen() const = 0;
+    virtual const sockaddr *data() const = 0;
+    virtual socklen_t size() const = 0;
     virtual std::string format() const = 0;
     virtual std::unique_ptr<Endpoint> clone() const = 0;
 
