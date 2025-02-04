@@ -189,9 +189,13 @@ void Subscriber::setConnectCallback(ConnectCallback connectCallback) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
         connectCallback_ = std::move(connectCallback);
     } else {
         loop_->postAndWait([this, &connectCallback] {
+            CHECK(state_ == State::kClosed);
+
             connectCallback_ = std::move(connectCallback);
         });
     }
@@ -203,9 +207,13 @@ void Subscriber::setRecvCallback(RecvCallback recvCallback) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
         recvCallback_ = std::move(recvCallback);
     } else {
         loop_->postAndWait([this, &recvCallback] {
+            CHECK(state_ == State::kClosed);
+
             recvCallback_ = std::move(recvCallback);
         });
     }
@@ -215,9 +223,13 @@ void Subscriber::setConnectCallbackExecutor(Executor *connectCallbackExecutor) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
         connectCallbackExecutor_ = connectCallbackExecutor;
     } else {
         loop_->postAndWait([this, connectCallbackExecutor] {
+            CHECK(state_ == State::kClosed);
+
             connectCallbackExecutor_ = connectCallbackExecutor;
         });
     }
@@ -227,9 +239,13 @@ void Subscriber::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
         recvCallbackExecutor_ = recvCallbackExecutor;
     } else {
         loop_->postAndWait([this, recvCallbackExecutor] {
+            CHECK(state_ == State::kClosed);
+
             recvCallbackExecutor_ = recvCallbackExecutor;
         });
     }

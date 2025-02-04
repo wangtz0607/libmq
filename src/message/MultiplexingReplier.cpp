@@ -10,6 +10,7 @@
 #include "mq/net/Endpoint.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Endian.h"
+#include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
 
 #define TAG "MultiplexingReplier"
@@ -41,6 +42,22 @@ void MultiplexingReplier::setRecvCallback(RecvCallback recvCallback) {
             CHECK(state() == State::kClosed);
 
             recvCallback_ = std::move(recvCallback);
+        });
+    }
+}
+
+void MultiplexingReplier::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
+    LOG(debug, "");
+
+    if (loop()->isInLoopThread()) {
+        CHECK(state() == State::kClosed);
+
+        replier_.setRecvCallbackExecutor(recvCallbackExecutor);
+    } else {
+        loop()->postAndWait([this, &recvCallbackExecutor] {
+            CHECK(state() == State::kClosed);
+
+            replier_.setRecvCallbackExecutor(recvCallbackExecutor);
         });
     }
 }

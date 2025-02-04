@@ -10,6 +10,7 @@
 #include "mq/message/Replier.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/Socket.h"
+#include "mq/utils/Executor.h"
 
 namespace mq {
 
@@ -88,10 +89,7 @@ public:
     }
 
     void setRecvCallback(RecvCallback recvCallback);
-
-    void setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
-        replier_.setRecvCallbackExecutor(recvCallbackExecutor);
-    }
+    void setRecvCallbackExecutor(Executor *recvCallbackExecutor);
 
     State state() const {
         return static_cast<State>(replier_.state());
