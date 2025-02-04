@@ -2,8 +2,6 @@
 
 #include <cstddef>
 #include <memory>
-#include <optional>
-#include <string>
 #include <string_view>
 
 #include "mq/event/EventLoop.h"
@@ -21,6 +19,7 @@ public:
         kOpened = static_cast<int>(Replier::State::kOpened),
     };
 
+    using Promise = Replier::Promise;
     using RecvCallback = Replier::RecvCallback;
 
     MultiplexingReplier(EventLoop *loop, const Endpoint &localEndpoint);
@@ -103,7 +102,7 @@ private:
     Replier replier_;
     RecvCallback recvCallback_;
 
-    std::optional<std::string> onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message);
+    void onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message, Replier::Promise promise);
 };
 
 } // namespace mq

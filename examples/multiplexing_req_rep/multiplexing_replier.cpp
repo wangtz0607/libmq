@@ -19,11 +19,12 @@ int main() {
 
     mq::MultiplexingReplier replier(&loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
 
-    replier.setRecvCallback([](const mq::Endpoint &remoteEndpoint, std::string_view message) {
-        std::println("{}: {}", remoteEndpoint, message);
+    replier.setRecvCallback(
+        [](const mq::Endpoint &remoteEndpoint, std::string_view message, mq::MultiplexingReplier::Promise promise) {
+            std::println("{}: {}", remoteEndpoint, message);
 
-        return std::format("Hello, {}!", message);
-    });
+            promise(std::format("Hello, {}!", message));
+        });
 
     replier.setRecvCallbackExecutor(&pool);
 

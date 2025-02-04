@@ -2,9 +2,9 @@
 
 #include <cstdint>
 #include <cstring>
-#include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "mq/message/Replier.h"
 #include "mq/net/Endpoint.h"
@@ -21,9 +21,10 @@ MultiplexingReplier::MultiplexingReplier(EventLoop *loop, const Endpoint &localE
     : replier_(loop, localEndpoint) {
     LOG(debug, "");
 
-    replier_.setRecvCallback([this](const Endpoint &remoteEndpoint, std::string_view message) {
-        return onReplierRecv(remoteEndpoint, message);
-    });
+    replier_.setRecvCallback(
+        [this](const Endpoint &remoteEndpoint, std::string_view message, Replier::Promise promise) mutable {
+            return onReplierRecv(remoteEndpoint, message, std::move(promise));
+        });
 }
 
 MultiplexingReplier::~MultiplexingReplier() {
@@ -62,24 +63,33 @@ void MultiplexingReplier::setRecvCallbackExecutor(Executor *recvCallbackExecutor
     }
 }
 
-std::optional<std::string> MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message) {
+void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message, Replier::Promise promise) {
     LOG(debug, "");
 
     if (message.size() < 8) {
         LOG(warning, "Bad request");
 
-        return "";
+        return;
     }
 
-    uint64_t requestId;
-    memcpy(&requestId, message.data(), 8);
-    requestId = fromLittleEndian(requestId);
+    Promise setMultiplexingMessage =
+        [message, promise = std::move(promise)](const std::string_view replyMessage) mutable {
+            std::string multiplexingReplyMessage;
+            multiplexingReplyMessage.resize_and_overwrite(8 + replyMessage.size(),
+                [message, replyMessage](char *data, size_t size) {
+                    uint64_t requestId;
+                    memcpy(&requestId, message.data(), 8);
+                    requestId = fromLittleEndian(requestId);
 
-    std::optional<std::string> replyMessage = recvCallback_(remoteEndpoint, message.substr(8));
+                    memcpy(data, &requestId, 8);
+                    data += 8;
+                    memcpy(data, replyMessage.data(), replyMessage.size());
 
-    if (replyMessage) {
-        replyMessage->insert(0, reinterpret_cast<const char *>(&requestId), 8);
-    }
+                    return size;
+                });
 
-    return replyMessage;
+            promise(multiplexingReplyMessage);
+        };
+
+    recvCallback_(remoteEndpoint, message.substr(8), std::move(setMultiplexingMessage));
 }

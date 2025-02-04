@@ -2,9 +2,8 @@
 
 #include <chrono>
 #include <format>
+#include <functional>
 #include <memory>
-#include <optional>
-#include <string>
 #include <string_view>
 #include <unordered_set>
 
@@ -30,8 +29,10 @@ public:
         kOpened,
     };
 
+    using Promise = std::move_only_function<void (std::string_view replyMessage)>;
+
     using RecvCallback =
-        std::move_only_function<std::optional<std::string> (const Endpoint &remoteEndpoint, std::string_view message)>;
+        std::move_only_function<void (const Endpoint &remoteEndpoint, std::string_view message, Promise promise)>;
 
     Replier(EventLoop *loop, const Endpoint &localEndpoint);
     ~Replier();
@@ -65,7 +66,7 @@ public:
 
     void setRecvCallback(RecvCallback recvCallback);
     void setRecvCallbackExecutor(Executor *recvCallbackExecutor);
-    std::optional<std::string> dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message);
+    void dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message, Promise promise);
 
     State state() const;
     int open();

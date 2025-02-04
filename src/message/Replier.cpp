@@ -2,7 +2,6 @@
 
 #include <cstring>
 #include <memory>
-#include <optional>
 #include <utility>
 
 #include "mq/net/Endpoint.h"
@@ -245,14 +244,12 @@ void Replier::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
     }
 }
 
-std::optional<std::string> Replier::dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message) {
+void Replier::dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message, Promise promise) {
     LOG(debug, "");
 
     if (recvCallback_) {
-        return recvCallback_(remoteEndpoint, message);
+        return recvCallback_(remoteEndpoint, message, std::move(promise));
     }
-
-    return std::nullopt;
 }
 
 Replier::State Replier::state() const {
@@ -345,44 +342,44 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
     std::unique_ptr<Endpoint> remoteEndpoint = socket->remoteEndpoint();
 
-    if (!recvCallbackExecutor_) {
-        std::optional<std::string> replyMessage = dispatchRecv(*remoteEndpoint, message);
-
-        if (replyMessage) {
-            if (int error = socket->send(*replyMessage)) {
+    Promise promise = [this, socket = socket->shared_from_this()](std::string_view replyMessage) {
+        if (loop_->isInLoopThread()) {
+            if (int error = socket->send(replyMessage)) {
                 LOG(warning, "send: error={}", strerrorname_np(error));
 
-                loop_->post([this, socket = socket->shared_from_this()] {
+                loop_->post([this, socket = socket.get()] {
                     socket->reset();
 
-                    if (auto i = sockets_.find(socket.get()); i != sockets_.end()) {
+                    if (auto i = sockets_.find(socket); i != sockets_.end()) {
                         sockets_.erase(i);
                     }
                 });
             }
+        } else {
+            loop_->post([this, socket, message = std::string(replyMessage)] {
+                if (int error = socket->send(message)) {
+                    LOG(warning, "send: error={}", strerrorname_np(error));
+
+                    socket->reset();
+
+                    loop_->post([this, socket = socket.get()] {
+                        if (auto i = sockets_.find(socket); i != sockets_.end()) {
+                            sockets_.erase(i);
+                        }
+                    });
+                }
+            });
         }
+    };
+
+    if (!recvCallbackExecutor_) {
+        dispatchRecv(*remoteEndpoint, message, std::move(promise));
     } else {
         recvCallbackExecutor_->post([this,
-                                     socket = socket->shared_from_this(),
                                      remoteEndpoint = std::move(remoteEndpoint),
-                                     message = std::string(message)] {
-            std::optional<std::string> replyMessage = dispatchRecv(*remoteEndpoint, message);
-
-            if (replyMessage) {
-                loop_->post([this, socket, replyMessage = std::move(replyMessage)] {
-                    if (int error = socket->send(*replyMessage)) {
-                        LOG(warning, "send: error={}", strerrorname_np(error));
-
-                        socket->reset();
-
-                        loop_->post([this, socket] {
-                            if (auto i = sockets_.find(socket.get()); i != sockets_.end()) {
-                                sockets_.erase(i);
-                            }
-                        });
-                    }
-                });
-            }
+                                     message = std::string(message),
+                                     promise = std::move(promise)] mutable {
+            dispatchRecv(*remoteEndpoint, message, std::move(promise));
         });
     }
 
