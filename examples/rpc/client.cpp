@@ -1,0 +1,36 @@
+#include <cstdio>
+#include <cstdlib>
+#include <future>
+#include <print>
+#include <string>
+
+#include "mq/event/EventLoop.h"
+#include "mq/net/TCPV4Endpoint.h"
+#include "mq/rpc/RPCClient.h"
+#include "mq/rpc/RPCError.h"
+#include "mq/utils/Expected.h"
+#include "mq/utils/Logging.h"
+
+int main() {
+    mq::setLogSink(stderr);
+    mq::setLogLevel(mq::Level::kWarning);
+
+    mq::EventLoop *loop = mq::EventLoop::background();
+
+    mq::RPCClient client(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
+
+    client.open();
+    client.waitForConnected();
+
+    std::future<mq::Expected<std::string, mq::RPCError>> future = client.call("increment", "42");
+
+    mq::Expected<std::string, mq::RPCError> result = future.get();
+
+    if (result) {
+        std::println("{}", result.value());
+    } else {
+        std::println("error: {}", result.error());
+    }
+
+    exit(0);
+}
