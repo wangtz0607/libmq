@@ -18,6 +18,8 @@ using namespace mq;
 
 MultiplexingReplier::MultiplexingReplier(EventLoop *loop, const Endpoint &localEndpoint)
     : replier_(loop, localEndpoint) {
+    LOG(debug, "");
+
     replier_.setRecvCallback([this](const Endpoint &remoteEndpoint, std::string_view message) {
         return onReplierRecv(remoteEndpoint, message);
     });
@@ -40,6 +42,8 @@ void MultiplexingReplier::setRecvCallback(RecvCallback recvCallback) {
 }
 
 std::optional<std::string> MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message) {
+    LOG(debug, "");
+
     if (message.size() < 8) {
         LOG(warning, "Bad request");
 

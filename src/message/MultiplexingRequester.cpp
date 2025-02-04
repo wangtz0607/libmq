@@ -21,12 +21,16 @@ std::atomic<uint64_t> MultiplexingRequester::nextRequestId_(0);
 
 MultiplexingRequester::MultiplexingRequester(EventLoop *loop, const Endpoint &remoteEndpoint)
     : requester_(loop, remoteEndpoint) {
+    LOG(debug, "");
+
     requester_.setRecvCallback([this](std::string_view message) {
         onRequesterRecv(message);
     });
 }
 
 void MultiplexingRequester::send(std::string message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
+    LOG(debug, "");
+
     uint64_t requestId = nextRequestId_.fetch_add(1, std::memory_order_relaxed);
     requestId = toLittleEndian(requestId);
 
@@ -37,6 +41,8 @@ void MultiplexingRequester::send(std::string message, RecvCallback recvCallback,
 }
 
 void MultiplexingRequester::onRequesterRecv(std::string_view message) {
+    LOG(debug, "");
+
     if (message.size() < 8) {
         LOG(warning, "Bad reply");
 
