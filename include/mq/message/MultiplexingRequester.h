@@ -1,6 +1,5 @@
 #pragma once
 
-#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -107,7 +106,7 @@ private:
 
     void onRequesterRecv(std::string_view message);
 
-    static std::atomic<uint64_t> nextRequestId_;
+    static uint64_t nextRequestId_;
 };
 
 } // namespace mq
