@@ -99,6 +99,10 @@ public:
         requester_.open();
     }
 
+    void waitForConnected() {
+        requester_.waitForConnected();
+    }
+
     void send(std::string message, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
 
 private:

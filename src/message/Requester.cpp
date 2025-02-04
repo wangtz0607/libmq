@@ -1,7 +1,9 @@
 #include "mq/message/Requester.h"
 
 #include <cerrno>
+#include <future>
 #include <memory>
+#include <utility>
 
 #include "mq/net/FramingSocket.h"
 #include "mq/net/Socket.h"
@@ -336,6 +338,31 @@ void Requester::open() {
             open();
         });
     }
+}
+
+void Requester::waitForConnected() {
+    LOG(debug, "");
+
+    CHECK(!loop_->isInLoopThread());
+
+    std::promise<void> promise;
+    std::future<void> future = promise.get_future();
+
+    loop_->post([this, promise = std::move(promise)] mutable {
+        if (socket_->state() == FramingSocket::State::kConnected) {
+            promise.set_value();
+        } else {
+            socket_->addConnectCallback([this, promise = std::move(promise)](int error) mutable {
+                if (error == 0) {
+                    promise.set_value();
+                }
+
+                return error != 0;
+            });
+        }
+    });
+
+    future.get();
 }
 
 void Requester::send(std::string_view message) {

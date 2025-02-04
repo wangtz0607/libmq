@@ -64,6 +64,7 @@ public:
 
     State state() const;
     void open();
+    void waitForConnected();
     void send(std::string_view message);
 
 private:
