@@ -28,6 +28,10 @@ MultiplexingRequester::MultiplexingRequester(EventLoop *loop, const Endpoint &re
     });
 }
 
+MultiplexingRequester::~MultiplexingRequester() {
+    LOG(debug, "");
+}
+
 void MultiplexingRequester::send(std::string message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
     LOG(debug, "");
 

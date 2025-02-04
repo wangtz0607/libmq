@@ -23,6 +23,7 @@ public:
     using RecvCallback = Replier::RecvCallback;
 
     MultiplexingReplier(EventLoop *loop, const Endpoint &localEndpoint);
+    ~MultiplexingReplier();
 
     MultiplexingReplier(const MultiplexingReplier &) = delete;
     MultiplexingReplier(MultiplexingReplier &&) = delete;

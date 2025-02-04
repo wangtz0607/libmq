@@ -25,6 +25,10 @@ MultiplexingReplier::MultiplexingReplier(EventLoop *loop, const Endpoint &localE
     });
 }
 
+MultiplexingReplier::~MultiplexingReplier() {
+    LOG(debug, "");
+}
+
 void MultiplexingReplier::setRecvCallback(RecvCallback recvCallback) {
     LOG(debug, "");
 

@@ -27,6 +27,7 @@ public:
     using RecvCallback = Requester::RecvCallback;
 
     MultiplexingRequester(EventLoop *loop, const Endpoint &remoteEndpoint);
+    ~MultiplexingRequester();
 
     MultiplexingRequester(const MultiplexingRequester &) = delete;
     MultiplexingRequester(MultiplexingRequester &&) = delete;
