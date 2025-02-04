@@ -7,6 +7,7 @@
 
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingSocket.h"
+#include "mq/net/Socket.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 
@@ -363,7 +364,10 @@ bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view mes
             }
         }
     } else {
-        recvCallbackExecutor_->post([this, socket, remoteEndpoint = socket->remoteEndpoint(), message = std::string(message)] {
+        recvCallbackExecutor_->post([this,
+                                     socket,
+                                     remoteEndpoint = socket->remoteEndpoint(),
+                                     message = std::string(message)] {
             if (auto i = topics_.find(socket); i != topics_.end()) {
                 for (const std::string &topic : i->second) {
                     if (message.starts_with(topic)) {

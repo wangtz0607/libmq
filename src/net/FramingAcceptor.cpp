@@ -4,6 +4,7 @@
 #include "mq/net/Acceptor.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingSocket.h"
+#include "mq/net/Socket.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 

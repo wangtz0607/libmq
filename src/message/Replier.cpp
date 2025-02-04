@@ -8,6 +8,7 @@
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingAcceptor.h"
 #include "mq/net/FramingSocket.h"
+#include "mq/net/Socket.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
@@ -361,7 +362,10 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
             }
         }
     } else {
-        recvCallbackExecutor_->post([this, socket = socket->shared_from_this(), remoteEndpoint = std::move(remoteEndpoint), message = std::string(message)] {
+        recvCallbackExecutor_->post([this,
+                                     socket = socket->shared_from_this(),
+                                     remoteEndpoint = std::move(remoteEndpoint),
+                                     message = std::string(message)] {
             std::optional<std::string> replyMessage = dispatchRecv(*remoteEndpoint, message);
 
             if (replyMessage) {
