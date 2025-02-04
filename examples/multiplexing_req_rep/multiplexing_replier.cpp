@@ -7,8 +7,11 @@
 #include "mq/message/MultiplexingReplier.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/TCPV4Endpoint.h"
+#include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 #include "mq/utils/ThreadPool.h"
+
+#define TAG "main"
 
 int main() {
     mq::setLogSink(stderr);
@@ -28,10 +31,7 @@ int main() {
 
     replier.setRecvCallbackExecutor(&pool);
 
-    if (int error = replier.open()) {
-        std::println(stderr, "error: {}", strerror(error));
-        exit(1);
-    }
+    CHECK(replier.open() == 0);
 
     loop.run();
 }

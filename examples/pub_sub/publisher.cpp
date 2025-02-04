@@ -9,7 +9,10 @@
 #include "mq/event/EventLoop.h"
 #include "mq/message/Publisher.h"
 #include "mq/net/TCPV4Endpoint.h"
+#include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
+
+#define TAG "main"
 
 int main() {
     mq::setLogSink(stderr);
@@ -19,10 +22,7 @@ int main() {
 
     mq::Publisher publisher(loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
 
-    if (int error = publisher.open()) {
-        std::println(stderr, "error: {}", strerror(error));
-        exit(1);
-    }
+    CHECK(publisher.open() == 0);
 
     for (;;) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
