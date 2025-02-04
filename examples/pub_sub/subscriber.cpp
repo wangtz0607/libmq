@@ -13,7 +13,7 @@ int main() {
     mq::setLogLevel(mq::Level::kWarning);
 
     mq::EventLoop loop;
-    mq::ThreadPool pool;
+    mq::ThreadPool pool; // Optional
 
     mq::Subscriber subscriber(&loop);
 
@@ -21,7 +21,7 @@ int main() {
         std::println("{}: {}", remoteEndpoint, message);
     });
 
-    subscriber.setRecvCallbackExecutor(&pool);
+    subscriber.setRecvCallbackExecutor(&pool); // Optional
 
     subscriber.subscribe(mq::TCPV4Endpoint("127.0.0.1", 9999), {"time"});
 

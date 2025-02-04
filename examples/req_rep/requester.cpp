@@ -1,8 +1,6 @@
-#include <chrono>
 #include <cstdio>
 #include <print>
 #include <string_view>
-#include <thread>
 
 #include "mq/event/EventLoop.h"
 #include "mq/message/Requester.h"
@@ -15,7 +13,7 @@ int main() {
     mq::setLogLevel(mq::Level::kWarning);
 
     mq::EventLoop *loop = mq::EventLoop::background();
-    mq::ThreadPool pool;
+    mq::ThreadPool pool; // Optional
 
     mq::Requester requester(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
 
@@ -23,12 +21,13 @@ int main() {
         std::println("{}", message);
     });
 
-    requester.setRecvCallbackExecutor(&pool);
+    requester.setRecvCallbackExecutor(&pool); // Optional
 
     requester.open();
+    requester.waitForConnected();
 
     for (;;) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
         requester.send("World");
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

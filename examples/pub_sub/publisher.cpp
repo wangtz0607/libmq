@@ -25,7 +25,7 @@ int main() {
     CHECK(publisher.open() == 0);
 
     for (;;) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
         publisher.send(std::format("time: {}", std::chrono::system_clock::now()));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
