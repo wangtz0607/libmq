@@ -20,7 +20,7 @@ public:
 
     TCPV6Endpoint(IPV6Addr hostAddr, NetworkInterface interface, uint16_t port);
 
-    TCPV6Endpoint(const std::string &hostAddrAndInterface, uint16_t port);
+    TCPV6Endpoint(const std::string &host, uint16_t port);
 
     explicit TCPV6Endpoint(const sockaddr_in6 &addr)
         : addr_(addr) {}
