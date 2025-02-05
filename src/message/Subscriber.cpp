@@ -297,7 +297,7 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
     topics_.erase(i->second.get());
     sockets_.erase(i);
 
-    loop_->post([this, socket = std::move(socket)] {
+    loop_->post([socket = std::move(socket)] {
         socket->reset();
     });
 

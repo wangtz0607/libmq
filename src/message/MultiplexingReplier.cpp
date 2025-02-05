@@ -72,7 +72,7 @@ void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::str
         return;
     }
 
-    Promise setMultiplexingMessage =
+    Promise multiplexingPromise =
         [message, promise = std::move(promise)](const std::string_view replyMessage) mutable {
             std::string multiplexingReplyMessage;
             multiplexingReplyMessage.resize_and_overwrite(8 + replyMessage.size(),
@@ -91,5 +91,5 @@ void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::str
             promise(multiplexingReplyMessage);
         };
 
-    recvCallback_(remoteEndpoint, message.substr(8), std::move(setMultiplexingMessage));
+    recvCallback_(remoteEndpoint, message.substr(8), std::move(multiplexingPromise));
 }
