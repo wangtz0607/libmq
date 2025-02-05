@@ -1,5 +1,6 @@
 #include "mq/message/Subscriber.h"
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <utility>
@@ -273,10 +274,42 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
         });
 
         if (reconnectInterval_.count() > 0) {
-            enableAutoReconnectAndOpen(*socket, remoteEndpoint, reconnectInterval_);
-        } else {
-            socket->open(remoteEndpoint);
+            socket->addConnectCallback([socket = socket.get(),
+                                        remoteEndpoint = remoteEndpoint.clone(),
+                                        reconnectInterval = reconnectInterval_](int error) {
+                if (error != 0) {
+                    socket->loop()->postTimed([socket,
+                                              remoteEndpoint = remoteEndpoint->clone(),
+                                              reconnectInterval] {
+                        if (socket->state() == FramingSocket::State::kClosed) {
+                            socket->open(*remoteEndpoint);
+                        }
+
+                        return std::chrono::nanoseconds{};
+                    }, reconnectInterval);
+                }
+
+                return true;
+            });
+
+            socket->addCloseCallback([socket = socket.get(),
+                                      remoteEndpoint = remoteEndpoint.clone(),
+                                      reconnectInterval = reconnectInterval_](int) {
+                socket->loop()->postTimed([socket,
+                                          remoteEndpoint = remoteEndpoint->clone(),
+                                          reconnectInterval] {
+                    if (socket->state() == FramingSocket::State::kClosed) {
+                        socket->open(*remoteEndpoint);
+                    }
+
+                    return std::chrono::nanoseconds{};
+                }, reconnectInterval);
+
+                return true;
+            });
         }
+
+        socket->open(remoteEndpoint);
 
         topics_.emplace(socket.get(), std::move(topics));
         sockets_.emplace(remoteEndpoint.clone(), std::move(socket));

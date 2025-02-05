@@ -525,39 +525,3 @@ bool FramingSocket::onSocketClose(int error) {
 
     return true;
 }
-
-void mq::enableAutoReconnectAndOpen(FramingSocket &socket,
-                                    const Endpoint &remoteEndpoint,
-                                    std::chrono::nanoseconds interval) {
-    LOG(debug, "");
-
-    CHECK(socket.loop()->isInLoopThread());
-
-    socket.addConnectCallback([&socket, remoteEndpoint = remoteEndpoint.clone(), interval](int error) {
-        if (error) {
-            socket.loop()->postTimed([&socket, remoteEndpoint = remoteEndpoint->clone()] {
-                if (socket.state() == FramingSocket::State::kClosed) {
-                    socket.open(*remoteEndpoint);
-                }
-
-                return std::chrono::nanoseconds{};
-            }, interval);
-        }
-
-        return true;
-    });
-
-    socket.addCloseCallback([&socket, remoteEndpoint = remoteEndpoint.clone(), interval](int) {
-        socket.loop()->postTimed([&socket, remoteEndpoint = remoteEndpoint->clone()] {
-            if (socket.state() == FramingSocket::State::kClosed) {
-                socket.open(*remoteEndpoint);
-            }
-
-            return std::chrono::nanoseconds{};
-        }, interval);
-
-        return true;
-    });
-
-    socket.open(remoteEndpoint);
-}

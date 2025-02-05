@@ -133,10 +133,6 @@ private:
     bool onSendTimerExpire();
 };
 
-void enableAutoReconnectAndOpen(Socket &socket,
-                                const Endpoint &remoteEndpoint,
-                                std::chrono::nanoseconds interval);
-
 } // namespace mq
 
 template <>

@@ -1,6 +1,7 @@
 #include "mq/message/Requester.h"
 
 #include <cerrno>
+#include <chrono>
 #include <future>
 #include <memory>
 #include <utility>
@@ -329,10 +330,34 @@ void Requester::open() {
         });
 
         if (reconnectInterval_.count() > 0) {
-            enableAutoReconnectAndOpen(*socket_, *remoteEndpoint_, reconnectInterval_);
-        } else {
-            socket_->open(*remoteEndpoint_);
+            socket_->addConnectCallback([this](int error) {
+                if (error != 0) {
+                    loop_->postTimed([this] {
+                        if (socket_->state() == FramingSocket::State::kClosed) {
+                            socket_->open(*remoteEndpoint_);
+                        }
+
+                        return std::chrono::nanoseconds{};
+                    }, reconnectInterval_);
+                }
+
+                return true;
+            });
+
+            socket_->addCloseCallback([this](int) {
+                loop_->postTimed([this] {
+                    if (socket_->state() == FramingSocket::State::kClosed) {
+                        socket_->open(*remoteEndpoint_);
+                    }
+
+                    return std::chrono::nanoseconds{};
+                }, reconnectInterval_);
+
+                return true;
+            });
         }
+
+        socket_->open(*remoteEndpoint_);
     } else {
         loop_->postAndWait([this] {
             open();

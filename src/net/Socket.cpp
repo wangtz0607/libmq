@@ -822,39 +822,3 @@ bool Socket::onSendTimerExpire() {
 
     return true;
 }
-
-void mq::enableAutoReconnectAndOpen(Socket &socket,
-                                    const Endpoint &remoteEndpoint,
-                                    std::chrono::nanoseconds interval) {
-    LOG(debug, "");
-
-    CHECK(socket.loop()->isInLoopThread());
-
-    socket.addConnectCallback([&socket, remoteEndpoint = remoteEndpoint.clone(), interval](int error) {
-        if (error) {
-            socket.loop()->postTimed([&socket, remoteEndpoint = remoteEndpoint->clone()] {
-                if (socket.state() == Socket::State::kClosed) {
-                    socket.open(*remoteEndpoint);
-                }
-
-                return std::chrono::nanoseconds{};
-            }, interval);
-        }
-
-        return true;
-    });
-
-    socket.addCloseCallback([&socket, remoteEndpoint = remoteEndpoint.clone(), interval](int, const char *, size_t) {
-        socket.loop()->postTimed([&socket, remoteEndpoint = remoteEndpoint->clone()] {
-            if (socket.state() == Socket::State::kClosed) {
-                socket.open(*remoteEndpoint);
-            }
-
-            return std::chrono::nanoseconds{};
-        }, interval);
-
-        return true;
-    });
-
-    socket.open(remoteEndpoint);
-}

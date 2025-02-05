@@ -109,10 +109,6 @@ private:
     bool onSocketClose(int error);
 };
 
-void enableAutoReconnectAndOpen(FramingSocket &socket,
-                                const Endpoint &remoteEndpoint,
-                                std::chrono::nanoseconds interval);
-
 } // namespace mq
 
 template <>
