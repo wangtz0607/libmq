@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdio>
 #include <print>
 #include <string_view>
@@ -5,8 +6,11 @@
 #include "mq/event/EventLoop.h"
 #include "mq/message/Requester.h"
 #include "mq/net/TCPV4Endpoint.h"
+#include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 #include "mq/utils/ThreadPool.h"
+
+#define TAG "main"
 
 int main() {
     mq::setLogSink(stderr);
@@ -24,7 +28,7 @@ int main() {
     requester.setRecvCallbackExecutor(&pool); // Optional
 
     requester.open();
-    requester.waitForConnected();
+    CHECK(requester.waitForConnected(std::chrono::seconds(30)) == 0);
 
     for (;;) {
         requester.send("World");

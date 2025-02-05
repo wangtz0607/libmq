@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <future>
@@ -8,8 +9,11 @@
 #include "mq/net/TCPV4Endpoint.h"
 #include "mq/rpc/RPCClient.h"
 #include "mq/rpc/RPCError.h"
+#include "mq/utils/Check.h"
 #include "mq/utils/Expected.h"
 #include "mq/utils/Logging.h"
+
+#define TAG "main"
 
 int main() {
     mq::setLogSink(stderr);
@@ -20,7 +24,7 @@ int main() {
     mq::RPCClient client(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
 
     client.open();
-    client.waitForConnected();
+    CHECK(client.waitForConnected(std::chrono::seconds(30)) == 0);
 
     std::future<mq::Expected<std::string, mq::RPCError>> future = client.call("increment", "42");
 

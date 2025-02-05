@@ -64,7 +64,7 @@ public:
 
     State state() const;
     void open();
-    void waitForConnected();
+    int waitForConnected(std::chrono::nanoseconds timeout = {});
     void send(std::string_view message);
 
 private:

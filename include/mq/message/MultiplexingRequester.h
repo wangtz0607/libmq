@@ -101,8 +101,8 @@ public:
 
     void open();
 
-    void waitForConnected() {
-        requester_.waitForConnected();
+    int waitForConnected(std::chrono::nanoseconds timeout = {}) {
+        return requester_.waitForConnected(timeout);
     }
 
     void send(std::string message, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);

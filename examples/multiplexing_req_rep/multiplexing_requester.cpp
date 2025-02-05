@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdio>
 #include <print>
 #include <string>
@@ -8,8 +9,11 @@
 #include "mq/event/EventLoop.h"
 #include "mq/message/MultiplexingRequester.h"
 #include "mq/net/TCPV4Endpoint.h"
+#include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 #include "mq/utils/ThreadPool.h"
+
+#define TAG "main"
 
 int main() {
     mq::setLogSink(stderr);
@@ -21,7 +25,7 @@ int main() {
     mq::MultiplexingRequester requester(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
 
     requester.open();
-    requester.waitForConnected();
+    CHECK(requester.waitForConnected(std::chrono::seconds(30)) == 0);
 
     for (int i = 0;; ++i) {
         mq::MultiplexingRequester::RecvCallback recvCallback = [i](std::string_view message) {

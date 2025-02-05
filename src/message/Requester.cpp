@@ -365,7 +365,7 @@ void Requester::open() {
     }
 }
 
-void Requester::waitForConnected() {
+int Requester::waitForConnected(std::chrono::nanoseconds timeout) {
     LOG(debug, "");
 
     CHECK(!loop_->isInLoopThread());
@@ -387,7 +387,15 @@ void Requester::waitForConnected() {
         }
     });
 
-    future.get();
+    if (timeout.count() == 0) {
+        future.wait();
+    } else {
+        if (future.wait_for(timeout) != std::future_status::ready) {
+            return ETIMEDOUT;
+        }
+    }
+
+    return 0;
 }
 
 void Requester::send(std::string_view message) {

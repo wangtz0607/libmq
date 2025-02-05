@@ -95,8 +95,8 @@ public:
         requester_.open();
     }
 
-    void waitForConnected() {
-        requester_.waitForConnected();
+    int waitForConnected(std::chrono::nanoseconds timeout = {}) {
+        return requester_.waitForConnected(timeout);
     }
 
     std::future<Expected<std::string, RPCError>> call(std::string_view methodName, std::string_view payload);
