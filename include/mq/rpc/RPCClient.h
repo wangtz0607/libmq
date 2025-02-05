@@ -39,6 +39,10 @@ public:
         return requester_.remoteEndpoint();
     }
 
+    void setRequestTimeout(std::chrono::nanoseconds requestTimeout) {
+        requester_.setRequestTimeout(requestTimeout);
+    }
+
     void setReconnectInterval(std::chrono::nanoseconds reconnectInterval) {
         requester_.setReconnectInterval(reconnectInterval);
     }

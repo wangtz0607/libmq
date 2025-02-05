@@ -8,8 +8,10 @@
 #include <string_view>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "mq/event/EventLoop.h"
+#include "mq/event/Timer.h"
 #include "mq/message/Requester.h"
 #include "mq/net/Endpoint.h"
 #include "mq/utils/Executor.h"
@@ -42,6 +44,8 @@ public:
     std::unique_ptr<Endpoint> remoteEndpoint() const {
         return requester_.remoteEndpoint();
     }
+
+    void setRequestTimeout(std::chrono::nanoseconds requestTimeout);
 
     void setReconnectInterval(std::chrono::nanoseconds reconnectInterval) {
         requester_.setReconnectInterval(reconnectInterval);
@@ -95,9 +99,7 @@ public:
         return static_cast<State>(requester_.state());
     }
 
-    void open() {
-        requester_.open();
-    }
+    void open();
 
     void waitForConnected() {
         requester_.waitForConnected();
@@ -107,9 +109,13 @@ public:
 
 private:
     Requester requester_;
+    Timer timer_;
+    std::chrono::nanoseconds requestTimeout_{};
     std::unordered_map<uint64_t, std::pair<RecvCallback, Executor *>> requests_;
+    std::vector<uint64_t> inactiveRequests_;
 
     void onRequesterRecv(std::string_view message);
+    bool onTimerExpire();
 
     static uint64_t nextRequestId_;
 };

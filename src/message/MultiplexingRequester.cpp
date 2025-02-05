@@ -1,5 +1,6 @@
 #include "mq/message/MultiplexingRequester.h"
 
+#include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -20,7 +21,7 @@ using namespace mq;
 uint64_t MultiplexingRequester::nextRequestId_ = 0;
 
 MultiplexingRequester::MultiplexingRequester(EventLoop *loop, const Endpoint &remoteEndpoint)
-    : requester_(loop, remoteEndpoint) {
+    : requester_(loop, remoteEndpoint), timer_(loop) {
     LOG(debug, "");
 
     requester_.setRecvCallback([this](std::string_view message) {
@@ -30,6 +31,46 @@ MultiplexingRequester::MultiplexingRequester(EventLoop *loop, const Endpoint &re
 
 MultiplexingRequester::~MultiplexingRequester() {
     LOG(debug, "");
+}
+
+void MultiplexingRequester::setRequestTimeout(std::chrono::nanoseconds requestTimeout) {
+    LOG(debug, "");
+
+    if (loop()->isInLoopThread()) {
+        CHECK(state() == State::kClosed);
+
+        requestTimeout_ = requestTimeout;
+    } else {
+        loop()->postAndWait([this, requestTimeout] {
+            CHECK(state() == State::kClosed);
+
+            requestTimeout_ = requestTimeout;
+        });
+    }
+}
+
+void MultiplexingRequester::open() {
+    LOG(debug, "");
+
+    if (loop()->isInLoopThread()) {
+        CHECK(state() == State::kClosed);
+
+        requester_.open();
+
+        if (requestTimeout_.count() > 0) {
+            timer_.addExpireCallback([this] {
+                return onTimerExpire();
+            });
+
+            timer_.open();
+
+            timer_.setTime(requestTimeout_, requestTimeout_);
+        }
+    } else {
+        loop()->postAndWait([this] {
+            open();
+        });
+    }
 }
 
 void MultiplexingRequester::send(std::string message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
@@ -86,4 +127,24 @@ void MultiplexingRequester::onRequesterRecv(std::string_view message) {
 
         return;
     }
+}
+
+bool MultiplexingRequester::onTimerExpire() {
+    LOG(debug, "");
+
+    for (uint64_t requestId : inactiveRequests_) {
+        if (auto i = requests_.find(requestId); i != requests_.end()) {
+            LOG(warning, "Request timed out: {}", requestId);
+
+            requests_.erase(i);
+        }
+    }
+
+    inactiveRequests_.clear();
+
+    for (const auto &request : requests_) {
+        inactiveRequests_.push_back(request.first);
+    }
+
+    return true;
 }
