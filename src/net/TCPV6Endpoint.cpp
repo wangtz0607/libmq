@@ -1,6 +1,6 @@
 #include "mq/net/TCPV6Endpoint.h"
 
-#include <algorithm>
+#include <charconv>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -36,8 +36,12 @@ IPV6Address parseHostAddr(const std::string &host) {
 NetworkInterface parseInterface(const std::string &host) {
     if (size_t i = host.find('%'); i != std::string::npos) {
         std::string interface = host.substr(i + 1);
-        if (!interface.empty() && std::ranges::all_of(interface, isdigit)) {
-            return NetworkInterface(std::stoi(interface));
+
+        uint32_t index;
+        auto [ptr, ec] = std::from_chars(interface.data(), interface.data() + interface.size(), index);
+
+        if (ptr == interface.data() + interface.size() && ec == std::errc()) {
+            return NetworkInterface(index);
         } else {
             return NetworkInterface(interface);
         }
