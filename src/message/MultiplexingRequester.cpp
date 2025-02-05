@@ -96,6 +96,20 @@ void MultiplexingRequester::send(std::string message, RecvCallback recvCallback,
     }
 }
 
+size_t MultiplexingRequester::numOutstandingRequests() const {
+    size_t result;
+
+    if (loop()->isInLoopThread()) {
+        result = requests_.size();
+    } else {
+        loop()->postAndWait([this, &result] {
+            result = requests_.size();
+        });
+    }
+
+    return result;
+}
+
 void MultiplexingRequester::onRequesterRecv(std::string_view message) {
     LOG(debug, "");
 
