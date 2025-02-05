@@ -17,7 +17,7 @@
 
 using namespace mq;
 
-uint64_t MultiplexingRequester::nextRequestId_(0);
+uint64_t MultiplexingRequester::nextRequestId_ = 0;
 
 MultiplexingRequester::MultiplexingRequester(EventLoop *loop, const Endpoint &remoteEndpoint)
     : requester_(loop, remoteEndpoint) {
