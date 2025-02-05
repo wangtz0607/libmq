@@ -15,6 +15,8 @@
 
 #define TAG "main"
 
+using namespace std::chrono_literals;
+
 int main() {
     mq::setLogSink(stderr);
     mq::setLogLevel(mq::Level::kWarning);
@@ -24,7 +26,7 @@ int main() {
     mq::RPCClient client(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
 
     client.open();
-    CHECK(client.waitForConnected(std::chrono::seconds(30)) == 0);
+    CHECK(client.waitForConnected(30s) == 0);
 
     std::future<mq::Expected<std::string, mq::RPCError>> future = client.call("increment", "42");
 

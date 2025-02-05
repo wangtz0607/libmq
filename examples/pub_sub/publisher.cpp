@@ -14,6 +14,8 @@
 
 #define TAG "main"
 
+using namespace std::chrono_literals;
+
 int main() {
     mq::setLogSink(stderr);
     mq::setLogLevel(mq::Level::kWarning);
@@ -26,6 +28,6 @@ int main() {
 
     for (;;) {
         publisher.send(std::format("time: {}", std::chrono::system_clock::now()));
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(1s);
     }
 }

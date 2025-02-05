@@ -15,6 +15,8 @@
 
 #define TAG "main"
 
+using namespace std::chrono_literals;
+
 int main() {
     mq::setLogSink(stderr);
     mq::setLogLevel(mq::Level::kWarning);
@@ -25,7 +27,7 @@ int main() {
     mq::MultiplexingRequester requester(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
 
     requester.open();
-    CHECK(requester.waitForConnected(std::chrono::seconds(30)) == 0);
+    CHECK(requester.waitForConnected(30s) == 0);
 
     for (int i = 0;; ++i) {
         mq::MultiplexingRequester::RecvCallback recvCallback = [i](std::string_view message) {
@@ -34,6 +36,6 @@ int main() {
 
         requester.send(std::to_string(i), std::move(recvCallback), &pool /* Optional */);
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(1s);
     }
 }

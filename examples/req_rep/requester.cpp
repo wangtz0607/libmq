@@ -12,6 +12,8 @@
 
 #define TAG "main"
 
+using namespace std::chrono_literals;
+
 int main() {
     mq::setLogSink(stderr);
     mq::setLogLevel(mq::Level::kWarning);
@@ -28,10 +30,10 @@ int main() {
     requester.setRecvCallbackExecutor(&pool); // Optional
 
     requester.open();
-    CHECK(requester.waitForConnected(std::chrono::seconds(30)) == 0);
+    CHECK(requester.waitForConnected(30s) == 0);
 
     for (;;) {
         requester.send("World");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(1s);
     }
 }
