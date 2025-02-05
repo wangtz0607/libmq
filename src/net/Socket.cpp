@@ -429,6 +429,8 @@ void Socket::open(const Endpoint &remoteEndpoint) {
         if (errno != EINPROGRESS) {
             LOG(warning, "connect: errno={}", strerrorname_np(errno));
 
+            CHECK(errno != EINVAL);
+
             loop_->post([watcher = std::move(watcher_), fd = fd_]{
                 watcher->unregisterSelf();
 
