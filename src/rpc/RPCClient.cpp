@@ -34,41 +34,43 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view me
     CHECK(methodName.size() < 256);
 
     std::string message;
-    message.resize_and_overwrite(1 + methodName.size() + payload.size(), [methodName, payload](char *data, size_t size) {
-        uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
-        methodNameLength = toLittleEndian(methodNameLength);
+    message.resize_and_overwrite(1 + methodName.size() + payload.size(),
+        [methodName, payload](char *data, size_t size) {
+            uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
+            methodNameLength = toLittleEndian(methodNameLength);
 
-        memcpy(data, &methodNameLength, 1);
-        data += 1;
-        memcpy(data, methodName.data(), methodName.size());
-        data += methodName.size();
-        memcpy(data, payload.data(), payload.size());
+            memcpy(data, &methodNameLength, 1);
+            data += 1;
+            memcpy(data, methodName.data(), methodName.size());
+            data += methodName.size();
+            memcpy(data, payload.data(), payload.size());
 
-        return size;
-    });
+            return size;
+        });
 
     std::promise<Expected<std::string, RPCError>> promise;
     std::future<Expected<std::string, RPCError>> future = promise.get_future();
 
-    MultiplexingRequester::RecvCallback recvCallback = [promise = std::move(promise)](std::string_view message) mutable {
-        if (message.size() < 1) {
-            promise.set_value(RPCError::kBadReply);
-            return;
-        }
+    MultiplexingRequester::RecvCallback recvCallback =
+        [promise = std::move(promise)](std::string_view message) mutable {
+            if (message.size() < 1) {
+                promise.set_value(RPCError::kBadReply);
+                return;
+            }
 
-        uint8_t statusCode;
-        memcpy(&statusCode, message.data(), 1);
-        statusCode = fromLittleEndian(statusCode);
+            uint8_t statusCode;
+            memcpy(&statusCode, message.data(), 1);
+            statusCode = fromLittleEndian(statusCode);
 
-        RPCError status = static_cast<RPCError>(statusCode);
+            RPCError status = static_cast<RPCError>(statusCode);
 
-        if (status != RPCError::kOk) {
-            promise.set_value(status);
-            return;
-        }
+            if (status != RPCError::kOk) {
+                promise.set_value(status);
+                return;
+            }
 
-        promise.set_value(std::string(message.substr(1)));
-    };
+            promise.set_value(std::string(message.substr(1)));
+        };
 
     requester_.send(std::move(message), std::move(recvCallback));
 

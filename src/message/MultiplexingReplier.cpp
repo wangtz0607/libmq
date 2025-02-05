@@ -61,7 +61,9 @@ void MultiplexingReplier::setRecvCallbackExecutor(Executor *recvCallbackExecutor
     }
 }
 
-void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::string_view message, Replier::Promise promise) {
+void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint,
+                                        std::string_view message,
+                                        Replier::Promise promise) {
     LOG(debug, "");
 
     if (message.size() < 8) {

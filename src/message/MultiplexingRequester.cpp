@@ -118,7 +118,8 @@ void MultiplexingRequester::onRequesterRecv(std::string_view message) {
         if (!recvCallbackExecutor) {
             recvCallback(message.substr(8));
         } else {
-            recvCallbackExecutor->post([recvCallback = std::move(recvCallback), message = std::string(message)] mutable {
+            recvCallbackExecutor->post([recvCallback = std::move(recvCallback),
+                                        message = std::string(message)] mutable {
                 recvCallback(message.substr(8));
             });
         }
