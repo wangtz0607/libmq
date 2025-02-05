@@ -333,12 +333,6 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
     loop_->post([socket = std::move(socket)] {
         socket->reset();
     });
-
-    if (sockets_.empty()) {
-        State oldState = state_;
-        state_ = State::kClosed;
-        LOG(info, "{} -> {}", oldState, state_);
-    }
 }
 
 bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view message) {
