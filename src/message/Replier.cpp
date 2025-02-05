@@ -356,8 +356,8 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
                 });
             }
         } else {
-            loop_->post([this, socket, message = std::string(replyMessage)] {
-                if (int error = socket->send(message)) {
+            loop_->post([this, socket, replyMessage = std::string(replyMessage)] {
+                if (int error = socket->send(replyMessage)) {
                     LOG(warning, "send: error={}", strerrorname_np(error));
 
                     socket->reset();

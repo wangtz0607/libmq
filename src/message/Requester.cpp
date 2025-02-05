@@ -348,7 +348,7 @@ void Requester::waitForConnected() {
     std::promise<void> promise;
     std::future<void> future = promise.get_future();
 
-    loop_->post([this, promise = std::move(promise)] mutable {
+    loop_->postAndWait([this, promise = std::move(promise)] mutable {
         if (socket_->state() == FramingSocket::State::kConnected) {
             promise.set_value();
         } else {
