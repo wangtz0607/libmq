@@ -10,22 +10,22 @@
 
 namespace mq {
 
-class IPV6Addr {
+class IPV6Address {
 public:
     using Bytes = std::array<uint8_t, 16>;
 
-    IPV6Addr()
+    IPV6Address()
         : addr_() {}
 
-    explicit IPV6Addr(const uint8_t *addr);
+    explicit IPV6Address(const uint8_t *addr);
 
-    explicit IPV6Addr(const Bytes &addr)
-        : IPV6Addr(addr.data()) {}
+    explicit IPV6Address(const Bytes &addr)
+        : IPV6Address(addr.data()) {}
 
-    explicit IPV6Addr(const char *addr);
+    explicit IPV6Address(const char *addr);
 
-    explicit IPV6Addr(const std::string &addr)
-        : IPV6Addr(addr.c_str()) {}
+    explicit IPV6Address(const std::string &addr)
+        : IPV6Address(addr.c_str()) {}
 
     Bytes bytes() const {
         return addr_;
@@ -37,15 +37,15 @@ private:
     Bytes addr_;
 };
 
-inline bool operator==(IPV6Addr lhs, IPV6Addr rhs) {
+inline bool operator==(IPV6Address lhs, IPV6Address rhs) {
     return lhs.bytes() == rhs.bytes();
 }
 
 } // namespace mq
 
 template <>
-struct std::hash<mq::IPV6Addr> {
-    size_t operator()(mq::IPV6Addr addr) const noexcept {
+struct std::hash<mq::IPV6Address> {
+    size_t operator()(mq::IPV6Address addr) const noexcept {
         size_t seed = 0;
         for (uint8_t byte : addr.bytes()) {
             mq::hash_combine(seed, byte);
@@ -55,13 +55,13 @@ struct std::hash<mq::IPV6Addr> {
 };
 
 template <>
-struct std::formatter<mq::IPV6Addr> {
+struct std::formatter<mq::IPV6Address> {
     constexpr auto parse(std::format_parse_context &ctx) {
         return ctx.begin();
     }
 
     template <typename FormatContext>
-    auto format(mq::IPV6Addr addr, FormatContext &ctx) const {
+    auto format(mq::IPV6Address addr, FormatContext &ctx) const {
         return std::format_to(ctx.out(), "{}", addr.string());
     }
 };

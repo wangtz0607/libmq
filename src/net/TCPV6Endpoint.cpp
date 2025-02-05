@@ -14,7 +14,7 @@
 #include <netinet/in.h>
 
 #include "mq/net/Endpoint.h"
-#include "mq/net/IPV6Addr.h"
+#include "mq/net/IPV6Address.h"
 #include "mq/net/NetworkInterface.h"
 #include "mq/utils/Endian.h"
 #include "mq/utils/Hash.h"
@@ -25,11 +25,11 @@ using namespace mq;
 
 namespace {
 
-IPV6Addr parseHostAddr(const std::string &host) {
+IPV6Address parseHostAddr(const std::string &host) {
     if (size_t i = host.find('%'); i != std::string::npos) {
-        return IPV6Addr(host.substr(0, i));
+        return IPV6Address(host.substr(0, i));
     } else {
-        return IPV6Addr(host);
+        return IPV6Address(host);
     }
 }
 
@@ -48,15 +48,15 @@ NetworkInterface parseInterface(const std::string &host) {
 
 } // namespace
 
-TCPV6Endpoint::TCPV6Endpoint(IPV6Addr hostAddr, uint16_t port) : addr_{} {
+TCPV6Endpoint::TCPV6Endpoint(IPV6Address hostAddr, uint16_t port) : addr_{} {
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
-    IPV6Addr::Bytes src = hostAddr.bytes();
+    IPV6Address::Bytes src = hostAddr.bytes();
     toBigEndian(src.data(), 16);
     memcpy(&addr_.sin6_addr, src.data(), 16);
 }
 
-TCPV6Endpoint::TCPV6Endpoint(IPV6Addr hostAddr, NetworkInterface interface, uint16_t port)
+TCPV6Endpoint::TCPV6Endpoint(IPV6Address hostAddr, NetworkInterface interface, uint16_t port)
     : TCPV6Endpoint(hostAddr, port) {
     addr_.sin6_scope_id = interface.index();
 }
@@ -64,11 +64,11 @@ TCPV6Endpoint::TCPV6Endpoint(IPV6Addr hostAddr, NetworkInterface interface, uint
 TCPV6Endpoint::TCPV6Endpoint(const std::string &host, uint16_t port)
     : TCPV6Endpoint(parseHostAddr(host), parseInterface(host), port) {}
 
-IPV6Addr TCPV6Endpoint::hostAddr() const {
-    IPV6Addr::Bytes dst;
+IPV6Address TCPV6Endpoint::hostAddr() const {
+    IPV6Address::Bytes dst;
     memcpy(dst.data(), &addr_.sin6_addr, 16);
     fromBigEndian(dst.data(), 16);
-    return IPV6Addr(dst);
+    return IPV6Address(dst);
 }
 
 NetworkInterface TCPV6Endpoint::interface() const {

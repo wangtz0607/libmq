@@ -17,8 +17,8 @@ add_library(mq
     src/net/Acceptor.cpp
     src/net/FramingAcceptor.cpp
     src/net/FramingSocket.cpp
-    src/net/IPV4Addr.cpp
-    src/net/IPV6Addr.cpp
+    src/net/IPV4Address.cpp
+    src/net/IPV6Address.cpp
     src/net/NetworkInterface.cpp
     src/net/Socket.cpp
     src/net/TCPV4Endpoint.cpp
