@@ -1,6 +1,5 @@
 #include "mq/message/MultiplexingReplier.h"
 
-#include <cstdint>
 #include <cstring>
 #include <string>
 #include <string_view>
@@ -9,7 +8,6 @@
 #include "mq/message/Replier.h"
 #include "mq/net/Endpoint.h"
 #include "mq/utils/Check.h"
-#include "mq/utils/Endian.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
 
@@ -77,11 +75,7 @@ void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint, std::str
             std::string multiplexingReplyMessage;
             multiplexingReplyMessage.resize_and_overwrite(8 + replyMessage.size(),
                 [message, replyMessage](char *data, size_t size) {
-                    uint64_t requestId;
-                    memcpy(&requestId, message.data(), 8);
-                    requestId = fromLittleEndian(requestId);
-
-                    memcpy(data, &requestId, 8);
+                    memcpy(data, message.data(), 8);
                     data += 8;
                     memcpy(data, replyMessage.data(), replyMessage.size());
 
