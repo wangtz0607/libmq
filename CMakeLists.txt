@@ -32,11 +32,15 @@ add_library(mq
     src/utils/ThreadPool.cpp
 )
 target_compile_features(mq PUBLIC cxx_std_23)
-target_compile_options(mq PUBLIC -ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=)
 target_include_directories(mq PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>"
 )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(mq PUBLIC -ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=)
+endif()
+
 add_library(mq::mq ALIAS mq)
 
 install(TARGETS mq EXPORT mq-targets)
