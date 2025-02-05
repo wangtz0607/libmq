@@ -30,7 +30,6 @@ public:
         kOpened,
     };
 
-    using ConnectCallback = std::move_only_function<void (const Endpoint &remoteEndpoint)>;
     using RecvCallback = std::move_only_function<void (const Endpoint &remoteEndpoint, std::string_view message)>;
 
     explicit Subscriber(EventLoop *loop);
@@ -58,13 +57,8 @@ public:
     void setNoDelay(bool noDelay);
     void setKeepAlive(KeepAlive keepAlive);
 
-    void setConnectCallback(ConnectCallback connectCallback);
     void setRecvCallback(RecvCallback recvCallback);
-
-    void setConnectCallbackExecutor(Executor *connectCallbackExecutor);
     void setRecvCallbackExecutor(Executor *recvCallbackExecutor);
-
-    void dispatchConnect(const Endpoint &remoteEndpoint);
     void dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message);
 
     State state() const;
@@ -84,15 +78,12 @@ private:
     int sndBuf_ = 212992;
     bool noDelay_ = true;
     KeepAlive keepAlive_{};
-    ConnectCallback connectCallback_;
     RecvCallback recvCallback_;
-    Executor *connectCallbackExecutor_ = nullptr;
     Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
     SocketMap sockets_;
     TopicMap topics_;
 
-    bool onFramingSocketConnect(FramingSocket *socket, int error);
     bool onFramingSocketRecv(FramingSocket *socket, std::string_view message);
 };
 

@@ -185,22 +185,6 @@ void Subscriber::setKeepAlive(KeepAlive keepAlive) {
     }
 }
 
-void Subscriber::setConnectCallback(ConnectCallback connectCallback) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        CHECK(state_ == State::kClosed);
-
-        connectCallback_ = std::move(connectCallback);
-    } else {
-        loop_->postAndWait([this, &connectCallback] {
-            CHECK(state_ == State::kClosed);
-
-            connectCallback_ = std::move(connectCallback);
-        });
-    }
-}
-
 void Subscriber::setRecvCallback(RecvCallback recvCallback) {
     LOG(debug, "");
 
@@ -219,22 +203,6 @@ void Subscriber::setRecvCallback(RecvCallback recvCallback) {
     }
 }
 
-void Subscriber::setConnectCallbackExecutor(Executor *connectCallbackExecutor) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        CHECK(state_ == State::kClosed);
-
-        connectCallbackExecutor_ = connectCallbackExecutor;
-    } else {
-        loop_->postAndWait([this, connectCallbackExecutor] {
-            CHECK(state_ == State::kClosed);
-
-            connectCallbackExecutor_ = connectCallbackExecutor;
-        });
-    }
-}
-
 void Subscriber::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
     LOG(debug, "");
 
@@ -248,14 +216,6 @@ void Subscriber::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
 
             recvCallbackExecutor_ = recvCallbackExecutor;
         });
-    }
-}
-
-void Subscriber::dispatchConnect(const Endpoint &remoteEndpoint) {
-    LOG(debug, "");
-
-    if (connectCallback_) {
-        connectCallback_(remoteEndpoint);
     }
 }
 
@@ -308,9 +268,6 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
         socket->setNoDelay(noDelay_);
         socket->setKeepAlive(keepAlive_);
 
-        socket->addConnectCallback([this, socket = socket.get()](int error) {
-            return onFramingSocketConnect(socket, error);
-        });
         socket->addRecvCallback([this, socket = socket.get()](std::string_view message) {
             return onFramingSocketRecv(socket, message);
         });
@@ -349,22 +306,6 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
         state_ = State::kClosed;
         LOG(info, "{} -> {}", oldState, state_);
     }
-}
-
-bool Subscriber::onFramingSocketConnect(FramingSocket *socket, int error) {
-    LOG(debug, "");
-
-    if (!error) {
-        if (!connectCallbackExecutor_) {
-            dispatchConnect(*socket->remoteEndpoint());
-        } else {
-            connectCallbackExecutor_->post([this, remoteEndpoint = socket->remoteEndpoint()] {
-                dispatchConnect(*remoteEndpoint);
-            });
-        }
-    }
-
-    return true;
 }
 
 bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view message) {
