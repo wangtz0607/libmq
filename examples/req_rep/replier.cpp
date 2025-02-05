@@ -20,7 +20,7 @@ int main() {
     mq::setLogLevel(mq::Level::kWarning);
 
     mq::EventLoop loop;
-    mq::ThreadPool pool; // Optional
+    mq::ThreadPool pool;
 
     mq::Replier replier(&loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
 
@@ -31,7 +31,7 @@ int main() {
             promise(std::format("Hello, {}!", message));
         });
 
-    replier.setRecvCallbackExecutor(&pool); // Optional
+    replier.setRecvCallbackExecutor(&pool);
 
     CHECK(replier.open() == 0);
 

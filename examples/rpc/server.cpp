@@ -16,7 +16,7 @@ int main() {
     mq::setLogLevel(mq::Level::kWarning);
 
     mq::EventLoop loop;
-    mq::ThreadPool pool; // Optional
+    mq::ThreadPool pool;
 
     mq::RPCServer server(&loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
 
@@ -33,7 +33,7 @@ int main() {
         }
 
         return std::to_string(value + 1);
-    }, &pool /* Optional */);
+    }, &pool);
 
     server.open();
 

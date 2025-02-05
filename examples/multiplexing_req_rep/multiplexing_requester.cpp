@@ -22,7 +22,7 @@ int main() {
     mq::setLogLevel(mq::Level::kWarning);
 
     mq::EventLoop *loop = mq::EventLoop::background();
-    mq::ThreadPool pool; // Optional
+    mq::ThreadPool pool;
 
     mq::MultiplexingRequester requester(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
 
@@ -34,7 +34,7 @@ int main() {
             std::println("{}: {}", i, message);
         };
 
-        requester.send(std::to_string(i), std::move(recvCallback), &pool /* Optional */);
+        requester.send(std::to_string(i), std::move(recvCallback), &pool);
 
         std::this_thread::sleep_for(1s);
     }
