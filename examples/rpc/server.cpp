@@ -26,11 +26,13 @@ int main() {
 
         if (ptr != message.data() + message.size() || ec != std::errc()) {
             return std::string("invalid");
-        } else if (value == std::numeric_limits<int>::max()) {
-            return std::string("overflow");
-        } else {
-            return std::to_string(value + 1);
         }
+
+        if (value == std::numeric_limits<int>::max()) {
+            return std::string("overflow");
+        }
+
+        return std::to_string(value + 1);
     }, &pool /* Optional */);
 
     server.open();
