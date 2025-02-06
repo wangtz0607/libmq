@@ -226,7 +226,7 @@ int Acceptor::open(const Endpoint &localEndpoint) {
 
     State oldState = state_;
     state_ = State::kListening;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     return 0;
 }
@@ -240,7 +240,7 @@ void Acceptor::close() {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     watcher_->clearReadReadyCallbacks();
     watcher_->clearWriteReadyCallbacks();
@@ -267,7 +267,7 @@ void Acceptor::reset() {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     watcher_->clearReadReadyCallbacks();
     watcher_->clearWriteReadyCallbacks();

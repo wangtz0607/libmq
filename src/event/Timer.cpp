@@ -107,7 +107,7 @@ void Timer::open() {
 
     State oldState = state_;
     state_ = State::kOpened;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 }
 
 void Timer::setTime(std::chrono::nanoseconds delay) {
@@ -160,7 +160,7 @@ void Timer::close() {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     watcher_->clearReadReadyCallbacks();
 
@@ -184,7 +184,7 @@ void Timer::reset() {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     watcher_->clearReadReadyCallbacks();
 

@@ -328,7 +328,7 @@ void FramingSocket::open(const Endpoint &remoteEndpoint) {
 
             State oldState = state_;
             state_ = State::kConnected;
-            LOG(info, "{} -> {}", oldState, state_);
+            LOG(debug, "{} -> {}", oldState, state_);
 
             dispatchConnect(0);
 
@@ -344,7 +344,7 @@ void FramingSocket::open(const Endpoint &remoteEndpoint) {
         } else {
             State oldState = state_;
             state_ = State::kClosed;
-            LOG(info, "{} -> {}", oldState, state_);
+            LOG(debug, "{} -> {}", oldState, state_);
 
             loop_->post([socket = std::move(socket_)] {});
 
@@ -358,7 +358,7 @@ void FramingSocket::open(const Endpoint &remoteEndpoint) {
 
     State oldState = state_;
     state_ = State::kConnecting;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     socket_->open(remoteEndpoint);
 }
@@ -377,7 +377,7 @@ void FramingSocket::open(std::unique_ptr<Socket> socket, const Endpoint &remoteE
 
     State oldState = state_;
     state_ = State::kConnected;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     dispatchConnect(0);
 
@@ -439,7 +439,7 @@ void FramingSocket::close(int error) {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     socket_->reset();
 
@@ -467,7 +467,7 @@ void FramingSocket::reset() {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     socket_->reset();
 

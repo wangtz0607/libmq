@@ -313,7 +313,7 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
 
             State oldState = state_;
             state_ = State::kOpened;
-            LOG(info, "{} -> {}", oldState, state_);
+            LOG(debug, "{} -> {}", oldState, state_);
         }
     } else {
         loop_->postAndWait([this, &remoteEndpoint, &topics] {
@@ -329,7 +329,7 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
         if (sockets_.size() == 1) {
             State oldState = state_;
             state_ = State::kClosed;
-            LOG(info, "{} -> {}", oldState, state_);
+            LOG(debug, "{} -> {}", oldState, state_);
 
             flag_ = nullptr;
         }

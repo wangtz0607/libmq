@@ -406,7 +406,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
         State oldState = state_;
         state_ = State::kConnected;
-        LOG(info, "{} -> {}", oldState, state_);
+        LOG(debug, "{} -> {}", oldState, state_);
 
         dispatchConnect(0);
 
@@ -445,7 +445,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
             State oldState = state_;
             state_ = State::kConnecting;
-            LOG(info, "{} -> {}", oldState, state_);
+            LOG(debug, "{} -> {}", oldState, state_);
 
             watcher_->addWriteReadyCallback([this, remoteEndpoint = remoteEndpoint.clone()] {
                 int optVal;
@@ -458,7 +458,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
                     State oldState = state_;
                     state_ = State::kConnected;
-                    LOG(info, "{} -> {}", oldState, state_);
+                    LOG(debug, "{} -> {}", oldState, state_);
 
                     dispatchConnect(0);
 
@@ -482,7 +482,7 @@ void Socket::open(const Endpoint &remoteEndpoint) {
 
                     State oldState = state_;
                     state_ = State::kClosed;
-                    LOG(info, "{} -> {}", oldState, state_);
+                    LOG(debug, "{} -> {}", oldState, state_);
 
                     loop_->post([watcher = std::move(watcher_), fd = fd_] {
                         watcher->unregisterSelf();
@@ -527,7 +527,7 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
 
     State oldState = state_;
     state_ = State::kConnected;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     dispatchConnect(0);
 
@@ -631,7 +631,7 @@ void Socket::close(int error) {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     watcher_->clearReadReadyCallbacks();
     watcher_->clearWriteReadyCallbacks();
@@ -683,7 +683,7 @@ void Socket::reset() {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     watcher_->clearReadReadyCallbacks();
     watcher_->clearWriteReadyCallbacks();

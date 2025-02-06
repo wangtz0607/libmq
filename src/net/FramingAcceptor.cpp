@@ -218,7 +218,7 @@ int FramingAcceptor::open(const Endpoint &localEndpoint) {
 
     State oldState = state_;
     state_ = State::kListening;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     return 0;
 }
@@ -232,7 +232,7 @@ void FramingAcceptor::close() {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     acceptor_->reset();
 
@@ -254,7 +254,7 @@ void FramingAcceptor::reset() {
 
     State oldState = state_;
     state_ = State::kClosed;
-    LOG(info, "{} -> {}", oldState, state_);
+    LOG(debug, "{} -> {}", oldState, state_);
 
     acceptor_->reset();
 

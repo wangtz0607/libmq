@@ -254,7 +254,7 @@ int Publisher::open() {
 
             State oldState = state_;
             state_ = State::kOpened;
-            LOG(info, "{} -> {}", oldState, state_);
+            LOG(debug, "{} -> {}", oldState, state_);
         }
     } else {
         loop_->postAndWait([this, &error] {
@@ -291,7 +291,7 @@ void Publisher::close() {
 
         State oldState = state_;
         state_ = State::kClosed;
-        LOG(info, "{} -> {}", oldState, state_);
+        LOG(debug, "{} -> {}", oldState, state_);
 
         flag_ = nullptr;
 
