@@ -4,6 +4,7 @@
 #include <format>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "mq/event/EventLoop.h"
@@ -13,16 +14,22 @@
 #include "mq/utils/Executor.h"
 #include "mq/utils/IndirectEqual.h"
 #include "mq/utils/IndirectHash.h"
+#include "mq/utils/PtrEqual.h"
+#include "mq/utils/PtrHash.h"
 
 namespace mq {
 
 class Subscriber {
-    using SocketMap = std::unordered_map<std::unique_ptr<Endpoint>,
-                                         std::unique_ptr<FramingSocket>,
-                                         IndirectHash<std::unique_ptr<Endpoint>>,
-                                         IndirectEqual<std::unique_ptr<Endpoint>>>;
+    using SocketSet = std::unordered_set<std::shared_ptr<FramingSocket>,
+                                         PtrHash<std::shared_ptr<FramingSocket>>,
+                                         PtrEqual<std::shared_ptr<FramingSocket>>>;
 
-    using TopicMap = std::unordered_map<FramingSocket *, std::vector<std::string>>;
+    using EndpointToSocketMap = std::unordered_map<std::unique_ptr<Endpoint>,
+                                                   FramingSocket *,
+                                                   IndirectHash<std::unique_ptr<Endpoint>>,
+                                                   IndirectEqual<std::unique_ptr<Endpoint>>>;
+
+    using SocketToTopicsMap = std::unordered_map<FramingSocket *, std::vector<std::string>>;
 
 public:
     enum class State {
@@ -81,8 +88,9 @@ private:
     RecvCallback recvCallback_;
     Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
-    SocketMap sockets_;
-    TopicMap topics_;
+    SocketSet sockets_;
+    EndpointToSocketMap endpointToSocket_;
+    SocketToTopicsMap socketToTopics_;
     std::shared_ptr<char> flag_;
 
     bool onFramingSocketRecv(FramingSocket *socket, std::string_view message);
