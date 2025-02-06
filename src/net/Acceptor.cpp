@@ -228,6 +228,8 @@ int Acceptor::open(const Endpoint &localEndpoint) {
     state_ = State::kListening;
     LOG(debug, "{} -> {}", oldState, state_);
 
+    LOG(info, "Listening on {}", *localEndpoint_);
+
     return 0;
 }
 
@@ -326,6 +328,8 @@ bool Acceptor::onWatcherReadReady() {
     }
 
     LOG(debug, "accept: connFd={}, remoteEndpoint={}", connFd, *remoteEndpoint);
+
+    LOG(info, "Accepted connection from {}", *remoteEndpoint);
 
     std::unique_ptr<Socket> socket = std::make_unique<Socket>(loop_);
 

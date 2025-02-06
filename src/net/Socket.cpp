@@ -408,6 +408,8 @@ void Socket::open(const Endpoint &remoteEndpoint) {
         state_ = State::kConnected;
         LOG(debug, "{} -> {}", oldState, state_);
 
+        LOG(info, "Connected to {}", *remoteEndpoint_);
+
         dispatchConnect(0);
 
         watcher_->addReadReadyCallback([this] { return onWatcherReadReady(); });
@@ -459,6 +461,8 @@ void Socket::open(const Endpoint &remoteEndpoint) {
                     State oldState = state_;
                     state_ = State::kConnected;
                     LOG(debug, "{} -> {}", oldState, state_);
+
+                    LOG(info, "Connected to {}", *remoteEndpoint_);
 
                     dispatchConnect(0);
 
@@ -632,6 +636,8 @@ void Socket::close(int error) {
     State oldState = state_;
     state_ = State::kClosed;
     LOG(debug, "{} -> {}", oldState, state_);
+
+    LOG(info, "Closing connection to {}", *remoteEndpoint_);
 
     watcher_->clearReadReadyCallbacks();
     watcher_->clearWriteReadyCallbacks();
