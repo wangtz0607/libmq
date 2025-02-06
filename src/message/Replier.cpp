@@ -370,17 +370,21 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
     Promise promise = [this,
                        socket = socket->shared_from_this(),
-                       flag = std::weak_ptr(flag_)](std::string_view replyMessage) {
-        if (flag.expired()) return;
-        if (sockets_.find(socket.get()) == sockets_.end()) return;
+                       flag = std::weak_ptr(flag_)](std::string_view replyMessage) mutable {
+        if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) {
+            loop_->post([socket = std::move(socket)] {});
+
+            return;
+        }
 
         if (loop_->isInLoopThread()) {
             if (int error = socket->send(replyMessage)) {
                 LOG(warning, "send: error={}", strerrorname_np(error));
 
-                loop_->post([this, socket = socket.get(), flag = std::weak_ptr(flag_)] {
-                    if (flag.expired()) return;
-                    if (sockets_.find(socket) == sockets_.end()) return;
+                loop_->post([this,
+                             socket = std::move(socket),
+                             flag = std::weak_ptr(flag_)] mutable {
+                    if (flag.expired() || sockets_.find(socket) == sockets_.end()) return;
 
                     socket->reset();
 
@@ -388,21 +392,18 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
                 });
             }
         } else {
-            loop_->post([this, socket, replyMessage = std::string(replyMessage), flag = std::weak_ptr(flag_)] {
-                if (flag.expired()) return;
-                if (sockets_.find(socket.get()) == sockets_.end()) return;
+            loop_->post([this,
+                         socket = std::move(socket),
+                         replyMessage = std::string(replyMessage),
+                         flag = std::weak_ptr(flag_)] {
+                if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) return;
 
                 if (int error = socket->send(replyMessage)) {
                     LOG(warning, "send: error={}", strerrorname_np(error));
 
                     socket->reset();
 
-                    loop_->post([this, socket = socket.get(), flag = std::weak_ptr(flag_)] {
-                        if (flag.expired()) return;
-                        if (sockets_.find(socket) == sockets_.end()) return;
-
-                        sockets_.erase(sockets_.find(socket));
-                    });
+                    sockets_.erase(sockets_.find(socket));
                 }
             });
         }
