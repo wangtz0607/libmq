@@ -355,6 +355,8 @@ void Requester::open() {
 
         socket_->open(*remoteEndpoint_);
 
+        flag_ = std::make_shared<char>();
+
         State oldState = state_;
         state_ = State::kOpened;
         LOG(info, "{} -> {}", oldState, state_);
@@ -408,8 +410,34 @@ void Requester::send(std::string_view message) {
             LOG(warning, "send: error={}", strerrorname_np(error));
         }
     } else {
-        loop_->post([this, message = std::string(message)] {
+        loop_->post([this, message = std::string(message), flag = std::weak_ptr(flag_)] {
+            if (flag.expired()) return;
+
             send(message);
+        });
+    }
+}
+
+void Requester::close() {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        if (state_ == State::kClosed) return;
+
+        State oldState = state_;
+        state_ = State::kClosed;
+        LOG(info, "{} -> {}", oldState, state_);
+
+        flag_ = nullptr;
+
+        socket_->reset();
+
+        loop_->post([socket = std::move(socket_)] {});
+
+        socket_ = nullptr;
+    } else {
+        loop_->postAndWait([this] {
+            close();
         });
     }
 }
@@ -421,7 +449,9 @@ bool Requester::onFramingSocketConnect(int error) {
         if (!connectCallbackExecutor_) {
             dispatchConnect();
         } else {
-            connectCallbackExecutor_->post([this] {
+            connectCallbackExecutor_->post([this, flag = std::weak_ptr(flag_)] {
+                if (flag.expired()) return;
+
                 dispatchConnect();
             });
         }
@@ -436,7 +466,9 @@ bool Requester::onFramingSocketRecv(std::string_view message) {
     if (!recvCallbackExecutor_) {
         dispatchRecv(message);
     } else {
-        recvCallbackExecutor_->post([this, message = std::string(message)] {
+        recvCallbackExecutor_->post([this, message = std::string(message), flag = std::weak_ptr(flag_)] {
+            if (flag.expired()) return;
+
             dispatchRecv(message);
         });
     }

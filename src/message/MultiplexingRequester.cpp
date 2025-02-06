@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -21,7 +22,7 @@ using namespace mq;
 uint64_t MultiplexingRequester::nextRequestId_ = 0;
 
 MultiplexingRequester::MultiplexingRequester(EventLoop *loop, const Endpoint &remoteEndpoint)
-    : requester_(loop, remoteEndpoint), timer_(loop) {
+    : requester_(loop, remoteEndpoint) {
     LOG(debug, "");
 
     requester_.setRecvCallback([this](std::string_view message) {
@@ -55,17 +56,21 @@ void MultiplexingRequester::open() {
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);
 
-        requester_.open();
-
         if (requestTimeout_.count() > 0) {
-            timer_.addExpireCallback([this] {
+            timer_ = std::make_unique<Timer>(loop());
+
+            timer_->addExpireCallback([this] {
                 return onTimerExpire();
             });
 
-            timer_.open();
+            timer_->open();
 
-            timer_.setTime(requestTimeout_, requestTimeout_);
+            timer_->setTime(requestTimeout_, requestTimeout_);
         }
+
+        flag_ = std::make_shared<char>();
+
+        requester_.open();
     } else {
         loop()->postAndWait([this] {
             open();
@@ -90,7 +95,10 @@ void MultiplexingRequester::send(std::string message, RecvCallback recvCallback,
         loop()->post([this,
                       message = std::move(message),
                       recvCallback = std::move(recvCallback),
-                      recvCallbackExecutor] mutable {
+                      recvCallbackExecutor,
+                      flag = std::weak_ptr(flag_)] mutable {
+            if (flag.expired()) return;
+
             send(std::move(message), std::move(recvCallback), recvCallbackExecutor);
         });
     }
@@ -108,6 +116,28 @@ size_t MultiplexingRequester::numOutstandingRequests() const {
     }
 
     return result;
+}
+
+void MultiplexingRequester::close() {
+    LOG(debug, "");
+
+    if (loop()->isInLoopThread()) {
+        if (state() == State::kClosed) return;
+
+        requester_.close();
+
+        flag_ = nullptr;
+
+        if (requestTimeout_.count() > 0) {
+            timer_->reset();
+
+            loop()->post([timer = std::move(timer_)] {});
+        }
+    } else {
+        loop()->postAndWait([this] {
+            close();
+        });
+    }
 }
 
 void MultiplexingRequester::onRequesterRecv(std::string_view message) {

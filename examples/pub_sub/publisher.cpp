@@ -26,8 +26,11 @@ int main() {
 
     CHECK(publisher.open() == 0);
 
-    for (;;) {
+    for (int i = 0; i < 30; ++i) {
         publisher.send(std::format("time: {}", std::chrono::system_clock::now()));
         std::this_thread::sleep_for(1s);
     }
+
+    publisher.close();
+    return 0;
 }

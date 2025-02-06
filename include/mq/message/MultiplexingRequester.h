@@ -107,13 +107,15 @@ public:
 
     void send(std::string message, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
     size_t numOutstandingRequests() const;
+    void close();
 
 private:
     Requester requester_;
-    Timer timer_;
+    std::unique_ptr<Timer> timer_;
     std::chrono::nanoseconds requestTimeout_{};
     std::unordered_map<uint64_t, std::pair<RecvCallback, Executor *>> requests_;
     std::vector<uint64_t> requestsToExpire_;
+    std::shared_ptr<char> flag_;
 
     void onRequesterRecv(std::string_view message);
     bool onTimerExpire();

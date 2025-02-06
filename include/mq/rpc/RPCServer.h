@@ -104,6 +104,10 @@ public:
         return replier_.open();
     }
 
+    void close() {
+        replier_.close();
+    }
+
 private:
     using MethodMap = std::unordered_map<std::string, std::pair<Method, Executor *>, StringHash, StringEqual>;
 

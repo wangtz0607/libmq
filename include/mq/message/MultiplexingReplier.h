@@ -98,6 +98,10 @@ public:
         return replier_.open();
     }
 
+    void close() {
+        replier_.close();
+    }
+
 private:
     Replier replier_;
     RecvCallback recvCallback_;

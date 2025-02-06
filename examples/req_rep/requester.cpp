@@ -32,8 +32,11 @@ int main() {
     requester.open();
     CHECK(requester.waitForConnected(30s) == 0);
 
-    for (;;) {
+    for (int i = 0; i < 5; ++i) {
         requester.send("World");
         std::this_thread::sleep_for(1s);
     }
+
+    requester.close();
+    return 0;
 }

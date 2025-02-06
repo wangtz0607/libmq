@@ -1,6 +1,5 @@
 #include <chrono>
 #include <cstdio>
-#include <cstdlib>
 #include <future>
 #include <print>
 #include <string>
@@ -38,5 +37,6 @@ int main() {
         std::println("error: {}", result.error());
     }
 
-    exit(0);
+    client.close();
+    return 0;
 }

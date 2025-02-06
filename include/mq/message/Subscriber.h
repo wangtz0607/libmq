@@ -83,6 +83,7 @@ private:
     State state_ = State::kClosed;
     SocketMap sockets_;
     TopicMap topics_;
+    std::shared_ptr<char> flag_;
 
     bool onFramingSocketRecv(FramingSocket *socket, std::string_view message);
 };

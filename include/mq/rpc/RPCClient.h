@@ -101,6 +101,10 @@ public:
 
     std::future<Expected<std::string, RPCError>> call(std::string_view methodName, std::string_view payload);
 
+    void close() {
+        requester_.close();
+    }
+
 private:
     MultiplexingRequester requester_;
 };

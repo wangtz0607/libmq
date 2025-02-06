@@ -309,6 +309,8 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
         sockets_.emplace(remoteEndpoint.clone(), std::move(socket));
 
         if (sockets_.size() == 1) {
+            flag_ = std::make_shared<char>();
+
             State oldState = state_;
             state_ = State::kOpened;
             LOG(info, "{} -> {}", oldState, state_);
@@ -324,6 +326,14 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
+        if (sockets_.size() == 1) {
+            State oldState = state_;
+            state_ = State::kClosed;
+            LOG(info, "{} -> {}", oldState, state_);
+
+            flag_ = nullptr;
+        }
+
         auto i = sockets_.find(remoteEndpoint);
         CHECK(i != sockets_.end());
 
@@ -331,9 +341,9 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
         topics_.erase(i->second.get());
         sockets_.erase(i);
 
-        loop_->post([socket = std::move(socket)] {
-            socket->reset();
-        });
+        socket->reset();
+
+        loop_->post([socket = std::move(socket)] {});
     } else {
         loop_->postAndWait([this, &remoteEndpoint] {
             unsubscribe(remoteEndpoint);
@@ -345,25 +355,24 @@ bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view mes
     LOG(debug, "");
 
     if (!recvCallbackExecutor_) {
-        if (auto i = topics_.find(socket); i != topics_.end()) {
-            for (const std::string &topic : i->second) {
-                if (message.starts_with(topic)) {
-                    dispatchRecv(*socket->remoteEndpoint(), message);
-                    break;
-                }
+        for (const std::string &topic : topics_.find(socket)->second) {
+            if (message.starts_with(topic)) {
+                dispatchRecv(*socket->remoteEndpoint(), message);
+                break;
             }
         }
     } else {
         recvCallbackExecutor_->post([this,
                                      socket,
                                      remoteEndpoint = socket->remoteEndpoint(),
-                                     message = std::string(message)] {
-            if (auto i = topics_.find(socket); i != topics_.end()) {
-                for (const std::string &topic : i->second) {
-                    if (message.starts_with(topic)) {
-                        dispatchRecv(*remoteEndpoint, message);
-                        break;
-                    }
+                                     message = std::string(message),
+                                     flag = std::weak_ptr(flag_)] {
+            if (flag.expired()) return;
+
+            for (const std::string &topic : topics_.find(socket)->second) {
+                if (message.starts_with(topic)) {
+                    dispatchRecv(*remoteEndpoint, message);
+                    break;
                 }
             }
         });

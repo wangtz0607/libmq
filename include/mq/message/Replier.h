@@ -70,6 +70,7 @@ public:
 
     State state() const;
     int open();
+    void close();
 
 private:
     EventLoop *loop_;
@@ -91,6 +92,7 @@ private:
     State state_ = State::kClosed;
     std::unique_ptr<FramingAcceptor> acceptor_;
     SocketSet sockets_;
+    std::shared_ptr<char> flag_;
 
     bool onFramingAcceptorAccept(std::unique_ptr<FramingSocket> socket);
     bool onFramingSocketRecv(FramingSocket *socket, std::string_view message);

@@ -298,6 +298,8 @@ int Replier::open() {
 
             acceptor_ = nullptr;
         } else {
+            flag_ = std::make_shared<char>();
+
             State oldState = state_;
             state_ = State::kOpened;
             LOG(info, "{} -> {}", oldState, state_);
@@ -309,6 +311,30 @@ int Replier::open() {
     }
 
     return error;
+}
+
+void Replier::close() {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        if (state_ == State::kClosed) return;
+
+        State oldState = state_;
+        state_ = State::kClosed;
+        LOG(info, "{} -> {}", oldState, state_);
+
+        flag_ = nullptr;
+
+        acceptor_->reset();
+
+        loop_->post([acceptor = std::move(acceptor_)] {});
+
+        acceptor_ = nullptr;
+    } else {
+        loop_->postAndWait([this] {
+            close();
+        });
+    }
 }
 
 bool Replier::onFramingAcceptorAccept(std::unique_ptr<FramingSocket> socket) {
@@ -342,12 +368,18 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
     std::unique_ptr<Endpoint> remoteEndpoint = socket->remoteEndpoint();
 
-    Promise promise = [this, socket = socket->shared_from_this()](std::string_view replyMessage) {
+    Promise promise = [this,
+                       socket = socket->shared_from_this(),
+                       flag = std::weak_ptr(flag_)](std::string_view replyMessage) {
+        if (flag.expired()) return;
+
         if (loop_->isInLoopThread()) {
             if (int error = socket->send(replyMessage)) {
                 LOG(warning, "send: error={}", strerrorname_np(error));
 
-                loop_->post([this, socket = socket.get()] {
+                loop_->post([this, socket = socket.get(), flag = std::weak_ptr(flag_)] {
+                    if (flag.expired()) return;
+
                     socket->reset();
 
                     if (auto i = sockets_.find(socket); i != sockets_.end()) {
@@ -356,13 +388,17 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
                 });
             }
         } else {
-            loop_->post([this, socket, replyMessage = std::string(replyMessage)] {
+            loop_->post([this, socket, replyMessage = std::string(replyMessage), flag = std::weak_ptr(flag_)] {
+                if (flag.expired()) return;
+
                 if (int error = socket->send(replyMessage)) {
                     LOG(warning, "send: error={}", strerrorname_np(error));
 
                     socket->reset();
 
-                    loop_->post([this, socket = socket.get()] {
+                    loop_->post([this, socket = socket.get(), flag = std::weak_ptr(flag_)] {
+                        if (flag.expired()) return;
+
                         if (auto i = sockets_.find(socket); i != sockets_.end()) {
                             sockets_.erase(i);
                         }
@@ -378,7 +414,10 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
         recvCallbackExecutor_->post([this,
                                      remoteEndpoint = std::move(remoteEndpoint),
                                      message = std::string(message),
-                                     promise = std::move(promise)] mutable {
+                                     promise = std::move(promise),
+                                     flag = std::weak_ptr(flag_)] mutable {
+            if (flag.expired()) return;
+
             dispatchRecv(*remoteEndpoint, message, std::move(promise));
         });
     }

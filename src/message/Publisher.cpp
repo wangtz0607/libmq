@@ -250,6 +250,8 @@ int Publisher::open() {
 
             acceptor_ = nullptr;
         } else {
+            flag_ = std::make_shared<char>();
+
             State oldState = state_;
             state_ = State::kOpened;
             LOG(info, "{} -> {}", oldState, state_);
@@ -273,8 +275,39 @@ void Publisher::send(std::string_view message) {
             }
         }
     } else {
-        loop_->post([this, message = std::string(message)] {
+        loop_->post([this, message = std::string(message), flag = std::weak_ptr(flag_)] {
+            if (flag.expired()) return;
+
             send(message);
+        });
+    }
+}
+
+void Publisher::close() {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        if (state_ == State::kClosed) return;
+
+        State oldState = state_;
+        state_ = State::kClosed;
+        LOG(info, "{} -> {}", oldState, state_);
+
+        flag_ = nullptr;
+
+        acceptor_->reset();
+
+        for (const std::shared_ptr<FramingSocket> &socket : sockets_) {
+            socket->reset();
+        }
+
+        loop_->post([acceptor = std::move(acceptor_), sockets = std::move(sockets_)] {});
+
+        acceptor_ = nullptr;
+        sockets_.clear();
+    } else {
+        loop_->postAndWait([this] {
+            close();
         });
     }
 }

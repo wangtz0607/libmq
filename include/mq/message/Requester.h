@@ -66,6 +66,7 @@ public:
     void open();
     int waitForConnected(std::chrono::nanoseconds timeout = {});
     void send(std::string_view message);
+    void close();
 
 private:
     EventLoop *loop_;
@@ -87,6 +88,7 @@ private:
     Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
     std::unique_ptr<FramingSocket> socket_;
+    std::shared_ptr<char> flag_;
 
     bool onFramingSocketConnect(int error);
     bool onFramingSocketRecv(std::string_view message);
