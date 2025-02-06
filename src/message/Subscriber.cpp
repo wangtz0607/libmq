@@ -273,8 +273,8 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                                         reconnectInterval = reconnectInterval_](int error) {
                 if (error != 0) {
                     socket->loop()->postTimed([socket,
-                                              remoteEndpoint = remoteEndpoint->clone(),
-                                              reconnectInterval] {
+                                               remoteEndpoint = remoteEndpoint->clone(),
+                                               reconnectInterval] {
                         if (socket->state() == FramingSocket::State::kClosed) {
                             socket->open(*remoteEndpoint);
                         }
@@ -290,8 +290,8 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                                       remoteEndpoint = remoteEndpoint.clone(),
                                       reconnectInterval = reconnectInterval_](int) {
                 socket->loop()->postTimed([socket,
-                                          remoteEndpoint = remoteEndpoint->clone(),
-                                          reconnectInterval] {
+                                           remoteEndpoint = remoteEndpoint->clone(),
+                                           reconnectInterval] {
                     if (socket->state() == FramingSocket::State::kClosed) {
                         socket->open(*remoteEndpoint);
                     }
