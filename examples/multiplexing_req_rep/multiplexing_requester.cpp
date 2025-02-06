@@ -29,7 +29,7 @@ int main() {
     requester.open();
     CHECK(requester.waitForConnected(30s) == 0);
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0;; ++i) {
         mq::MultiplexingRequester::RecvCallback recvCallback = [i](std::string_view message) {
             std::println("{}: {}", i, message);
         };
@@ -38,7 +38,4 @@ int main() {
 
         std::this_thread::sleep_for(1s);
     }
-
-    requester.close();
-    return 0;
 }
