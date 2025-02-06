@@ -372,6 +372,7 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
                        socket = socket->shared_from_this(),
                        flag = std::weak_ptr(flag_)](std::string_view replyMessage) {
         if (flag.expired()) return;
+        if (sockets_.find(socket.get()) == sockets_.end()) return;
 
         if (loop_->isInLoopThread()) {
             if (int error = socket->send(replyMessage)) {
@@ -379,17 +380,17 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
                 loop_->post([this, socket = socket.get(), flag = std::weak_ptr(flag_)] {
                     if (flag.expired()) return;
+                    if (sockets_.find(socket) == sockets_.end()) return;
 
                     socket->reset();
 
-                    if (auto i = sockets_.find(socket); i != sockets_.end()) {
-                        sockets_.erase(i);
-                    }
+                    sockets_.erase(sockets_.find(socket));
                 });
             }
         } else {
             loop_->post([this, socket, replyMessage = std::string(replyMessage), flag = std::weak_ptr(flag_)] {
                 if (flag.expired()) return;
+                if (sockets_.find(socket.get()) == sockets_.end()) return;
 
                 if (int error = socket->send(replyMessage)) {
                     LOG(warning, "send: error={}", strerrorname_np(error));
@@ -398,10 +399,9 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
                     loop_->post([this, socket = socket.get(), flag = std::weak_ptr(flag_)] {
                         if (flag.expired()) return;
+                        if (sockets_.find(socket) == sockets_.end()) return;
 
-                        if (auto i = sockets_.find(socket); i != sockets_.end()) {
-                            sockets_.erase(i);
-                        }
+                        sockets_.erase(sockets_.find(socket));
                     });
                 }
             });
