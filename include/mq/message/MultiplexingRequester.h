@@ -106,7 +106,7 @@ public:
     }
 
     void send(std::string message, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
-    size_t numOutstandingRequests() const;
+    size_t numPendingRequests() const;
     void close();
 
 private:

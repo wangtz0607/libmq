@@ -104,7 +104,7 @@ void MultiplexingRequester::send(std::string message, RecvCallback recvCallback,
     }
 }
 
-size_t MultiplexingRequester::numOutstandingRequests() const {
+size_t MultiplexingRequester::numPendingRequests() const {
     size_t result;
 
     if (loop()->isInLoopThread()) {
