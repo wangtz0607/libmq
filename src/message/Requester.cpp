@@ -328,8 +328,8 @@ void Requester::open() {
         if (reconnectInterval_.count() > 0) {
             socket_->addConnectCallback([this](int error) {
                 if (error != 0) {
-                    loop_->postTimed([this] {
-                        if (socket_->state() == FramingSocket::State::kClosed) {
+                    loop_->postTimed([this, flag = std::weak_ptr(flag_)] {
+                        if (!flag.expired() && socket_->state() == FramingSocket::State::kClosed) {
                             socket_->open(*remoteEndpoint_);
                         }
 
@@ -341,8 +341,8 @@ void Requester::open() {
             });
 
             socket_->addCloseCallback([this](int) {
-                loop_->postTimed([this] {
-                    if (socket_->state() == FramingSocket::State::kClosed) {
+                loop_->postTimed([this, flag = std::weak_ptr(flag_)] {
+                    if (!flag.expired() && socket_->state() == FramingSocket::State::kClosed) {
                         socket_->open(*remoteEndpoint_);
                     }
 
