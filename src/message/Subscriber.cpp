@@ -323,16 +323,22 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
 void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
     LOG(debug, "");
 
-    auto i = sockets_.find(remoteEndpoint);
-    CHECK(i != sockets_.end());
+    if (loop_->isInLoopThread()) {
+        auto i = sockets_.find(remoteEndpoint);
+        CHECK(i != sockets_.end());
 
-    std::unique_ptr<FramingSocket> socket = std::move(i->second);
-    topics_.erase(i->second.get());
-    sockets_.erase(i);
+        std::unique_ptr<FramingSocket> socket = std::move(i->second);
+        topics_.erase(i->second.get());
+        sockets_.erase(i);
 
-    loop_->post([socket = std::move(socket)] {
-        socket->reset();
-    });
+        loop_->post([socket = std::move(socket)] {
+            socket->reset();
+        });
+    } else {
+        loop_->postAndWait([this, &remoteEndpoint] {
+            unsubscribe(remoteEndpoint);
+        });
+    }
 }
 
 bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view message) {
