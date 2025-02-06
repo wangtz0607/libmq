@@ -362,20 +362,21 @@ bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view mes
             }
         }
     } else {
-        recvCallbackExecutor_->post([this,
-                                     socket,
-                                     remoteEndpoint = socket->remoteEndpoint(),
-                                     message = std::string(message),
-                                     flag = std::weak_ptr(flag_)] {
-            if (flag.expired()) return;
+        for (const std::string &topic : topics_.find(socket)->second) {
+            if (message.starts_with(topic)) {
+                recvCallbackExecutor_->post([this,
+                                             socket,
+                                             remoteEndpoint = socket->remoteEndpoint(),
+                                             message = std::string(message),
+                                             flag = std::weak_ptr(flag_)] {
+                    if (flag.expired()) return;
 
-            for (const std::string &topic : topics_.find(socket)->second) {
-                if (message.starts_with(topic)) {
                     dispatchRecv(*remoteEndpoint, message);
-                    break;
-                }
+                });
+
+                break;
             }
-        });
+        }
     }
 
     return true;
