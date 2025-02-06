@@ -305,10 +305,6 @@ void Requester::open() {
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
-        State oldState = state_;
-        state_ = State::kOpened;
-        LOG(info, "{} -> {}", oldState, state_);
-
         socket_ = std::make_unique<FramingSocket>(loop_);
 
         socket_->setMaxMessageLength(maxMessageLength_);
@@ -358,6 +354,10 @@ void Requester::open() {
         }
 
         socket_->open(*remoteEndpoint_);
+
+        State oldState = state_;
+        state_ = State::kOpened;
+        LOG(info, "{} -> {}", oldState, state_);
     } else {
         loop_->postAndWait([this] {
             open();

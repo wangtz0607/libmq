@@ -250,12 +250,6 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
     if (loop_->isInLoopThread()) {
         CHECK(sockets_.find(remoteEndpoint) == sockets_.end());
 
-        if (sockets_.empty()) {
-            State oldState = state_;
-            state_ = State::kOpened;
-            LOG(info, "{} -> {}", oldState, state_);
-        }
-
         std::unique_ptr<FramingSocket> socket = std::make_unique<FramingSocket>(loop_);
 
         socket->setMaxMessageLength(maxMessageLength_);
@@ -313,6 +307,12 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
 
         topics_.emplace(socket.get(), std::move(topics));
         sockets_.emplace(remoteEndpoint.clone(), std::move(socket));
+
+        if (sockets_.size() == 1) {
+            State oldState = state_;
+            state_ = State::kOpened;
+            LOG(info, "{} -> {}", oldState, state_);
+        }
     } else {
         loop_->postAndWait([this, &remoteEndpoint, &topics] {
             subscribe(remoteEndpoint, std::move(topics));
