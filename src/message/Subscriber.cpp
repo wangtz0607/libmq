@@ -338,7 +338,7 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
         CHECK(i != sockets_.end());
 
         std::unique_ptr<FramingSocket> socket = std::move(i->second);
-        topics_.erase(i->second.get());
+        topics_.erase(socket.get());
         sockets_.erase(i);
 
         socket->reset();
