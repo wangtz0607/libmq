@@ -1,6 +1,5 @@
 #include "mq/utils/ThreadPool.h"
 
-#include <future>
 #include <mutex>
 #include <utility>
 
