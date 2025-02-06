@@ -13,6 +13,8 @@
 
 #define TAG "Requester"
 
+using namespace std::chrono_literals;
+
 using namespace mq;
 
 Requester::Requester(EventLoop *loop, const Endpoint &remoteEndpoint)
@@ -333,7 +335,7 @@ void Requester::open() {
                             socket_->open(*remoteEndpoint_);
                         }
 
-                        return std::chrono::nanoseconds{};
+                        return 0ns;
                     }, reconnectInterval_);
                 }
 
@@ -346,7 +348,7 @@ void Requester::open() {
                         socket_->open(*remoteEndpoint_);
                     }
 
-                    return std::chrono::nanoseconds{};
+                    return 0ns;
                 }, reconnectInterval_);
 
                 return true;

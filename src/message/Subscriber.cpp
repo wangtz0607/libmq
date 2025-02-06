@@ -14,6 +14,8 @@
 
 #define TAG "Subscriber"
 
+using namespace std::chrono_literals;
+
 using namespace mq;
 
 Subscriber::Subscriber(EventLoop *loop) : loop_(loop) {
@@ -277,7 +279,7 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                             socket->open(*remoteEndpoint);
                         }
 
-                        return std::chrono::nanoseconds{};
+                        return 0ns;
                     }, reconnectInterval);
                 }
 
@@ -294,7 +296,7 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                         socket->open(*remoteEndpoint);
                     }
 
-                    return std::chrono::nanoseconds{};
+                    return 0ns;
                 }, reconnectInterval);
 
                 return true;
