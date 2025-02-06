@@ -189,8 +189,6 @@ void Subscriber::setKeepAlive(KeepAlive keepAlive) {
 void Subscriber::setRecvCallback(RecvCallback recvCallback) {
     LOG(debug, "");
 
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
