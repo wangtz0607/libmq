@@ -63,10 +63,10 @@ private:
     static constexpr const char *name(mq::Level level) {
     using enum mq::Level;
         switch (level) {
-            case kDebug: return "debug";
-            case kInfo: return "info";
-            case kWarning: return "warning";
-            case kError: return "error";
+            case kDebug: return "DEBUG";
+            case kInfo: return "INFO";
+            case kWarning: return "WARNING";
+            case kError: return "ERROR";
             default: return nullptr;
         }
     }
