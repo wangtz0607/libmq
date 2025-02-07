@@ -12,7 +12,6 @@
 #include "mq/net/Endpoint.h"
 #include "mq/rpc/RPCError.h"
 #include "mq/utils/Check.h"
-#include "mq/utils/Endian.h"
 #include "mq/utils/Expected.h"
 #include "mq/utils/Logging.h"
 
@@ -33,19 +32,22 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view me
 
     CHECK(methodName.size() < 256);
 
+    size_t size = 1 + methodName.size() + payload.size();
+
+    auto op = [methodName, payload](char *data, size_t size) {
+        uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
+
+        memcpy(data, &methodNameLength, 1);
+        data += 1;
+        memcpy(data, methodName.data(), methodName.size());
+        data += methodName.size();
+        memcpy(data, payload.data(), payload.size());
+
+        return size;
+    };
+
     std::string message;
-    message.resize_and_overwrite(1 + methodName.size() + payload.size(),
-        [methodName, payload](char *data, size_t size) {
-            uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
-
-            memcpy(data, &methodNameLength, 1);
-            data += 1;
-            memcpy(data, methodName.data(), methodName.size());
-            data += methodName.size();
-            memcpy(data, payload.data(), payload.size());
-
-            return size;
-        });
+    message.resize_and_overwrite(size, std::move(op));
 
     std::promise<Expected<std::string, RPCError>> promise;
     std::future<Expected<std::string, RPCError>> future = promise.get_future();
