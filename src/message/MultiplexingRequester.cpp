@@ -35,6 +35,22 @@ MultiplexingRequester::~MultiplexingRequester() {
     LOG(debug, "");
 }
 
+void MultiplexingRequester::setMaxPendingRequests(size_t maxPendingRequests) {
+    LOG(debug, "");
+
+    if (loop()->isInLoopThread()) {
+        CHECK(state() == State::kClosed);
+
+        maxPendingRequests_ = maxPendingRequests;
+    } else {
+        loop()->postAndWait([this, maxPendingRequests] {
+            CHECK(state() == State::kClosed);
+
+            maxPendingRequests_ = maxPendingRequests;
+        });
+    }
+}
+
 void MultiplexingRequester::setRequestTimeout(std::chrono::nanoseconds requestTimeout) {
     LOG(debug, "");
 
@@ -84,6 +100,12 @@ void MultiplexingRequester::send(std::string message, RecvCallback recvCallback,
 
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kOpened);
+
+        if (maxPendingRequests_ > 0 && requests_.size() == maxPendingRequests_) {
+            LOG(warning, "Too many pending requests");
+
+            requests_.erase(requests_.begin());
+        }
 
         uint64_t requestId = nextRequestId_++;
         uint64_t requestIdLE = toLittleEndian(requestId);

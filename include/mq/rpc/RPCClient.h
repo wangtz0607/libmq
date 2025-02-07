@@ -39,6 +39,10 @@ public:
         return requester_.remoteEndpoint();
     }
 
+    void setMaxPendingRequests(size_t maxPendingRequests) {
+        requester_.setMaxPendingRequests(maxPendingRequests);
+    }
+
     void setRequestTimeout(std::chrono::nanoseconds requestTimeout) {
         requester_.setRequestTimeout(requestTimeout);
     }

@@ -6,7 +6,6 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -15,6 +14,7 @@
 #include "mq/message/Requester.h"
 #include "mq/net/Endpoint.h"
 #include "mq/utils/Executor.h"
+#include "mq/utils/LinkedHashMap.h"
 
 namespace mq {
 
@@ -45,6 +45,7 @@ public:
         return requester_.remoteEndpoint();
     }
 
+    void setMaxPendingRequests(size_t maxPendingRequests);
     void setRequestTimeout(std::chrono::nanoseconds requestTimeout);
 
     void setReconnectInterval(std::chrono::nanoseconds reconnectInterval) {
@@ -112,8 +113,9 @@ public:
 private:
     Requester requester_;
     std::unique_ptr<Timer> timer_;
+    size_t maxPendingRequests_ = 0;
     std::chrono::nanoseconds requestTimeout_{};
-    std::unordered_map<uint64_t, std::pair<RecvCallback, Executor *>> requests_;
+    LinkedHashMap<uint64_t, std::pair<RecvCallback, Executor *>> requests_;
     std::vector<uint64_t> expiringRequests_;
     std::shared_ptr<void> flag_;
 
