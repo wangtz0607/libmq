@@ -11,11 +11,11 @@
 
 using namespace mq;
 
-IPV6Address::IPV6Address(const uint8_t *addr) {
+IPV6Address::IPV6Address(const uint8_t *addr) : addr_{} {
     memcpy(addr_.data(), addr, 16);
 }
 
-IPV6Address::IPV6Address(const char *addr) {
+IPV6Address::IPV6Address(const char *addr) : addr_{} {
     Bytes dst;
     CHECK(inet_pton(AF_INET6, addr, dst.data()) == 1);
     fromBigEndian(dst.data(), 16);
