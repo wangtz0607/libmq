@@ -278,7 +278,6 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                     socket->loop()->postTimed([this,
                                                socket = socket->shared_from_this(),
                                                remoteEndpoint = remoteEndpoint->clone(),
-                                               reconnectInterval,
                                                flag = std::weak_ptr(flag_)] mutable {
                         if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) {
                             loop_->post([socket = std::move(socket)] {});
@@ -304,7 +303,6 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                 socket->loop()->postTimed([this,
                                            socket = socket->shared_from_this(),
                                            remoteEndpoint = remoteEndpoint->clone(),
-                                           reconnectInterval,
                                            flag = std::weak_ptr(flag_)] mutable {
                     if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) {
                         loop_->post([socket = std::move(socket)] {});

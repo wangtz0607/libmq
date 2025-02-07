@@ -382,7 +382,7 @@ int Requester::waitForConnected(std::chrono::nanoseconds timeout) {
         if (socket_->state() == FramingSocket::State::kConnected) {
             promise.set_value();
         } else {
-            socket_->addConnectCallback([this, promise = std::move(promise)](int error) mutable {
+            socket_->addConnectCallback([promise = std::move(promise)](int error) mutable {
                 if (error == 0) {
                     promise.set_value();
                 }
