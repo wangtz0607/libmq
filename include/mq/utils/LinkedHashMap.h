@@ -211,17 +211,6 @@ public:
         insert(first, last);
     }
 
-    LinkedHashMap(const LinkedHashMap &other) : LinkedHashMap() {
-        insert(other.begin(), other.end());
-    }
-
-    LinkedHashMap(LinkedHashMap &&other) noexcept = default;
-
-    LinkedHashMap &operator=(LinkedHashMap other) {
-        swap(other);
-        return *this;
-    }
-
     iterator begin() {
         return list_.begin();
     }
