@@ -6,7 +6,6 @@
 #include <format>
 #include <functional>
 #include <string>
-#include <typeinfo>
 
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -55,7 +54,7 @@ std::unique_ptr<Endpoint> UnixEndpoint::clone() const {
 }
 
 bool UnixEndpoint::equals(const Endpoint &other) const {
-    if (typeid(*this) != typeid(other)) return false;
+    if (domain() != other.domain()) return false;
     const UnixEndpoint &castOther = static_cast<const UnixEndpoint &>(other);
     return path() == castOther.path();
 }

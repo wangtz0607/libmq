@@ -7,7 +7,6 @@
 #include <format>
 #include <memory>
 #include <string>
-#include <typeinfo>
 
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -96,7 +95,7 @@ std::unique_ptr<Endpoint> TCPV6Endpoint::clone() const {
 }
 
 bool TCPV6Endpoint::equals(const Endpoint &other) const {
-    if (typeid(*this) != typeid(other)) return false;
+    if (domain() != other.domain()) return false;
     const TCPV6Endpoint &castOther = static_cast<const TCPV6Endpoint &>(other);
     return hostAddr() == castOther.hostAddr() &&
            interface() == castOther.interface() &&

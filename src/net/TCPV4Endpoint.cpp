@@ -4,7 +4,6 @@
 #include <format>
 #include <memory>
 #include <string>
-#include <typeinfo>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -40,7 +39,7 @@ std::unique_ptr<Endpoint> TCPV4Endpoint::clone() const {
 }
 
 bool TCPV4Endpoint::equals(const Endpoint &other) const {
-    if (typeid(*this) != typeid(other)) return false;
+    if (domain() != other.domain()) return false;
     const TCPV4Endpoint &castOther = static_cast<const TCPV4Endpoint &>(other);
     return hostAddr() == castOther.hostAddr() && port() == castOther.port();
 }
