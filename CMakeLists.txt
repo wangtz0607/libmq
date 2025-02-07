@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.5.0)
 project(libmq VERSION 0.1.0 LANGUAGES CXX)
 
 option(LIBMQ_EXAMPLES "Build examples." ON)
+option(LIBMQ_NO_EXCEPTIONS "-fno-exceptions" OFF)
+option(LIBMQ_NO_RTTI "-fno-rtti" OFF)
 
 add_library(mq
     src/event/EventLoop.cpp
@@ -36,6 +38,14 @@ target_include_directories(mq PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>"
 )
+
+if(LIBMQ_NO_EXCEPTIONS)
+    target_compile_options(mq PUBLIC -fno-exceptions)
+endif()
+
+if(LIBMQ_NO_RTTI)
+    target_compile_options(mq PUBLIC -fno-rtti)
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(mq PUBLIC -ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=)
