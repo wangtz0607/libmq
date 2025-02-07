@@ -34,6 +34,19 @@ public:
     using iterator = typename List::iterator;
     using const_iterator = typename List::const_iterator;
 
+    LinkedHashMap() = default;
+
+    LinkedHashMap(const LinkedHashMap &other) : LinkedHashMap() {
+        insert(other.begin(), other.end());
+    }
+
+    LinkedHashMap(LinkedHashMap &&other) noexcept = default;
+
+    LinkedHashMap &operator=(LinkedHashMap other) {
+        swap(other);
+        return *this;
+    }
+
     iterator begin() {
         return list_.begin();
     }
@@ -155,9 +168,20 @@ public:
         map_.clear();
     }
 
+    void swap(LinkedHashMap &other) noexcept {
+        using std::swap;
+        swap(list_, other.list_);
+        swap(map_, other.map_);
+    }
+
 private:
     List list_;
     Map map_;
 };
+
+template <typename K, typename V, typename Hash, typename Equal>
+void swap(LinkedHashMap<K, V, Hash, Equal> &lhs, LinkedHashMap<K, V, Hash, Equal> &rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 } // namespace mq
