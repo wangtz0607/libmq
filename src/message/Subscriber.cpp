@@ -391,8 +391,7 @@ bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view mes
                                              remoteEndpoint = socket->remoteEndpoint(),
                                              message = std::string(message),
                                              flag = std::weak_ptr(flag_)] {
-                    if (flag.expired()) return;
-                    if (sockets_.find(socket) == sockets_.end()) return;
+                    if (flag.expired() || sockets_.find(socket) == sockets_.end()) return;
 
                     dispatchRecv(*remoteEndpoint, message);
                 });
