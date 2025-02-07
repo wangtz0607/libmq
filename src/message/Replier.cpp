@@ -9,6 +9,7 @@
 #include "mq/net/FramingSocket.h"
 #include "mq/net/Socket.h"
 #include "mq/utils/Check.h"
+#include "mq/utils/Empty.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
 
@@ -298,7 +299,7 @@ int Replier::open() {
 
             acceptor_ = nullptr;
         } else {
-            flag_ = std::make_shared<char>();
+            flag_ = std::make_shared<Empty>();
 
             State oldState = state_;
             state_ = State::kOpened;

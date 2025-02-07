@@ -11,6 +11,7 @@
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
 #include "mq/utils/Check.h"
+#include "mq/utils/Empty.h"
 #include "mq/utils/Endian.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
@@ -68,7 +69,7 @@ void MultiplexingRequester::open() {
             timer_->setTime(requestTimeout_, requestTimeout_);
         }
 
-        flag_ = std::make_shared<char>();
+        flag_ = std::make_shared<Empty>();
 
         requester_.open();
     } else {

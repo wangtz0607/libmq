@@ -10,6 +10,7 @@
 #include "mq/net/FramingSocket.h"
 #include "mq/net/Socket.h"
 #include "mq/utils/Check.h"
+#include "mq/utils/Empty.h"
 #include "mq/utils/Logging.h"
 
 #define TAG "Subscriber"
@@ -329,7 +330,7 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
         sockets_.insert(std::shared_ptr(std::move(socket)));
 
         if (sockets_.size() == 1) {
-            flag_ = std::make_shared<char>();
+            flag_ = std::make_shared<Empty>();
 
             State oldState = state_;
             state_ = State::kOpened;
