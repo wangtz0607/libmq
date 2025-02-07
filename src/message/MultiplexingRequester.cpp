@@ -95,7 +95,7 @@ void MultiplexingRequester::open() {
     }
 }
 
-void MultiplexingRequester::send(std::string message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
+void MultiplexingRequester::send(std::string_view message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
     LOG(debug, "");
 
     if (loop()->isInLoopThread()) {
@@ -112,18 +112,29 @@ void MultiplexingRequester::send(std::string message, RecvCallback recvCallback,
 
         requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
 
-        message.insert(0, reinterpret_cast<const char *>(&requestIdLE), 8);
+        size_t size = 8 + message.size();
 
-        requester_.send(message);
+        auto op = [requestIdLE, message](char *data, size_t size) {
+            memcpy(data, reinterpret_cast<const char *>(&requestIdLE), 8);
+            data += 8;
+            memcpy(data, message.data(), message.size());
+
+            return size;
+        };
+
+        std::string multiplexingMessage;
+        multiplexingMessage.resize_and_overwrite(size, std::move(op));
+
+        requester_.send(multiplexingMessage);
     } else {
         loop()->post([this,
-                      message = std::move(message),
+                      message = std::string(message),
                       recvCallback = std::move(recvCallback),
                       recvCallbackExecutor,
                       flag = std::weak_ptr(flag_)] mutable {
             if (flag.expired()) return;
 
-            send(std::move(message), std::move(recvCallback), recvCallbackExecutor);
+            send(message, std::move(recvCallback), recvCallbackExecutor);
         });
     }
 }
