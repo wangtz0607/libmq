@@ -27,7 +27,7 @@ Buffer::Buffer(const Buffer &other)
     memcpy(buffer_, other.buffer_ + other.begin_, other.end_ - other.begin_);
 }
 
-Buffer::Buffer(Buffer &&other) noexcept {
+Buffer::Buffer(Buffer &&other) noexcept : Buffer() {
     swap(other);
 }
 
