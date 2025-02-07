@@ -86,11 +86,12 @@ void MultiplexingRequester::send(std::string message, RecvCallback recvCallback,
         CHECK(state() == State::kOpened);
 
         uint64_t requestId = nextRequestId_++;
-        requestId = toLittleEndian(requestId);
+        uint64_t requestIdLE = toLittleEndian(requestId);
 
         requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
 
-        message.insert(0, reinterpret_cast<const char *>(&requestId), 8);
+        message.insert(0, reinterpret_cast<const char *>(&requestIdLE), 8);
+
         requester_.send(message);
     } else {
         loop()->post([this,
@@ -150,9 +151,10 @@ void MultiplexingRequester::onRequesterRecv(std::string_view message) {
         return;
     }
 
-    uint64_t requestId;
-    memcpy(&requestId, message.data(), 8);
-    requestId = fromLittleEndian(requestId);
+    uint64_t requestIdLE;
+    memcpy(&requestIdLE, message.data(), 8);
+
+    uint64_t requestId = fromLittleEndian(requestIdLE);
 
     if (auto i = requests_.find(requestId); i != requests_.end()) {
         RecvCallback recvCallback = std::move(i->second.first);

@@ -401,9 +401,9 @@ int FramingSocket::send(std::string_view message) {
     if (state_ != State::kConnected) return ENOTCONN;
 
     uint32_t length = static_cast<uint32_t>(message.size());
-    length = toLittleEndian(length);
+    uint32_t lengthLE = toLittleEndian(length);
 
-    return socket_->send({{reinterpret_cast<const char *>(&length), 4}, {message.data(), message.size()}});
+    return socket_->send({{reinterpret_cast<const char *>(&lengthLE), 4}, {message.data(), message.size()}});
 }
 
 int FramingSocket::send(const std::vector<std::string_view> &messages) {
@@ -421,9 +421,9 @@ int FramingSocket::send(const std::vector<std::string_view> &messages) {
 
     for (std::string_view message: messages) {
         uint32_t length = static_cast<uint32_t>(message.size());
-        length = toLittleEndian(length);
+        uint32_t lengthLE = toLittleEndian(length);
 
-        buffers.emplace_back(reinterpret_cast<const char *>(&length), 4);
+        buffers.emplace_back(reinterpret_cast<const char *>(&lengthLE), 4);
         buffers.emplace_back(message.data(), message.size());
     }
 
@@ -485,9 +485,10 @@ bool FramingSocket::onSocketRecv(const char *data, size_t size, size_t &newSize)
     for (;;) {
         if (size < 4) break;
 
-        uint32_t length;
-        memcpy(&length, data, 4);
-        length = fromLittleEndian(length);
+        uint32_t lengthLE;
+        memcpy(&lengthLE, data, 4);
+
+        uint32_t length = fromLittleEndian(lengthLE);
 
         if (length > maxMessageLength_) {
             LOG(warning, "Message too long ({})", length);

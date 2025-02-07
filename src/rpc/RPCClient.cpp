@@ -37,7 +37,6 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view me
     message.resize_and_overwrite(1 + methodName.size() + payload.size(),
         [methodName, payload](char *data, size_t size) {
             uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
-            methodNameLength = toLittleEndian(methodNameLength);
 
             memcpy(data, &methodNameLength, 1);
             data += 1;
@@ -60,7 +59,6 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view me
 
             uint8_t statusCode;
             memcpy(&statusCode, message.data(), 1);
-            statusCode = fromLittleEndian(statusCode);
 
             RPCError status = static_cast<RPCError>(statusCode);
 

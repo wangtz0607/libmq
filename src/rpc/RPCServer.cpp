@@ -112,19 +112,18 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
     if (message.size() < 1) {
         RPCError status = RPCError::kBadRequest;
         uint8_t statusCode = static_cast<uint8_t>(status);
-        statusCode = toLittleEndian(statusCode);
         promise(std::string(reinterpret_cast<const char *>(&statusCode), 1));
         return;
     }
 
-    uint8_t methodNameLength;
-    memcpy(&methodNameLength, message.data(), 1);
-    methodNameLength = fromLittleEndian(methodNameLength);
+    uint8_t methodNameLengthLE;
+    memcpy(&methodNameLengthLE, message.data(), 1);
+
+    uint8_t methodNameLength = fromLittleEndian(methodNameLengthLE);
 
     if (message.size() < static_cast<size_t>(1 + methodNameLength)) {
         RPCError status = RPCError::kBadRequest;
         uint8_t statusCode = static_cast<uint8_t>(status);
-        statusCode = toLittleEndian(statusCode);
         promise(std::string(reinterpret_cast<const char *>(&statusCode), 1));
         return;
     }
@@ -142,20 +141,17 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
             if (result) {
                 RPCError status = RPCError::kOk;
                 uint8_t statusCode = static_cast<uint8_t>(status);
-                statusCode = toLittleEndian(statusCode);
                 std::string resultPayload = std::move(result.value());
                 promise(std::string(reinterpret_cast<const char *>(&statusCode), 1) + resultPayload);
             } else {
                 RPCError status = result.error();
                 uint8_t statusCode = static_cast<uint8_t>(status);
-                statusCode = toLittleEndian(statusCode);
                 promise(std::string(reinterpret_cast<const char *>(&statusCode), 1));
             }
         } else {
             methodExecutor->post([&method, payload = std::string(payload), promise = std::move(promise)] mutable {
                 RPCError status = RPCError::kOk;
                 uint8_t statusCode = static_cast<uint8_t>(status);
-                statusCode = toLittleEndian(statusCode);
 
                 std::string result = method(payload);
 
@@ -165,7 +161,6 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
     } else {
         RPCError status = RPCError::kMethodNotFound;
         uint8_t statusCode = static_cast<uint8_t>(status);
-        statusCode = toLittleEndian(statusCode);
         promise(std::string(reinterpret_cast<const char *>(&statusCode), 1));
     }
 }
