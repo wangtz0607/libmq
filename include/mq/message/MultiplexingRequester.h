@@ -114,7 +114,7 @@ private:
     std::unique_ptr<Timer> timer_;
     std::chrono::nanoseconds requestTimeout_{};
     std::unordered_map<uint64_t, std::pair<RecvCallback, Executor *>> requests_;
-    std::vector<uint64_t> requestsToExpire_;
+    std::vector<uint64_t> expiringRequests_;
     std::shared_ptr<void> flag_;
 
     void onRequesterRecv(std::string_view message);

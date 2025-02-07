@@ -178,7 +178,7 @@ void MultiplexingRequester::onRequesterRecv(std::string_view message) {
 bool MultiplexingRequester::onTimerExpire() {
     LOG(debug, "");
 
-    for (uint64_t requestId : requestsToExpire_) {
+    for (uint64_t requestId : expiringRequests_) {
         if (auto i = requests_.find(requestId); i != requests_.end()) {
             LOG(warning, "Request timed out: {}", requestId);
 
@@ -186,10 +186,10 @@ bool MultiplexingRequester::onTimerExpire() {
         }
     }
 
-    requestsToExpire_.clear();
+    expiringRequests_.clear();
 
     for (const auto &request : requests_) {
-        requestsToExpire_.push_back(request.first);
+        expiringRequests_.push_back(request.first);
     }
 
     return true;
