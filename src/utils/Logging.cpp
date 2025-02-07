@@ -9,7 +9,7 @@
 namespace mq::detail {
 
 FILE *sink_ = stderr;
-Level level_ = Level::kWarning;
+Level level_ = Level::kInfo;
 
 } // namespace mq::detail
 

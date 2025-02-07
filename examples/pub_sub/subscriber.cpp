@@ -10,7 +10,7 @@
 
 int main() {
     mq::setLogSink(stderr);
-    mq::setLogLevel(mq::Level::kWarning);
+    mq::setLogLevel(mq::Level::kInfo);
 
     mq::EventLoop loop;
     mq::ThreadPool pool;
