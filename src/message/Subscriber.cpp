@@ -250,7 +250,7 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
     if (loop_->isInLoopThread()) {
         CHECK(endpointToSocket_.find(remoteEndpoint) == endpointToSocket_.end());
 
-        std::shared_ptr<FramingSocket> socket = std::make_shared<FramingSocket>(loop_);
+        std::unique_ptr<FramingSocket> socket = std::make_unique<FramingSocket>(loop_);
 
         socket->setMaxMessageLength(maxMessageLength_);
         socket->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
@@ -269,13 +269,13 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
 
         if (reconnectInterval_.count() > 0) {
             socket->addConnectCallback([this,
-                                        socket,
+                                        socket = socket.get(),
                                         remoteEndpoint = remoteEndpoint.clone(),
                                         reconnectInterval = reconnectInterval_,
                                         flag = std::weak_ptr(flag_)](int error) {
                 if (error != 0) {
                     socket->loop()->postTimed([this,
-                                               socket,
+                                               socket = socket->shared_from_this(),
                                                remoteEndpoint = remoteEndpoint->clone(),
                                                reconnectInterval,
                                                flag = std::weak_ptr(flag_)] mutable {
@@ -297,11 +297,11 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
             });
 
             socket->addCloseCallback([this,
-                                      socket,
+                                      socket = socket.get(),
                                       remoteEndpoint = remoteEndpoint.clone(),
                                       reconnectInterval = reconnectInterval_](int) {
                 socket->loop()->postTimed([this,
-                                           socket,
+                                           socket = socket->shared_from_this(),
                                            remoteEndpoint = remoteEndpoint->clone(),
                                            reconnectInterval,
                                            flag = std::weak_ptr(flag_)] mutable {
@@ -324,9 +324,9 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
 
         socket->open(remoteEndpoint);
 
-        sockets_.insert(socket);
         endpointToSocket_.emplace(remoteEndpoint.clone(), socket.get());
         socketToTopics_.emplace(socket.get(), std::move(topics));
+        sockets_.insert(std::shared_ptr(std::move(socket)));
 
         if (sockets_.size() == 1) {
             flag_ = std::make_shared<char>();
