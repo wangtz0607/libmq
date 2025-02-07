@@ -101,6 +101,13 @@ public:
         return {i, true};
     }
 
+    template <typename InputIter>
+    void insert(InputIter first, InputIter last) {
+        for (auto i = first; i != last; ++i) {
+            insert(*i);
+        }
+    }
+
     template <typename... Args>
     std::pair<iterator, bool> emplace(Args &&...args) {
         list_.emplace_back(std::forward<Args>(args)...);
@@ -122,6 +129,14 @@ public:
         }
 
         return list_.end();
+    }
+
+    iterator erase(const_iterator first, const_iterator last) {
+        for (auto i = first; i != last; ++i) {
+            erase(i);
+        }
+
+        return last;
     }
 
     size_type erase(const key_type &key) {
