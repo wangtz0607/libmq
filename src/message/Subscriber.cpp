@@ -358,11 +358,10 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
         auto j = socketToTopics_.find(i->second);
         auto k = sockets_.find(i->second);
 
-        std::shared_ptr<FramingSocket> socket = *k;
-
         endpointToSocket_.erase(i);
         socketToTopics_.erase(j);
-        sockets_.erase(k);
+
+        std::shared_ptr<FramingSocket> socket = std::move(sockets_.extract(k).value());
 
         socket->reset();
 
