@@ -121,7 +121,7 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
     memcpy(&methodNameLength, message.data(), 1);
     methodNameLength = fromLittleEndian(methodNameLength);
 
-    if (message.size() < 1 + methodNameLength) {
+    if (message.size() < static_cast<size_t>(1 + methodNameLength)) {
         RPCError status = RPCError::kBadRequest;
         uint8_t statusCode = static_cast<uint8_t>(status);
         statusCode = toLittleEndian(statusCode);

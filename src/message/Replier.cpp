@@ -355,7 +355,7 @@ bool Replier::onFramingAcceptorAccept(std::unique_ptr<FramingSocket> socket) {
         return onFramingSocketRecv(socket, message);
     });
 
-    socket->addCloseCallback([this, socket = socket.get()](int error) {
+    socket->addCloseCallback([this, socket = socket.get()](int) {
         return onFramingSocketClose(socket);
     });
 
