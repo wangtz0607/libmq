@@ -36,6 +36,11 @@ public:
 
     LinkedHashMap() = default;
 
+    template <typename InputIter>
+    LinkedHashMap(InputIter first, InputIter last) : LinkedHashMap() {
+        insert(first, last);
+    }
+
     LinkedHashMap(const LinkedHashMap &other) : LinkedHashMap() {
         insert(other.begin(), other.end());
     }
