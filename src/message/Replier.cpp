@@ -341,7 +341,7 @@ void Replier::close() {
 bool Replier::onFramingAcceptorAccept(std::unique_ptr<FramingSocket> socket) {
     LOG(debug, "");
 
-    if (maxConnections_ > 0 && sockets_.size() >= maxConnections_) {
+    if (maxConnections_ > 0 && sockets_.size() == maxConnections_) {
         LOG(warning, "Too many connections");
 
         socket->reset();
