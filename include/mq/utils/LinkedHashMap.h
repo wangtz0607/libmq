@@ -1,0 +1,148 @@
+#pragma once
+
+#include <cstddef>
+#include <functional>
+#include <iterator>
+#include <list>
+#include <unordered_map>
+#include <utility>
+
+#include "mq/utils/IndirectEqual.h"
+#include "mq/utils/IndirectHash.h"
+
+namespace mq {
+
+template <typename K, typename V, typename Hash = std::hash<K>, typename Equal = std::equal_to<K>>
+class LinkedHashMap {
+    using List = std::list<std::pair<const K, V>>;
+
+    using Map = std::unordered_map<const K *,
+                                   typename List::iterator,
+                                   IndirectHash<const K *, Hash>,
+                                   IndirectEqual<const K *, Equal>>;
+
+public:
+    using key_type = K;
+    using mapped_type = V;
+    using value_type = std::pair<const K, V>;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using reference = value_type &;
+    using const_reference = const value_type &;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
+    using iterator = typename List::iterator;
+    using const_iterator = typename List::const_iterator;
+
+    iterator begin() {
+        return list_.begin();
+    }
+
+    const_iterator begin() const {
+        return list_.begin();
+    }
+
+    iterator end() {
+        return list_.end();
+    }
+
+    const_iterator end() const {
+        return list_.end();
+    }
+
+    reference front() {
+        return list_.front();
+    }
+
+    const_reference front() const {
+        return list_.front();
+    }
+
+    reference back() {
+        return list_.back();
+    }
+
+    const_reference back() const {
+        return list_.back();
+    }
+
+    bool empty() const {
+        return list_.empty();
+    }
+
+    size_type size() const {
+        return list_.size();
+    }
+
+    iterator find(const key_type &key) {
+        if (auto j = map_.find(&key); j != map_.end()) {
+            return j->second;
+        }
+
+        return list_.end();
+    }
+
+    const_iterator find(const key_type &key) const {
+        if (auto j = map_.find(&key); j != map_.end()) {
+            return j->second;
+        }
+
+        return list_.end();
+    }
+
+    std::pair<iterator, bool> insert(value_type value) {
+        if (auto j = map_.find(&value.first); j != map_.end()) {
+            return {j->second, false};
+        }
+
+        list_.push_back(std::move(value));
+        auto i = std::prev(list_.end());
+        map_.emplace(&i->first, i);
+        return {i, true};
+    }
+
+    template <typename... Args>
+    std::pair<iterator, bool> emplace(Args &&...args) {
+        list_.emplace_back(std::forward<Args>(args)...);
+        auto i = std::prev(list_.end());
+
+        if (auto j = map_.find(&i->first); j != map_.end()) {
+            list_.erase(i);
+            return {j->second, false};
+        }
+
+        map_.emplace(&i->first, i);
+        return {i, true};
+    }
+
+    iterator erase(const_iterator i) {
+        if (auto j = map_.find(&i->first); j != map_.end()) {
+            map_.erase(j);
+            return list_.erase(i);
+        }
+
+        return list_.end();
+    }
+
+    size_type erase(const key_type &key) {
+        if (auto j = map_.find(&key); j != map_.end()) {
+            auto i = j->second;
+            map_.erase(j);
+            list_.erase(i);
+            return 1;
+        }
+
+        return 0;
+    }
+
+    void clear() {
+        list_.clear();
+        map_.clear();
+    }
+
+private:
+    List list_;
+    Map map_;
+};
+
+} // namespace mq
