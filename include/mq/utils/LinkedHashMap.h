@@ -142,17 +142,13 @@ public:
     }
 
     iterator erase(const_iterator i) {
-        if (auto j = map_.find(&i->first); j != map_.end()) {
-            map_.erase(j);
-            return list_.erase(i);
-        }
-
-        return list_.end();
+        map_.erase(map_.find(&i->first));
+        return list_.erase(i);
     }
 
     iterator erase(const_iterator first, const_iterator last) {
-        for (auto i = first; i != last; ++i) {
-            erase(i);
+        while (first != last) {
+            first = erase(first);
         }
 
         return last;
@@ -300,17 +296,13 @@ public:
     }
 
     iterator erase(const_iterator i) {
-        if (auto j = map_.find(i->first); j != map_.end()) {
-            map_.erase(j);
-            return list_.erase(i);
-        }
-
-        return list_.end();
+        map_.erase(map_.find(i->first));
+        return list_.erase(i);
     }
 
     iterator erase(const_iterator first, const_iterator last) {
-        for (auto i = first; i != last; ++i) {
-            erase(i);
+        while (first != last) {
+            first = erase(first);
         }
 
         return last;
