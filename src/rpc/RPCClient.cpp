@@ -105,7 +105,7 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view me
 
     RecvCallbackImpl recvCallback(std::move(promise));
 
-    requester_.send(std::move(message), std::move(recvCallback));
+    requester_.send(message, std::move(recvCallback));
 
     return future;
 }
