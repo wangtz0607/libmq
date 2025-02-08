@@ -109,6 +109,16 @@ public:
               RecvCallback recvCallback,
               Executor *recvCallbackExecutor = nullptr);
 
+    void send(std::string message,
+              RecvCallback recvCallback,
+              Executor *recvCallbackExecutor = nullptr);
+
+    void send(const char *message,
+              RecvCallback recvCallback,
+              Executor *recvCallbackExecutor = nullptr) {
+        send(std::string_view(message), std::move(recvCallback), recvCallbackExecutor);
+    }
+
     void send(const std::vector<std::string_view> &pieces,
               RecvCallback recvCallback,
               Executor *recvCallbackExecutor = nullptr);

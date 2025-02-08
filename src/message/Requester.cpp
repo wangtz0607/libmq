@@ -420,6 +420,20 @@ void Requester::send(std::string_view message) {
     }
 }
 
+void Requester::send(std::string message) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        send(std::string_view(message));
+    } else {
+        loop_->post([this, message = std::move(message), flag = std::weak_ptr(flag_)] {
+            if (flag.expired()) return;
+
+            send(std::string_view(message));
+        });
+    }
+}
+
 void Requester::send(const std::vector<std::string_view> &pieces) {
     LOG(debug, "");
 

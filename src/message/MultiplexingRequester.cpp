@@ -130,6 +130,26 @@ void MultiplexingRequester::send(std::string_view message, RecvCallback recvCall
     }
 }
 
+void MultiplexingRequester::send(std::string message,
+                                 RecvCallback recvCallback,
+                                 Executor *recvCallbackExecutor) {
+    LOG(debug, "");
+
+    if (loop()->isInLoopThread()) {
+        send(std::string_view(message), std::move(recvCallback), recvCallbackExecutor);
+    } else {
+        loop()->post([this,
+                      message = std::move(message),
+                      recvCallback = std::move(recvCallback),
+                      recvCallbackExecutor,
+                      flag = std::weak_ptr(flag_)] mutable {
+            if (flag.expired()) return;
+
+            send(std::string_view(message), std::move(recvCallback), recvCallbackExecutor);
+        });
+    }
+}
+
 void MultiplexingRequester::send(const std::vector<std::string_view> &pieces,
                                  RecvCallback recvCallback,
                                  Executor *recvCallbackExecutor) {

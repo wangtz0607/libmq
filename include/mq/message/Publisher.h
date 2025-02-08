@@ -62,6 +62,12 @@ public:
     State state() const;
     int open();
     void send(std::string_view message);
+    void send(std::string message);
+
+    void send(const char *message) {
+        send(std::string_view(message));
+    }
+
     void send(const std::vector<std::string_view> &pieces);
     void close();
 
