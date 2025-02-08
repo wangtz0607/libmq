@@ -13,6 +13,7 @@
 #include "mq/net/FramingSocket.h"
 #include "mq/net/Socket.h"
 #include "mq/utils/Executor.h"
+#include "mq/utils/StringOrView.h"
 
 namespace mq {
 
@@ -67,14 +68,8 @@ public:
     State state() const;
     void open();
     int waitForConnected(std::chrono::nanoseconds timeout = {});
-    void send(std::string_view message);
-    void send(std::string message);
-
-    void send(const char *message) {
-        send(std::string_view(message));
-    }
-
-    void send(const std::vector<std::string_view> &pieces);
+    void send(StringOrView message);
+    void send(std::vector<StringOrView> pieces);
     void close();
 
 private:

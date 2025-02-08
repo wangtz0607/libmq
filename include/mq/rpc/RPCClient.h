@@ -5,7 +5,6 @@
 #include <future>
 #include <memory>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "mq/event/EventLoop.h"
@@ -14,6 +13,7 @@
 #include "mq/net/Socket.h"
 #include "mq/rpc/RPCError.h"
 #include "mq/utils/Expected.h"
+#include "mq/utils/StringOrView.h"
 
 namespace mq {
 
@@ -106,10 +106,10 @@ public:
     }
 
     std::future<Expected<std::string, RPCError>> call(
-        std::string_view methodName, std::string_view payload);
+        StringOrView methodName, StringOrView payload);
 
     std::future<Expected<std::string, RPCError>> call(
-        std::string_view methodName, const std::vector<std::string_view> &pieces);
+        StringOrView methodName, std::vector<StringOrView> pieces);
 
     size_t numPendingRequests() const {
         return requester_.numPendingRequests();

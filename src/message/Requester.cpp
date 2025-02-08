@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstring>
 #include <future>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -16,6 +17,7 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Empty.h"
 #include "mq/utils/Logging.h"
+#include "mq/utils/StringOrView.h"
 
 #define TAG "Requester"
 
@@ -402,7 +404,7 @@ int Requester::waitForConnected(std::chrono::nanoseconds timeout) {
     return 0;
 }
 
-void Requester::send(std::string_view message) {
+void Requester::send(StringOrView message) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
@@ -412,59 +414,37 @@ void Requester::send(std::string_view message) {
             LOG(warning, "send: error={}", strerrorname_np(error));
         }
     } else {
-        loop_->post([this, message = std::string(message), flag = std::weak_ptr(flag_)] {
+        loop_->post([this, message = std::string(std::move(message)), flag = std::weak_ptr(flag_)] mutable {
             if (flag.expired()) return;
 
-            send(message);
+            send(std::move(message));
         });
     }
 }
 
-void Requester::send(std::string message) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        send(std::string_view(message));
-    } else {
-        loop_->post([this, message = std::move(message), flag = std::weak_ptr(flag_)] {
-            if (flag.expired()) return;
-
-            send(std::string_view(message));
-        });
-    }
-}
-
-void Requester::send(const std::vector<std::string_view> &pieces) {
+void Requester::send(std::vector<StringOrView> pieces) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kOpened);
 
-        if (int error = socket_->send(pieces)) {
+        std::vector<std::string_view> newPieces(std::make_move_iterator(pieces.begin()),
+                                                std::make_move_iterator(pieces.end()));
+
+        if (int error = socket_->send(newPieces)) {
             LOG(warning, "send: error={}", strerrorname_np(error));
         }
     } else {
-        size_t size = 0;
-        for (std::string_view piece : pieces) {
-            size += piece.size();
+        std::vector<StringOrView> newPieces;
+        newPieces.reserve(pieces.size());
+        for (StringOrView &piece : pieces) {
+            newPieces.emplace_back(std::string(std::move(piece)));
         }
 
-        auto op = [pieces](char *data, size_t size) {
-            for (std::string_view piece : pieces) {
-                memcpy(data, piece.data(), piece.size());
-                data += piece.size();
-            }
-
-            return size;
-        };
-
-        std::string message;
-        message.resize_and_overwrite(size, std::move(op));
-
-        loop_->post([this, message = std::move(message), flag = std::weak_ptr(flag_)] {
+        loop_->post([this, newPieces = std::move(newPieces), flag = std::weak_ptr(flag_)] mutable {
             if (flag.expired()) return;
 
-            send(message);
+            send(std::move(newPieces));
         });
     }
 }

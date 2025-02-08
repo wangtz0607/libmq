@@ -1,0 +1,59 @@
+#pragma once
+
+#include <cstddef>
+#include <format>
+#include <string>
+#include <string_view>
+#include <variant>
+
+namespace mq {
+
+class StringOrView {
+public:
+    StringOrView() : value_(std::string_view()) {}
+
+    StringOrView(std::string value) : value_(std::move(value)) {}
+
+    StringOrView(std::string_view value) : value_(value) {}
+
+    StringOrView(const char *value) : value_(std::string_view(value)) {}
+
+    StringOrView(const char *value, size_t size) : value_(std::string_view(value, size)) {}
+
+    operator std::string() const & {
+        return std::visit([](const auto &value) { return std::string(value); }, value_);
+    }
+
+    operator std::string() && {
+        return std::visit([](auto &value) { return std::string(std::move(value)); }, value_);
+    }
+
+    operator std::string_view() const {
+        return std::visit([](const auto &value) { return std::string_view(value); }, value_);
+    }
+
+    const char *data() const {
+        return std::visit([](const auto &value) { return value.data(); }, value_);
+    }
+
+    size_t size() const {
+        return std::visit([](const auto &value) { return value.size(); }, value_);
+    }
+
+private:
+    std::variant<std::string, std::string_view> value_;
+};
+
+} // namespace mq
+
+template <>
+struct std::formatter<mq::StringOrView> {
+    constexpr auto parse(format_parse_context &ctx) {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(const mq::StringOrView &value, FormatContext &ctx) const {
+        return std::format_to(ctx.out(), "{}", std::string_view(value));
+    }
+};

@@ -4,10 +4,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
@@ -16,6 +18,7 @@
 #include "mq/utils/Endian.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
+#include "mq/utils/StringOrView.h"
 
 #define TAG "MultiplexingRequester"
 
@@ -96,7 +99,7 @@ void MultiplexingRequester::open() {
     }
 }
 
-void MultiplexingRequester::send(std::string_view message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
+void MultiplexingRequester::send(StringOrView message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
     LOG(debug, "");
 
     if (loop()->isInLoopThread()) {
@@ -113,44 +116,26 @@ void MultiplexingRequester::send(std::string_view message, RecvCallback recvCall
 
         requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
 
-        requester_.send({
-            std::string_view(reinterpret_cast<const char *>(&requestIdLE), 8),
-            message,
-        });
+        std::vector<StringOrView> pieces;
+        pieces.reserve(2);
+        pieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE), 8);
+        pieces.emplace_back(std::move(message));
+
+        requester_.send(std::move(pieces));
     } else {
         loop()->post([this,
-                      message = std::string(message),
+                      message = std::string(std::move(message)),
                       recvCallback = std::move(recvCallback),
                       recvCallbackExecutor,
                       flag = std::weak_ptr(flag_)] mutable {
             if (flag.expired()) return;
 
-            send(message, std::move(recvCallback), recvCallbackExecutor);
+            send(std::move(message), std::move(recvCallback), recvCallbackExecutor);
         });
     }
 }
 
-void MultiplexingRequester::send(std::string message,
-                                 RecvCallback recvCallback,
-                                 Executor *recvCallbackExecutor) {
-    LOG(debug, "");
-
-    if (loop()->isInLoopThread()) {
-        send(std::string_view(message), std::move(recvCallback), recvCallbackExecutor);
-    } else {
-        loop()->post([this,
-                      message = std::move(message),
-                      recvCallback = std::move(recvCallback),
-                      recvCallbackExecutor,
-                      flag = std::weak_ptr(flag_)] mutable {
-            if (flag.expired()) return;
-
-            send(std::string_view(message), std::move(recvCallback), recvCallbackExecutor);
-        });
-    }
-}
-
-void MultiplexingRequester::send(const std::vector<std::string_view> &pieces,
+void MultiplexingRequester::send(std::vector<StringOrView> pieces,
                                  RecvCallback recvCallback,
                                  Executor *recvCallbackExecutor) {
     LOG(debug, "");
@@ -169,38 +154,29 @@ void MultiplexingRequester::send(const std::vector<std::string_view> &pieces,
 
         requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
 
-        std::vector<std::string_view> multiplexingPieces;
+        std::vector<StringOrView> multiplexingPieces;
         multiplexingPieces.reserve(1 + pieces.size());
         multiplexingPieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE), 8);
-        multiplexingPieces.insert(multiplexingPieces.end(), pieces.begin(), pieces.end());
+        multiplexingPieces.insert(multiplexingPieces.end(),
+                                  std::make_move_iterator(pieces.begin()),
+                                  std::make_move_iterator(pieces.end()));
 
-        requester_.send(multiplexingPieces);
+        requester_.send(std::move(multiplexingPieces));
     } else {
-        size_t size = 0;
-        for (std::string_view piece : pieces) {
-            size += piece.size();
+        std::vector<StringOrView> newPieces;
+        newPieces.reserve(pieces.size());
+        for (StringOrView &piece : pieces) {
+            newPieces.emplace_back(std::string(std::move(piece)));
         }
 
-        auto op = [pieces](char *data, size_t size) {
-            for (std::string_view piece : pieces) {
-                memcpy(data, piece.data(), piece.size());
-                data += piece.size();
-            }
-
-            return size;
-        };
-
-        std::string message;
-        message.resize_and_overwrite(size, std::move(op));
-
         loop()->post([this,
-                      message = std::move(message),
+                      newPieces = std::move(newPieces),
                       recvCallback = std::move(recvCallback),
                       recvCallbackExecutor,
                       flag = std::weak_ptr(flag_)] mutable {
             if (flag.expired()) return;
 
-            send(message, std::move(recvCallback), recvCallbackExecutor);
+            send(std::move(newPieces), std::move(recvCallback), recvCallbackExecutor);
         });
     }
 }

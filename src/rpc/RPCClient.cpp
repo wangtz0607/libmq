@@ -1,10 +1,10 @@
 #include "mq/rpc/RPCClient.h"
 
-#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <format>
 #include <future>
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -17,6 +17,7 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Expected.h"
 #include "mq/utils/Logging.h"
+#include "mq/utils/StringOrView.h"
 
 #define TAG "RPCClient"
 
@@ -79,7 +80,7 @@ RPCClient::~RPCClient() {
     LOG(debug, "");
 }
 
-std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view methodName, std::string_view payload) {
+std::future<Expected<std::string, RPCError>> RPCClient::call(StringOrView methodName, StringOrView payload) {
     LOG(debug, "methodName={}", methodName);
 
     CHECK(methodName.size() < 256);
@@ -89,21 +90,21 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view me
 
     uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
 
-    std::vector<std::string_view> pieces{
-        std::string_view(reinterpret_cast<const char *>(&methodNameLength), 1),
-        methodName,
-        payload,
-    };
+    std::vector<StringOrView> pieces;
+    pieces.reserve(3);
+    pieces.emplace_back(reinterpret_cast<const char *>(&methodNameLength), 1);
+    pieces.emplace_back(std::move(methodName));
+    pieces.emplace_back(std::move(payload));
 
     RecvCallbackImpl recvCallback(std::move(promise));
 
-    requester_.send(pieces, std::move(recvCallback));
+    requester_.send(std::move(pieces), std::move(recvCallback));
 
     return future;
 }
 
-std::future<Expected<std::string, RPCError>> RPCClient::call(
-        std::string_view methodName, const std::vector<std::string_view> &pieces) {
+std::future<Expected<std::string, RPCError>> RPCClient::call(StringOrView methodName,
+                                                             std::vector<StringOrView> pieces) {
     LOG(debug, "methodName={}", methodName);
 
     CHECK(methodName.size() < 256);
@@ -113,15 +114,17 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(
 
     uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
 
-    std::vector<std::string_view> multiplexingPieces{
-        std::string_view(reinterpret_cast<const char *>(&methodNameLength), 1),
-        methodName,
-    };
-    multiplexingPieces.insert(multiplexingPieces.end(), pieces.begin(), pieces.end());
+    std::vector<StringOrView> newPieces;
+    newPieces.reserve(2 + pieces.size());
+    newPieces.emplace_back(reinterpret_cast<const char *>(&methodNameLength), 1);
+    newPieces.emplace_back(std::move(methodName));
+    newPieces.insert(newPieces.end(),
+                     std::make_move_iterator(pieces.begin()),
+                     std::make_move_iterator(pieces.end()));
 
     RecvCallbackImpl recvCallback(std::move(promise));
 
-    requester_.send(multiplexingPieces, std::move(recvCallback));
+    requester_.send(std::move(newPieces), std::move(recvCallback));
 
     return future;
 }

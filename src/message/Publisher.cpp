@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstring>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -17,6 +18,7 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Empty.h"
 #include "mq/utils/Logging.h"
+#include "mq/utils/StringOrView.h"
 
 #define TAG "Publisher"
 
@@ -272,7 +274,7 @@ int Publisher::open() {
     return error;
 }
 
-void Publisher::send(std::string_view message) {
+void Publisher::send(StringOrView message) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
@@ -282,60 +284,38 @@ void Publisher::send(std::string_view message) {
             }
         }
     } else {
-        loop_->post([this, message = std::string(message), flag = std::weak_ptr(flag_)] {
+        loop_->post([this, message = std::string(std::move(message)), flag = std::weak_ptr(flag_)] mutable {
             if (flag.expired()) return;
 
-            send(message);
+            send(std::move(message));
         });
     }
 }
 
-void Publisher::send(std::string message) {
+void Publisher::send(std::vector<StringOrView> pieces) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
-        send(std::string_view(message));
-    } else {
-        loop_->post([this, message = std::move(message), flag = std::weak_ptr(flag_)] {
-            if (flag.expired()) return;
+        std::vector<std::string_view> newPieces(std::make_move_iterator(pieces.begin()),
+                                                std::make_move_iterator(pieces.end()));
 
-            send(std::string_view(message));
-        });
-    }
-}
-
-void Publisher::send(const std::vector<std::string_view> &pieces) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
         for (const std::shared_ptr<FramingSocket> &socket : sockets_) {
-            if (int error = socket->send(pieces)) {
+            if (int error = socket->send(newPieces)) {
                 LOG(warning, "send: error={}", strerrorname_np(error));
             }
         }
     } else {
         if (!sockets_.empty()) {
-            size_t size = 0;
-            for (std::string_view piece : pieces) {
-                size += piece.size();
+            std::vector<StringOrView> newPieces;
+            newPieces.reserve(pieces.size());
+            for (StringOrView &piece : pieces) {
+                newPieces.emplace_back(std::string(std::move(piece)));
             }
 
-            auto op = [pieces](char *data, size_t size) {
-                for (std::string_view piece : pieces) {
-                    memcpy(data, piece.data(), piece.size());
-                    data += piece.size();
-                }
-
-                return size;
-            };
-
-            std::string message;
-            message.resize_and_overwrite(size, std::move(op));
-
-            loop_->post([this, message = std::move(message), flag = std::weak_ptr(flag_)] {
+            loop_->post([this, newPieces = std::move(newPieces), flag = std::weak_ptr(flag_)] mutable {
                 if (flag.expired()) return;
 
-                send(message);
+                send(std::move(newPieces));
             });
         }
     }
