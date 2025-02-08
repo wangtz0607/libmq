@@ -204,7 +204,7 @@ void MultiplexingRequester::onRequesterRecv(std::string_view message) {
             });
         }
     } else {
-        LOG(warning, "Unknown request");
+        LOG(warning, "Unknown request: {}", requestId);
 
         return;
     }

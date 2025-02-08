@@ -55,6 +55,8 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view me
     MultiplexingRequester::RecvCallback recvCallback =
         [promise = std::move(promise)](std::string_view message) mutable {
             if (message.size() < 1) {
+                LOG(warning, "Bad reply");
+
                 promise.set_value(RPCError::kBadReply);
                 return;
             }

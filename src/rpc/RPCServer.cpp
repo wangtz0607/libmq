@@ -110,6 +110,8 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
     LOG(debug, "");
 
     if (message.size() < 1) {
+        LOG(warning, "Bad request");
+
         RPCError status = RPCError::kBadRequest;
         uint8_t statusCode = static_cast<uint8_t>(status);
         promise(std::string(reinterpret_cast<const char *>(&statusCode), 1));
@@ -122,6 +124,8 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
     uint8_t methodNameLength = fromLittleEndian(methodNameLengthLE);
 
     if (message.size() < static_cast<size_t>(1 + methodNameLength)) {
+        LOG(warning, "Bad request");
+
         RPCError status = RPCError::kBadRequest;
         uint8_t statusCode = static_cast<uint8_t>(status);
         promise(std::string(reinterpret_cast<const char *>(&statusCode), 1));
@@ -159,6 +163,8 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
             });
         }
     } else {
+        LOG(warning, "Method not found: {}", methodName);
+
         RPCError status = RPCError::kMethodNotFound;
         uint8_t statusCode = static_cast<uint8_t>(status);
         promise(std::string(reinterpret_cast<const char *>(&statusCode), 1));
