@@ -1,6 +1,7 @@
 #include "mq/message/MultiplexingRequester.h"
 
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <memory>

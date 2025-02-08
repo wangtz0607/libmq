@@ -2,9 +2,12 @@
 
 #include <cerrno>
 #include <chrono>
+#include <cstddef>
 #include <cstring>
 #include <future>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <utility>
 
 #include "mq/net/FramingSocket.h"

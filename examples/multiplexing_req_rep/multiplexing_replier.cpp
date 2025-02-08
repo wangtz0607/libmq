@@ -1,7 +1,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <print>
+#include <string_view>
 
 #include "mq/event/EventLoop.h"
 #include "mq/message/MultiplexingReplier.h"

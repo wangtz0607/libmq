@@ -1,6 +1,8 @@
 #include "mq/utils/ThreadPool.h"
 
+#include <cstddef>
 #include <mutex>
+#include <thread>
 #include <utility>
 
 using namespace mq;

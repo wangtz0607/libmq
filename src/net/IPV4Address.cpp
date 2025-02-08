@@ -1,6 +1,7 @@
 #include "mq/net/IPV4Address.h"
 
 #include <cstdint>
+#include <string>
 
 #include <arpa/inet.h>
 

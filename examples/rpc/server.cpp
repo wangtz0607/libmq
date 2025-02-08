@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <limits>
+#include <string>
 #include <string_view>
 
 #include "mq/event/EventLoop.h"

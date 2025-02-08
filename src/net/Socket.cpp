@@ -1,11 +1,13 @@
 #include "mq/net/Socket.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include <netinet/in.h>

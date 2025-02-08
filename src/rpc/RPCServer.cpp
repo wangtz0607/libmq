@@ -1,5 +1,6 @@
 #include "mq/rpc/RPCServer.h"
 
+#include <cstddef>
 #include <cstring>
 #include <string>
 #include <string_view>

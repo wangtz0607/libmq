@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <print>
+#include <string_view>
 
 #include "mq/event/EventLoop.h"
 #include "mq/message/Subscriber.h"

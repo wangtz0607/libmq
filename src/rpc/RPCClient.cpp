@@ -1,10 +1,12 @@
 #include "mq/rpc/RPCClient.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <format>
 #include <future>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "mq/event/EventLoop.h"

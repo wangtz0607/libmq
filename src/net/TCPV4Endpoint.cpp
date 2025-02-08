@@ -1,5 +1,6 @@
 #include "mq/net/TCPV4Endpoint.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <memory>

@@ -1,6 +1,7 @@
 #include "mq/net/IPV6Address.h"
 
 #include <cstring>
+#include <string>
 
 #include <arpa/inet.h>
 

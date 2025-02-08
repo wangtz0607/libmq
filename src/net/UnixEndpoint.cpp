@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <format>
 #include <functional>
+#include <memory>
 #include <string>
 
 #include <sys/socket.h>
