@@ -105,7 +105,14 @@ public:
         return requester_.waitForConnected(timeout);
     }
 
-    void send(std::string_view message, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
+    void send(std::string_view message,
+              RecvCallback recvCallback,
+              Executor *recvCallbackExecutor = nullptr);
+
+    void send(const std::vector<std::string_view> &pieces,
+              RecvCallback recvCallback,
+              Executor *recvCallbackExecutor = nullptr);
+
     size_t numPendingRequests() const;
     void close();
 

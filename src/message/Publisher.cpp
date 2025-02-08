@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
@@ -286,6 +287,43 @@ void Publisher::send(std::string_view message) {
 
             send(message);
         });
+    }
+}
+
+void Publisher::send(const std::vector<std::string_view> &pieces) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        for (const std::shared_ptr<FramingSocket> &socket : sockets_) {
+            if (int error = socket->send(pieces)) {
+                LOG(warning, "send: error={}", strerrorname_np(error));
+            }
+        }
+    } else {
+        if (!sockets_.empty()) {
+            size_t size = 0;
+            for (std::string_view piece : pieces) {
+                size += piece.size();
+            }
+
+            auto op = [pieces](char *data, size_t size) {
+                for (std::string_view piece : pieces) {
+                    memcpy(data, piece.data(), piece.size());
+                    data += piece.size();
+                }
+
+                return size;
+            };
+
+            std::string message;
+            message.resize_and_overwrite(size, std::move(op));
+
+            loop_->post([this, message = std::move(message), flag = std::weak_ptr(flag_)] {
+                if (flag.expired()) return;
+
+                send(message);
+            });
+        }
     }
 }
 

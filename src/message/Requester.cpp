@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "mq/net/FramingSocket.h"
 #include "mq/net/Socket.h"
@@ -412,6 +413,41 @@ void Requester::send(std::string_view message) {
         }
     } else {
         loop_->post([this, message = std::string(message), flag = std::weak_ptr(flag_)] {
+            if (flag.expired()) return;
+
+            send(message);
+        });
+    }
+}
+
+void Requester::send(const std::vector<std::string_view> &pieces) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kOpened);
+
+        if (int error = socket_->send(pieces)) {
+            LOG(warning, "send: error={}", strerrorname_np(error));
+        }
+    } else {
+        size_t size = 0;
+        for (std::string_view piece : pieces) {
+            size += piece.size();
+        }
+
+        auto op = [pieces](char *data, size_t size) {
+            for (std::string_view piece : pieces) {
+                memcpy(data, piece.data(), piece.size());
+                data += piece.size();
+            }
+
+            return size;
+        };
+
+        std::string message;
+        message.resize_and_overwrite(size, std::move(op));
+
+        loop_->post([this, message = std::move(message), flag = std::weak_ptr(flag_)] {
             if (flag.expired()) return;
 
             send(message);

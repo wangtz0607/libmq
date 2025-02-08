@@ -6,6 +6,7 @@
 #include <functional>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
@@ -67,6 +68,7 @@ public:
     void open();
     int waitForConnected(std::chrono::nanoseconds timeout = {});
     void send(std::string_view message);
+    void send(const std::vector<std::string_view> &pieces);
     void close();
 
 private:

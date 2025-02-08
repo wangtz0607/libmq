@@ -113,23 +113,68 @@ void MultiplexingRequester::send(std::string_view message, RecvCallback recvCall
 
         requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
 
-        size_t size = 8 + message.size();
+        requester_.send({
+            std::string_view(reinterpret_cast<const char *>(&requestIdLE), 8),
+            message,
+        });
+    } else {
+        loop()->post([this,
+                      message = std::string(message),
+                      recvCallback = std::move(recvCallback),
+                      recvCallbackExecutor,
+                      flag = std::weak_ptr(flag_)] mutable {
+            if (flag.expired()) return;
 
-        auto op = [requestIdLE, message](char *data, size_t size) {
-            memcpy(data, reinterpret_cast<const char *>(&requestIdLE), 8);
-            data += 8;
-            memcpy(data, message.data(), message.size());
+            send(message, std::move(recvCallback), recvCallbackExecutor);
+        });
+    }
+}
+
+void MultiplexingRequester::send(const std::vector<std::string_view> &pieces,
+                                 RecvCallback recvCallback,
+                                 Executor *recvCallbackExecutor) {
+    LOG(debug, "");
+
+    if (loop()->isInLoopThread()) {
+        CHECK(state() == State::kOpened);
+
+        if (maxPendingRequests_ > 0 && requests_.size() == maxPendingRequests_) {
+            LOG(warning, "Too many pending requests");
+
+            requests_.erase(requests_.begin());
+        }
+
+        uint64_t requestId = nextRequestId_++;
+        uint64_t requestIdLE = toLittleEndian(requestId);
+
+        requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
+
+        std::vector<std::string_view> multiplexingPieces;
+        multiplexingPieces.reserve(1 + pieces.size());
+        multiplexingPieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE), 8);
+        multiplexingPieces.insert(multiplexingPieces.end(), pieces.begin(), pieces.end());
+
+        requester_.send(multiplexingPieces);
+    } else {
+        size_t size = 0;
+        for (std::string_view piece : pieces) {
+            size += piece.size();
+        }
+
+        auto op = [pieces](char *data, size_t size) {
+            for (std::string_view piece : pieces) {
+                memcpy(data, piece.data(), piece.size());
+                data += piece.size();
+            }
 
             return size;
         };
 
-        std::string multiplexingMessage;
-        multiplexingMessage.resize_and_overwrite(size, std::move(op));
+        std::string message;
+        message.resize_and_overwrite(size, std::move(op));
 
-        requester_.send(multiplexingMessage);
-    } else {
         loop()->post([this,
-                      message = std::string(message),
+                      message = std::move(message),
                       recvCallback = std::move(recvCallback),
                       recvCallbackExecutor,
                       flag = std::weak_ptr(flag_)] mutable {

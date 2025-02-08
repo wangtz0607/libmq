@@ -80,6 +80,7 @@ public:
     void open(const Endpoint &remoteEndpoint);
     void open(std::unique_ptr<Socket> socket, const Endpoint &remoteEndpoint);
     int send(std::string_view message);
+    int send(const std::vector<std::string_view> &pieces);
     void close(int error = 0);
     void reset();
 

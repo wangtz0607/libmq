@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "mq/event/EventLoop.h"
 #include "mq/message/MultiplexingRequester.h"
@@ -83,29 +84,44 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(std::string_view me
 
     CHECK(methodName.size() < 256);
 
-    size_t size = 1 + methodName.size() + payload.size();
+    std::promise<Expected<std::string, RPCError>> promise;
+    std::future<Expected<std::string, RPCError>> future = promise.get_future();
 
-    auto op = [methodName, payload](char *data, size_t size) {
-        uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
+    uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
 
-        memcpy(data, &methodNameLength, 1);
-        data += 1;
-        memcpy(data, methodName.data(), methodName.size());
-        data += methodName.size();
-        memcpy(data, payload.data(), payload.size());
-
-        return size;
+    std::vector<std::string_view> pieces{
+        std::string_view(reinterpret_cast<const char *>(&methodNameLength), 1),
+        methodName,
+        payload,
     };
 
-    std::string message;
-    message.resize_and_overwrite(size, std::move(op));
+    RecvCallbackImpl recvCallback(std::move(promise));
+
+    requester_.send(pieces, std::move(recvCallback));
+
+    return future;
+}
+
+std::future<Expected<std::string, RPCError>> RPCClient::call(
+        std::string_view methodName, const std::vector<std::string_view> &pieces) {
+    LOG(debug, "methodName={}", methodName);
+
+    CHECK(methodName.size() < 256);
 
     std::promise<Expected<std::string, RPCError>> promise;
     std::future<Expected<std::string, RPCError>> future = promise.get_future();
 
+    uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
+
+    std::vector<std::string_view> multiplexingPieces{
+        std::string_view(reinterpret_cast<const char *>(&methodNameLength), 1),
+        methodName,
+    };
+    multiplexingPieces.insert(multiplexingPieces.end(), pieces.begin(), pieces.end());
+
     RecvCallbackImpl recvCallback(std::move(promise));
 
-    requester_.send(message, std::move(recvCallback));
+    requester_.send(multiplexingPieces, std::move(recvCallback));
 
     return future;
 }

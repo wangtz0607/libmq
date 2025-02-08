@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "mq/event/EventLoop.h"
 #include "mq/message/MultiplexingRequester.h"
@@ -104,7 +105,11 @@ public:
         return requester_.waitForConnected(timeout);
     }
 
-    std::future<Expected<std::string, RPCError>> call(std::string_view methodName, std::string_view payload);
+    std::future<Expected<std::string, RPCError>> call(
+        std::string_view methodName, std::string_view payload);
+
+    std::future<Expected<std::string, RPCError>> call(
+        std::string_view methodName, const std::vector<std::string_view> &pieces);
 
     size_t numPendingRequests() const {
         return requester_.numPendingRequests();

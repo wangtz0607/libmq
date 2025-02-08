@@ -408,6 +408,33 @@ int FramingSocket::send(std::string_view message) {
     return socket_->send({{reinterpret_cast<const char *>(&lengthLE), 4}, {message.data(), message.size()}});
 }
 
+int FramingSocket::send(const std::vector<std::string_view> &pieces) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+
+    if (state_ != State::kConnected) return ENOTCONN;
+
+    size_t length = 0;
+    for (std::string_view piece : pieces) {
+        length += piece.size();
+    }
+
+    CHECK(length <= maxMessageLength_);
+
+    std::vector<std::pair<const char *, size_t>> buffers;
+    buffers.reserve(1 + pieces.size());
+
+    uint32_t lengthLE = toLittleEndian(static_cast<uint32_t>(length));
+    buffers.emplace_back(reinterpret_cast<const char *>(&lengthLE), 4);
+
+    for (std::string_view piece : pieces) {
+        buffers.emplace_back(piece.data(), piece.size());
+    }
+
+    return socket_->send(buffers);
+}
+
 void FramingSocket::close(int error) {
     LOG(debug, "error={}", strerrorname_np(error));
 
