@@ -18,8 +18,6 @@
 
 #define TAG "Requester"
 
-using namespace std::chrono_literals;
-
 using namespace mq;
 
 Requester::Requester(EventLoop *loop, const Endpoint &remoteEndpoint)
@@ -339,8 +337,6 @@ void Requester::open() {
                         if (!flag.expired() && socket_->state() == FramingSocket::State::kClosed) {
                             socket_->open(*remoteEndpoint_);
                         }
-
-                        return 0ns;
                     }, reconnectInterval_);
                 }
 
@@ -352,8 +348,6 @@ void Requester::open() {
                     if (!flag.expired() && socket_->state() == FramingSocket::State::kClosed) {
                         socket_->open(*remoteEndpoint_);
                     }
-
-                    return 0ns;
                 }, reconnectInterval_);
 
                 return true;

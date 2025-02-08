@@ -148,24 +148,11 @@ void EventLoop::run() {
                     CHECK(read(fd, &value, sizeof(value)) == sizeof(value));
 
                     state_ = State::kTimedTask;
-                    std::chrono::nanoseconds delay = timedTask();
+                    timedTask();
                     state_ = State::kIdle;
 
-                    if (delay.count() == 0) {
-                        CHECK(epoll_ctl(epollFd_, EPOLL_CTL_DEL, fd, nullptr) == 0);
-                        CHECK(close(fd) == 0);
-                    } else {
-                        itimerspec newValue{};
-                        newValue.it_value.tv_sec = delay.count() / 1'000'000'000;
-                        newValue.it_value.tv_nsec = delay.count() % 1'000'000'000;
-
-                        CHECK(timerfd_settime(fd, 0, &newValue, nullptr) == 0);
-
-                        {
-                            std::unique_lock lock(timedTasksMutex_);
-                            timedTasks_.emplace(fd, std::move(timedTask));
-                        }
-                    }
+                    CHECK(epoll_ctl(epollFd_, EPOLL_CTL_DEL, fd, nullptr) == 0);
+                    CHECK(close(fd) == 0);
                 } else {
                     Watcher *watcher;
                     {

@@ -17,8 +17,6 @@
 
 #define TAG "Subscriber"
 
-using namespace std::chrono_literals;
-
 using namespace mq;
 
 Subscriber::Subscriber(EventLoop *loop) : loop_(loop) {
@@ -283,15 +281,11 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                                                flag = std::weak_ptr(flag_)] mutable {
                         if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) {
                             loop_->post([socket = std::move(socket)] {});
-
-                            return 0ns;
                         }
 
                         if (socket->state() == FramingSocket::State::kClosed) {
                             socket->open(*remoteEndpoint);
                         }
-
-                        return 0ns;
                     }, reconnectInterval);
                 }
 
@@ -308,15 +302,11 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                                            flag = std::weak_ptr(flag_)] mutable {
                     if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) {
                         loop_->post([socket = std::move(socket)] {});
-
-                        return 0ns;
                     }
 
                     if (socket->state() == FramingSocket::State::kClosed) {
                         socket->open(*remoteEndpoint);
                     }
-
-                    return 0ns;
                 }, reconnectInterval);
 
                 return true;
