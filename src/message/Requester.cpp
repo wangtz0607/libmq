@@ -2,6 +2,7 @@
 
 #include <cerrno>
 #include <chrono>
+#include <cstring>
 #include <future>
 #include <memory>
 #include <utility>

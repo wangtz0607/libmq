@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <chrono>
 #include <cstddef>
+#include <cstring>
 #include <future>
 #include <iterator>
 #include <mutex>
