@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.5.0)
 project(libmq VERSION 0.1.0 LANGUAGES CXX)
 
 option(LIBMQ_EXAMPLES "Build examples." ON)
-option(LIBMQ_NO_EXCEPTIONS "-fno-exceptions" OFF)
-option(LIBMQ_NO_RTTI "-fno-rtti" OFF)
+option(LIBMQ_NO_EXCEPTIONS "-fno-exceptions" ON)
+option(LIBMQ_NO_RTTI "-fno-rtti" ON)
 
 add_library(mq
     src/event/EventLoop.cpp
