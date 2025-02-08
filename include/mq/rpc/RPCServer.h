@@ -25,7 +25,7 @@ public:
         kOpened = static_cast<int>(MultiplexingReplier::State::kOpened),
     };
 
-    using Method = std::move_only_function<std::string (std::string_view payload)>;
+    using Method = std::move_only_function<std::string (const Endpoint &remoteEndpoint, std::string_view payload)>;
 
     RPCServer(EventLoop *loop, const Endpoint &localEndpoint);
     ~RPCServer();
@@ -115,7 +115,9 @@ private:
     MultiplexingReplier replier_;
     MethodMap methods_;
 
-    void onMultiplexingReplierRecv(std::string_view message, MultiplexingReplier::Promise promise);
+    void onMultiplexingReplierRecv(const Endpoint &remoteEndpoint,
+                                   std::string_view message,
+                                   MultiplexingReplier::Promise promise);
 };
 
 } // namespace mq

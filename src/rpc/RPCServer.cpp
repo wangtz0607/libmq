@@ -22,10 +22,10 @@ using namespace mq;
 RPCServer::RPCServer(EventLoop *loop, const Endpoint &localEndpoint) : replier_(loop, localEndpoint) {
     LOG(debug, "");
 
-    replier_.setRecvCallback([this](const Endpoint &,
+    replier_.setRecvCallback([this](const Endpoint &remoteEndpoint,
                                     std::string_view message,
                                     MultiplexingReplier::Promise promise) {
-        onMultiplexingReplierRecv(message, std::move(promise));
+        onMultiplexingReplierRecv(remoteEndpoint, message, std::move(promise));
     });
 }
 
@@ -106,7 +106,9 @@ void RPCServer::unregisterAllMethods() {
     }
 }
 
-void RPCServer::onMultiplexingReplierRecv(std::string_view message, MultiplexingReplier::Promise promise) {
+void RPCServer::onMultiplexingReplierRecv(const Endpoint &remoteEndpoint,
+                                          std::string_view message,
+                                          MultiplexingReplier::Promise promise) {
     LOG(debug, "");
 
     if (message.size() < 1) {
@@ -143,7 +145,7 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
             RPCError status = RPCError::kOk;
             uint8_t statusCode = static_cast<uint8_t>(status);
 
-            std::string resultPayload = method(payload);
+            std::string resultPayload = method(remoteEndpoint, payload);
 
             size_t size = 1 + resultPayload.size();
 
@@ -160,11 +162,14 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
 
             promise(resultMessage);
         } else {
-            methodExecutor->post([&method, payload = std::string(payload), promise = std::move(promise)] mutable {
+            methodExecutor->post([&method,
+                                  remoteEndpoint = remoteEndpoint.clone(),
+                                  payload = std::string(payload),
+                                  promise = std::move(promise)] mutable {
                 RPCError status = RPCError::kOk;
                 uint8_t statusCode = static_cast<uint8_t>(status);
 
-                std::string resultPayload = method(payload);
+                std::string resultPayload = method(*remoteEndpoint, payload);
 
                 size_t size = 1 + resultPayload.size();
 

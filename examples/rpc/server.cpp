@@ -3,10 +3,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <limits>
+#include <print>
 #include <string>
 #include <string_view>
 
 #include "mq/event/EventLoop.h"
+#include "mq/net/Endpoint.h"
 #include "mq/net/TCPV4Endpoint.h"
 #include "mq/rpc/RPCServer.h"
 #include "mq/utils/Logging.h"
@@ -21,7 +23,9 @@ int main() {
 
     mq::RPCServer server(&loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
 
-    server.registerMethod("increment", [](std::string_view message) {
+    server.registerMethod("increment", [](const mq::Endpoint &remoteEndpoint, std::string_view message) {
+        std::println("{}: {}", remoteEndpoint, message);
+
         int value;
         auto [ptr, ec] = std::from_chars(message.data(), message.data() + message.size(), value);
 
