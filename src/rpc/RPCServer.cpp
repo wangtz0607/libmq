@@ -12,7 +12,6 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Endian.h"
 #include "mq/utils/Executor.h"
-#include "mq/utils/Expected.h"
 #include "mq/utils/Logging.h"
 
 #define TAG "RPCServer"
@@ -140,26 +139,46 @@ void RPCServer::onMultiplexingReplierRecv(std::string_view message, Multiplexing
         Executor *methodExecutor = i->second.second;
 
         if (!methodExecutor) {
-            Expected<std::string, RPCError> result = method(payload);
+            RPCError status = RPCError::kOk;
+            uint8_t statusCode = static_cast<uint8_t>(status);
 
-            if (result) {
-                RPCError status = RPCError::kOk;
-                uint8_t statusCode = static_cast<uint8_t>(status);
-                std::string resultPayload = std::move(result.value());
-                promise(std::string(reinterpret_cast<const char *>(&statusCode), 1) + resultPayload);
-            } else {
-                RPCError status = result.error();
-                uint8_t statusCode = static_cast<uint8_t>(status);
-                promise(std::string(reinterpret_cast<const char *>(&statusCode), 1));
-            }
+            std::string resultPayload = method(payload);
+
+            size_t size = 1 + resultPayload.size();
+
+            auto op = [statusCode, &resultPayload](char *data, size_t size) {
+                memcpy(data, reinterpret_cast<const char *>(&statusCode), 1);
+                data += 1;
+                memcpy(data, resultPayload.data(), resultPayload.size());
+
+                return size;
+            };
+
+            std::string resultMessage;
+            resultMessage.resize_and_overwrite(size, std::move(op));
+
+            promise(resultMessage);
         } else {
             methodExecutor->post([&method, payload = std::string(payload), promise = std::move(promise)] mutable {
                 RPCError status = RPCError::kOk;
                 uint8_t statusCode = static_cast<uint8_t>(status);
 
-                std::string result = method(payload);
+                std::string resultPayload = method(payload);
 
-                promise(std::string(reinterpret_cast<const char *>(&statusCode), 1) + result);
+                size_t size = 1 + resultPayload.size();
+
+                auto op = [statusCode, &resultPayload](char *data, size_t size) {
+                    memcpy(data, reinterpret_cast<const char *>(&statusCode), 1);
+                    data += 1;
+                    memcpy(data, resultPayload.data(), resultPayload.size());
+
+                    return size;
+                };
+
+                std::string resultMessage;
+                resultMessage.resize_and_overwrite(size, std::move(op));
+
+                promise(resultMessage);
             });
         }
     } else {
