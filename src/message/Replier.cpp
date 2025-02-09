@@ -16,6 +16,7 @@
 #include "mq/utils/Empty.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
+#include "mq/utils/StringOrView.h"
 
 #define TAG "Replier"
 
@@ -375,7 +376,7 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
     Promise promise = [this,
                        socket = socket->shared_from_this(),
-                       token = std::weak_ptr(token_)](std::string_view replyMessage) mutable {
+                       token = std::weak_ptr(token_)](StringOrView replyMessage) mutable {
         if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) {
             loop_->post([socket = std::move(socket)] {});
 
@@ -399,7 +400,7 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
         } else {
             loop_->post([this,
                          socket = std::move(socket),
-                         replyMessage = std::string(replyMessage),
+                         replyMessage = std::string(std::move(replyMessage)),
                          token = std::weak_ptr(token_)] {
                 if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) return;
 

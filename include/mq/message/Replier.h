@@ -16,6 +16,7 @@
 #include "mq/utils/Executor.h"
 #include "mq/utils/PtrEqual.h"
 #include "mq/utils/PtrHash.h"
+#include "mq/utils/StringOrView.h"
 
 namespace mq {
 
@@ -30,7 +31,7 @@ public:
         kOpened,
     };
 
-    using Promise = std::move_only_function<void (std::string_view replyMessage)>;
+    using Promise = std::move_only_function<void (StringOrView replyMessage)>;
 
     using RecvCallback =
         std::move_only_function<void (const Endpoint &remoteEndpoint, std::string_view message, Promise promise)>;

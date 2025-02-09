@@ -184,7 +184,7 @@ void RPCServer::onMultiplexingReplierRecv(const Endpoint &remoteEndpoint,
                 std::string resultMessage;
                 resultMessage.resize_and_overwrite(size, std::move(op));
 
-                promise(resultMessage);
+                promise(std::move(resultMessage));
             });
         }
     } else {

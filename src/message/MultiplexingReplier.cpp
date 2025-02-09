@@ -11,6 +11,7 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
+#include "mq/utils/StringOrView.h"
 
 #define TAG "MultiplexingReplier"
 
@@ -77,10 +78,10 @@ void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint,
     memcpy(&requestIdLE, message.data(), 8);
 
     Promise newPromise =
-        [requestIdLE, promise = std::move(promise)](std::string_view replyMessage) mutable {
+        [requestIdLE, promise = std::move(promise)](StringOrView replyMessage) mutable {
             size_t size = 8 + replyMessage.size();
 
-            auto op = [requestIdLE, replyMessage](char *data, size_t size) {
+            auto op = [requestIdLE, replyMessage = std::move(replyMessage)](char *data, size_t size) {
                 memcpy(data, reinterpret_cast<const char *>(&requestIdLE), 8);
                 data += 8;
                 memcpy(data, replyMessage.data(), replyMessage.size());
@@ -91,7 +92,7 @@ void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint,
             std::string newReplyMessage;
             newReplyMessage.resize_and_overwrite(size, std::move(op));
 
-            promise(newReplyMessage);
+            promise(std::move(newReplyMessage));
         };
 
     recvCallback_(remoteEndpoint, message.substr(8), std::move(newPromise));
