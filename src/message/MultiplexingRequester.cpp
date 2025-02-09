@@ -154,14 +154,14 @@ void MultiplexingRequester::send(std::vector<StringOrView> pieces,
 
         requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
 
-        std::vector<StringOrView> multiplexingPieces;
-        multiplexingPieces.reserve(1 + pieces.size());
-        multiplexingPieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE), 8);
-        multiplexingPieces.insert(multiplexingPieces.end(),
-                                  std::make_move_iterator(pieces.begin()),
-                                  std::make_move_iterator(pieces.end()));
+        std::vector<StringOrView> newPieces;
+        newPieces.reserve(1 + pieces.size());
+        newPieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE), 8);
+        newPieces.insert(newPieces.end(),
+                         std::make_move_iterator(pieces.begin()),
+                         std::make_move_iterator(pieces.end()));
 
-        requester_.send(std::move(multiplexingPieces));
+        requester_.send(std::move(newPieces));
     } else {
         std::vector<StringOrView> newPieces;
         newPieces.reserve(pieces.size());
