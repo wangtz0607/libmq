@@ -61,12 +61,20 @@ public:
         return list_.begin();
     }
 
+    const_iterator cbegin() const {
+        return list_.cbegin();
+    }
+
     iterator end() {
         return list_.end();
     }
 
     const_iterator end() const {
         return list_.end();
+    }
+
+    const_iterator cend() const {
+        return list_.cend();
     }
 
     reference front() {
@@ -215,12 +223,20 @@ public:
         return list_.begin();
     }
 
+    const_iterator cbegin() const {
+        return list_.cbegin();
+    }
+
     iterator end() {
         return list_.end();
     }
 
     const_iterator end() const {
         return list_.end();
+    }
+
+    const_iterator cend() const {
+        return list_.cend();
     }
 
     reference front() {
