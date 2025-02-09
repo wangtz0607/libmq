@@ -156,8 +156,8 @@ public:
 
     template <typename InputIter>
     void insert(InputIter first, InputIter last) {
-        for (auto i = first; i != last; ++i) {
-            insert(*i);
+        for (; first != last; ++first) {
+            insert(*first);
         }
     }
 
@@ -344,8 +344,8 @@ public:
 
     template <typename InputIter>
     void insert(InputIter first, InputIter last) {
-        for (auto i = first; i != last; ++i) {
-            insert(*i);
+        for (; first != last; ++first) {
+            insert(*first);
         }
     }
 
