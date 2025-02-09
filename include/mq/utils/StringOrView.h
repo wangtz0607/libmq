@@ -10,33 +10,33 @@ namespace mq {
 
 class StringOrView {
 public:
-    StringOrView() : value_(std::string_view()) {}
+    constexpr StringOrView() : value_(std::string_view()) {}
 
-    StringOrView(std::string value) : value_(std::move(value)) {}
+    constexpr StringOrView(std::string value) : value_(std::move(value)) {}
 
-    StringOrView(std::string_view value) : value_(value) {}
+    constexpr StringOrView(std::string_view value) : value_(value) {}
 
-    StringOrView(const char *value) : value_(std::string_view(value)) {}
+    constexpr StringOrView(const char *value) : value_(std::string_view(value)) {}
 
-    StringOrView(const char *value, size_t size) : value_(std::string_view(value, size)) {}
+    constexpr StringOrView(const char *value, size_t size) : value_(std::string_view(value, size)) {}
 
-    operator std::string() const & {
+    constexpr operator std::string() const & {
         return std::visit([](const auto &value) { return std::string(value); }, value_);
     }
 
-    operator std::string() && {
+    constexpr operator std::string() && {
         return std::visit([](auto &value) { return std::string(std::move(value)); }, value_);
     }
 
-    operator std::string_view() const {
+    constexpr operator std::string_view() const {
         return std::visit([](const auto &value) { return std::string_view(value); }, value_);
     }
 
-    const char *data() const {
+    constexpr const char *data() const {
         return std::visit([](const auto &value) { return value.data(); }, value_);
     }
 
-    size_t size() const {
+    constexpr size_t size() const {
         return std::visit([](const auto &value) { return value.size(); }, value_);
     }
 
