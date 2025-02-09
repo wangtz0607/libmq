@@ -59,6 +59,10 @@ void Buffer::extendBack(size_t size) {
 void Buffer::retractFront(size_t size) {
     CHECK(end_ - begin_ >= size);
 
+#ifndef NDEBUG
+    memset(buffer_ + begin_, 0xcc, size);
+#endif
+
     begin_ += size;
 
     if (begin_ == end_) {
@@ -74,6 +78,10 @@ void Buffer::retractFront(size_t size) {
 void Buffer::retractBack(size_t size) {
     CHECK(end_ - begin_ >= size);
 
+#ifndef NDEBUG
+    memset(buffer_ + end_ - size, 0xcc, size);
+#endif
+
     end_ -= size;
 
     if (begin_ == end_) {
@@ -83,6 +91,10 @@ void Buffer::retractBack(size_t size) {
 }
 
 void Buffer::clear() {
+#ifndef NDEBUG
+    memset(buffer_ + begin_, 0xcc, end_ - begin_);
+#endif
+
     begin_ = 0;
     end_ = 0;
 }
@@ -104,11 +116,18 @@ void Buffer::swap(Buffer &other) noexcept {
 
 void Buffer::reallocate(size_t newCapacity) {
     size_t size = end_ - begin_;
+
     char *newBuffer = new char[newCapacity];
+
     if (buffer_) {
         memcpy(newBuffer, buffer_ + begin_, size);
         delete[] buffer_;
     }
+
+#ifndef NDEBUG
+    memset(newBuffer + size, 0xcc, newCapacity - size);
+#endif
+
     capacity_ = newCapacity;
     begin_ = 0;
     end_ = size;
@@ -118,6 +137,11 @@ void Buffer::reallocate(size_t newCapacity) {
 void Buffer::move() {
     size_t size = end_ - begin_;
     memmove(buffer_, buffer_ + begin_, size);
+
+#ifndef NDEBUG
+    memset(buffer_ + size, 0xcc, capacity_ - size);
+#endif
+
     begin_ = 0;
     end_ = size;
 }
