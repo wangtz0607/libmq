@@ -1,13 +1,10 @@
 #include "mq/utils/Buffer.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <utility>
-
-#include "mq/utils/Check.h"
-
-#define TAG "Buffer"
 
 using namespace mq;
 
@@ -41,13 +38,13 @@ Buffer &Buffer::operator=(Buffer other) noexcept {
 }
 
 void Buffer::setMaxCapacity(size_t maxCapacity) {
-    CHECK(maxCapacity >= capacity_);
+    assert(maxCapacity >= capacity_);
 
     maxCapacity_ = maxCapacity;
 }
 
 void Buffer::extendBack(size_t size) {
-    CHECK(end_ - begin_ + size <= maxCapacity_);
+    assert(end_ - begin_ + size <= maxCapacity_);
 
     if (end_ + size > capacity_) {
         reallocate(std::max((end_ - begin_) + size, capacity_ + capacity_ / 2));
@@ -57,7 +54,7 @@ void Buffer::extendBack(size_t size) {
 }
 
 void Buffer::retractFront(size_t size) {
-    CHECK(end_ - begin_ >= size);
+    assert(end_ - begin_ >= size);
 
 #ifndef NDEBUG
     memset(buffer_ + begin_, 0xcc, size);
@@ -76,7 +73,7 @@ void Buffer::retractFront(size_t size) {
 }
 
 void Buffer::retractBack(size_t size) {
-    CHECK(end_ - begin_ >= size);
+    assert(end_ - begin_ >= size);
 
 #ifndef NDEBUG
     memset(buffer_ + end_ - size, 0xcc, size);
