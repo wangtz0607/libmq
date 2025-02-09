@@ -303,7 +303,7 @@ int Replier::open() {
 
             acceptor_ = nullptr;
         } else {
-            flag_ = std::make_shared<Empty>();
+            token_ = std::make_shared<Empty>();
 
             State oldState = state_;
             state_ = State::kOpened;
@@ -328,7 +328,7 @@ void Replier::close() {
         state_ = State::kClosed;
         LOG(debug, "{} -> {}", oldState, state_);
 
-        flag_ = nullptr;
+        token_ = nullptr;
 
         acceptor_->reset();
 
@@ -375,8 +375,8 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
     Promise promise = [this,
                        socket = socket->shared_from_this(),
-                       flag = std::weak_ptr(flag_)](std::string_view replyMessage) mutable {
-        if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) {
+                       token = std::weak_ptr(token_)](std::string_view replyMessage) mutable {
+        if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) {
             loop_->post([socket = std::move(socket)] {});
 
             return;
@@ -388,8 +388,8 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
                 loop_->post([this,
                              socket = std::move(socket),
-                             flag = std::weak_ptr(flag_)] mutable {
-                    if (flag.expired() || sockets_.find(socket) == sockets_.end()) return;
+                             token = std::weak_ptr(token_)] mutable {
+                    if (token.expired() || sockets_.find(socket) == sockets_.end()) return;
 
                     socket->reset();
 
@@ -400,8 +400,8 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
             loop_->post([this,
                          socket = std::move(socket),
                          replyMessage = std::string(replyMessage),
-                         flag = std::weak_ptr(flag_)] {
-                if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) return;
+                         token = std::weak_ptr(token_)] {
+                if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) return;
 
                 if (int error = socket->send(replyMessage)) {
                     LOG(warning, "send: error={}", strerrorname_np(error));
@@ -421,8 +421,8 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
                                      remoteEndpoint = std::move(remoteEndpoint),
                                      message = std::string(message),
                                      promise = std::move(promise),
-                                     flag = std::weak_ptr(flag_)] mutable {
-            if (flag.expired()) return;
+                                     token = std::weak_ptr(token_)] mutable {
+            if (token.expired()) return;
 
             dispatchRecv(*remoteEndpoint, message, std::move(promise));
         });

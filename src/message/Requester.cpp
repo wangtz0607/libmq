@@ -336,8 +336,8 @@ void Requester::open() {
         if (reconnectInterval_.count() > 0) {
             socket_->addConnectCallback([this](int error) {
                 if (error != 0) {
-                    loop_->postTimed([this, flag = std::weak_ptr(flag_)] {
-                        if (!flag.expired() && socket_->state() == FramingSocket::State::kClosed) {
+                    loop_->postTimed([this, token = std::weak_ptr(token_)] {
+                        if (!token.expired() && socket_->state() == FramingSocket::State::kClosed) {
                             socket_->open(*remoteEndpoint_);
                         }
                     }, reconnectInterval_);
@@ -347,8 +347,8 @@ void Requester::open() {
             });
 
             socket_->addCloseCallback([this](int) {
-                loop_->postTimed([this, flag = std::weak_ptr(flag_)] {
-                    if (!flag.expired() && socket_->state() == FramingSocket::State::kClosed) {
+                loop_->postTimed([this, token = std::weak_ptr(token_)] {
+                    if (!token.expired() && socket_->state() == FramingSocket::State::kClosed) {
                         socket_->open(*remoteEndpoint_);
                     }
                 }, reconnectInterval_);
@@ -359,7 +359,7 @@ void Requester::open() {
 
         socket_->open(*remoteEndpoint_);
 
-        flag_ = std::make_shared<Empty>();
+        token_ = std::make_shared<Empty>();
 
         State oldState = state_;
         state_ = State::kOpened;
@@ -414,8 +414,8 @@ void Requester::send(StringOrView message) {
             LOG(warning, "send: error={}", strerrorname_np(error));
         }
     } else {
-        loop_->post([this, message = std::string(std::move(message)), flag = std::weak_ptr(flag_)] mutable {
-            if (flag.expired()) return;
+        loop_->post([this, message = std::string(std::move(message)), token = std::weak_ptr(token_)] mutable {
+            if (token.expired()) return;
 
             send(std::move(message));
         });
@@ -441,8 +441,8 @@ void Requester::send(std::vector<StringOrView> pieces) {
             newPieces.emplace_back(std::string(std::move(piece)));
         }
 
-        loop_->post([this, newPieces = std::move(newPieces), flag = std::weak_ptr(flag_)] mutable {
-            if (flag.expired()) return;
+        loop_->post([this, newPieces = std::move(newPieces), token = std::weak_ptr(token_)] mutable {
+            if (token.expired()) return;
 
             send(std::move(newPieces));
         });
@@ -459,7 +459,7 @@ void Requester::close() {
         state_ = State::kClosed;
         LOG(debug, "{} -> {}", oldState, state_);
 
-        flag_ = nullptr;
+        token_ = nullptr;
 
         socket_->reset();
 
@@ -480,8 +480,8 @@ bool Requester::onFramingSocketConnect(int error) {
         if (!connectCallbackExecutor_) {
             dispatchConnect();
         } else {
-            connectCallbackExecutor_->post([this, flag = std::weak_ptr(flag_)] {
-                if (flag.expired()) return;
+            connectCallbackExecutor_->post([this, token = std::weak_ptr(token_)] {
+                if (token.expired()) return;
 
                 dispatchConnect();
             });
@@ -497,8 +497,8 @@ bool Requester::onFramingSocketRecv(std::string_view message) {
     if (!recvCallbackExecutor_) {
         dispatchRecv(message);
     } else {
-        recvCallbackExecutor_->post([this, message = std::string(message), flag = std::weak_ptr(flag_)] {
-            if (flag.expired()) return;
+        recvCallbackExecutor_->post([this, message = std::string(message), token = std::weak_ptr(token_)] {
+            if (token.expired()) return;
 
             dispatchRecv(message);
         });

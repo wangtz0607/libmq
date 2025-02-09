@@ -89,7 +89,7 @@ void MultiplexingRequester::open() {
             timer_->setTime(requestTimeout_, requestTimeout_);
         }
 
-        flag_ = std::make_shared<Empty>();
+        token_ = std::make_shared<Empty>();
 
         requester_.open();
     } else {
@@ -127,8 +127,8 @@ void MultiplexingRequester::send(StringOrView message, RecvCallback recvCallback
                       message = std::string(std::move(message)),
                       recvCallback = std::move(recvCallback),
                       recvCallbackExecutor,
-                      flag = std::weak_ptr(flag_)] mutable {
-            if (flag.expired()) return;
+                      token = std::weak_ptr(token_)] mutable {
+            if (token.expired()) return;
 
             send(std::move(message), std::move(recvCallback), recvCallbackExecutor);
         });
@@ -173,8 +173,8 @@ void MultiplexingRequester::send(std::vector<StringOrView> pieces,
                       newPieces = std::move(newPieces),
                       recvCallback = std::move(recvCallback),
                       recvCallbackExecutor,
-                      flag = std::weak_ptr(flag_)] mutable {
-            if (flag.expired()) return;
+                      token = std::weak_ptr(token_)] mutable {
+            if (token.expired()) return;
 
             send(std::move(newPieces), std::move(recvCallback), recvCallbackExecutor);
         });
@@ -203,7 +203,7 @@ void MultiplexingRequester::close() {
 
         requester_.close();
 
-        flag_ = nullptr;
+        token_ = nullptr;
 
         if (requestTimeout_.count() > 0) {
             timer_->reset();

@@ -259,7 +259,7 @@ int Publisher::open() {
 
             acceptor_ = nullptr;
         } else {
-            flag_ = std::make_shared<Empty>();
+            token_ = std::make_shared<Empty>();
 
             State oldState = state_;
             state_ = State::kOpened;
@@ -284,8 +284,8 @@ void Publisher::send(StringOrView message) {
             }
         }
     } else {
-        loop_->post([this, message = std::string(std::move(message)), flag = std::weak_ptr(flag_)] mutable {
-            if (flag.expired()) return;
+        loop_->post([this, message = std::string(std::move(message)), token = std::weak_ptr(token_)] mutable {
+            if (token.expired()) return;
 
             send(std::move(message));
         });
@@ -312,8 +312,8 @@ void Publisher::send(std::vector<StringOrView> pieces) {
                 newPieces.emplace_back(std::string(std::move(piece)));
             }
 
-            loop_->post([this, newPieces = std::move(newPieces), flag = std::weak_ptr(flag_)] mutable {
-                if (flag.expired()) return;
+            loop_->post([this, newPieces = std::move(newPieces), token = std::weak_ptr(token_)] mutable {
+                if (token.expired()) return;
 
                 send(std::move(newPieces));
             });
@@ -331,7 +331,7 @@ void Publisher::close() {
         state_ = State::kClosed;
         LOG(debug, "{} -> {}", oldState, state_);
 
-        flag_ = nullptr;
+        token_ = nullptr;
 
         acceptor_->reset();
 

@@ -273,13 +273,13 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                                         socket = socket.get(),
                                         remoteEndpoint = remoteEndpoint.clone(),
                                         reconnectInterval = reconnectInterval_,
-                                        flag = std::weak_ptr(flag_)](int error) {
+                                        token = std::weak_ptr(token_)](int error) {
                 if (error != 0) {
                     socket->loop()->postTimed([this,
                                                socket = socket->shared_from_this(),
                                                remoteEndpoint = remoteEndpoint->clone(),
-                                               flag = std::weak_ptr(flag_)] mutable {
-                        if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) {
+                                               token = std::weak_ptr(token_)] mutable {
+                        if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) {
                             loop_->post([socket = std::move(socket)] {});
                         }
 
@@ -299,8 +299,8 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
                 socket->loop()->postTimed([this,
                                            socket = socket->shared_from_this(),
                                            remoteEndpoint = remoteEndpoint->clone(),
-                                           flag = std::weak_ptr(flag_)] mutable {
-                    if (flag.expired() || sockets_.find(socket.get()) == sockets_.end()) {
+                                           token = std::weak_ptr(token_)] mutable {
+                    if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) {
                         loop_->post([socket = std::move(socket)] {});
                     }
 
@@ -320,7 +320,7 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
         sockets_.insert(std::shared_ptr(std::move(socket)));
 
         if (sockets_.size() == 1) {
-            flag_ = std::make_shared<Empty>();
+            token_ = std::make_shared<Empty>();
 
             State oldState = state_;
             state_ = State::kOpened;
@@ -342,7 +342,7 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
             state_ = State::kClosed;
             LOG(debug, "{} -> {}", oldState, state_);
 
-            flag_ = nullptr;
+            token_ = nullptr;
         }
 
         auto i = endpointToSocket_.find(remoteEndpoint);
@@ -381,8 +381,8 @@ bool Subscriber::onFramingSocketRecv(FramingSocket *socket, std::string_view mes
                                              socket,
                                              remoteEndpoint = socket->remoteEndpoint(),
                                              message = std::string(message),
-                                             flag = std::weak_ptr(flag_)] {
-                    if (flag.expired() || sockets_.find(socket) == sockets_.end()) return;
+                                             token = std::weak_ptr(token_)] {
+                    if (token.expired() || sockets_.find(socket) == sockets_.end()) return;
 
                     dispatchRecv(*remoteEndpoint, message);
                 });

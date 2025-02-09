@@ -124,7 +124,7 @@ private:
     std::chrono::nanoseconds requestTimeout_{};
     LinkedHashMap<uint64_t, std::pair<RecvCallback, Executor *>> requests_;
     std::vector<uint64_t> expiringRequests_;
-    std::shared_ptr<void> flag_;
+    std::shared_ptr<void> token_;
 
     void onRequesterRecv(std::string_view message);
     bool onTimerExpire();

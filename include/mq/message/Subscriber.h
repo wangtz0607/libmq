@@ -94,7 +94,7 @@ private:
     SocketSet sockets_;
     EndpointToSocketMap endpointToSocket_;
     SocketToTopicsMap socketToTopics_;
-    std::shared_ptr<void> flag_;
+    std::shared_ptr<void> token_;
 
     bool onFramingSocketRecv(FramingSocket *socket, std::string_view message);
 };

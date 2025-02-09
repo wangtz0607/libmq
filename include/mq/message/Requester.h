@@ -92,7 +92,7 @@ private:
     Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
     std::unique_ptr<FramingSocket> socket_;
-    std::shared_ptr<void> flag_;
+    std::shared_ptr<void> token_;
 
     bool onFramingSocketConnect(int error);
     bool onFramingSocketRecv(std::string_view message);
