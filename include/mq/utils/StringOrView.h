@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <format>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -47,6 +48,13 @@ private:
 };
 
 } // namespace mq
+
+template <>
+struct std::hash<mq::StringOrView> {
+    constexpr size_t operator()(const mq::StringOrView &value) const noexcept {
+        return std::hash<std::string_view>{}(std::string_view(value));
+    }
+};
 
 template <>
 struct std::formatter<mq::StringOrView> {
