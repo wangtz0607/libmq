@@ -12,7 +12,9 @@ class StringOrView {
 public:
     constexpr StringOrView() : value_(std::string_view()) {}
 
-    constexpr StringOrView(std::string value) : value_(std::move(value)) {}
+    constexpr StringOrView(std::string &&value) : value_(std::move(value)) {}
+
+    constexpr StringOrView(const std::string &value) : value_(std::string_view(value)) {}
 
     constexpr StringOrView(std::string_view value) : value_(value) {}
 
