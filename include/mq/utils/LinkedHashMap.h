@@ -34,6 +34,8 @@ public:
     using const_pointer = const value_type *;
     using iterator = typename List::iterator;
     using const_iterator = typename List::const_iterator;
+    using reverse_iterator = typename List::reverse_iterator;
+    using const_reverse_iterator = typename List::const_reverse_iterator;
 
     LinkedHashMap() = default;
 
@@ -75,6 +77,30 @@ public:
 
     const_iterator cend() const {
         return list_.cend();
+    }
+
+    reverse_iterator rbegin() {
+        return list_.rbegin();
+    }
+
+    const_reverse_iterator rbegin() const {
+        return list_.rbegin();
+    }
+
+    const_reverse_iterator crbegin() const {
+        return list_.crbegin();
+    }
+
+    reverse_iterator rend() {
+        return list_.rend();
+    }
+
+    const_reverse_iterator rend() const {
+        return list_.rend();
+    }
+
+    const_reverse_iterator crend() const {
+        return list_.crend();
     }
 
     reference front() {
@@ -207,6 +233,8 @@ public:
     using const_pointer = const value_type *;
     using iterator = typename List::iterator;
     using const_iterator = typename List::const_iterator;
+    using reverse_iterator = typename List::reverse_iterator;
+    using const_reverse_iterator = typename List::const_reverse_iterator;
 
     LinkedHashMap() = default;
 
@@ -237,6 +265,30 @@ public:
 
     const_iterator cend() const {
         return list_.cend();
+    }
+
+    reverse_iterator rbegin() {
+        return list_.rbegin();
+    }
+
+    const_reverse_iterator rbegin() const {
+        return list_.rbegin();
+    }
+
+    const_reverse_iterator crbegin() const {
+        return list_.crbegin();
+    }
+
+    reverse_iterator rend() {
+        return list_.rend();
+    }
+
+    const_reverse_iterator rend() const {
+        return list_.rend();
+    }
+
+    const_reverse_iterator crend() const {
+        return list_.crend();
     }
 
     reference front() {
