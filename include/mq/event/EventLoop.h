@@ -86,10 +86,10 @@ private:
     static constexpr const char *name(mq::EventLoop::State state) {
         using enum mq::EventLoop::State;
         switch (state) {
-            case kIdle: return "IDLE";
-            case kCallback: return "CALLBACK";
-            case kTask: return "TASK";
-            case kTimedTask: return "TIMED_TASK";
+            case kIdle: return "Idle";
+            case kCallback: return "Callback";
+            case kTask: return "Task";
+            case kTimedTask: return "TimedTask";
             default: return nullptr;
         }
     }

@@ -32,11 +32,11 @@ private:
     static constexpr const char *name(mq::RPCError error) {
         using enum mq::RPCError;
         switch (error) {
-            case kOk: return "OK";
-            case kMethodNotFound: return "METHOD_NOT_FOUND";
-            case kBadRequest: return "BAD_REQUEST";
-            case kBadReply: return "BAD_REPLY";
-            case kCancelled: return "CANCELLED";
+            case kOk: return "Ok";
+            case kMethodNotFound: return "MethodNotFound";
+            case kBadRequest: return "BadRequest";
+            case kBadReply: return "BadReply";
+            case kCancelled: return "Cancelled";
             default: return nullptr;
         }
     }

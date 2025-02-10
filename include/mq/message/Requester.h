@@ -117,8 +117,8 @@ private:
     static constexpr const char *name(mq::Requester::State state) {
         using enum mq::Requester::State;
         switch (state) {
-            case kClosed: return "CLOSED";
-            case kOpened: return "OPENED";
+            case kClosed: return "Closed";
+            case kOpened: return "Opened";
             default: return nullptr;
         }
     }

@@ -129,9 +129,9 @@ private:
     static constexpr const char *name(mq::FramingSocket::State state) {
         using enum mq::FramingSocket::State;
         switch (state) {
-            case kClosed: return "CLOSED";
-            case kConnecting: return "CONNECTING";
-            case kConnected: return "CONNECTED";
+            case kClosed: return "Closed";
+            case kConnecting: return "Connecting";
+            case kConnected: return "Connected";
             default: return nullptr;
         }
     }

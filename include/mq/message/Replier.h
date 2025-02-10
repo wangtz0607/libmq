@@ -141,8 +141,8 @@ private:
     static constexpr const char *name(mq::Replier::State state) {
         using enum mq::Replier::State;
         switch (state) {
-            case kClosed: return "CLOSED";
-            case kOpened: return "OPENED";
+            case kClosed: return "Closed";
+            case kOpened: return "Opened";
             default: return nullptr;
         }
     }

@@ -118,8 +118,8 @@ private:
     static constexpr const char *name(mq::Subscriber::State state) {
         using enum mq::Subscriber::State;
         switch (state) {
-            case kClosed: return "CLOSED";
-            case kOpened: return "OPENED";
+            case kClosed: return "Closed";
+            case kOpened: return "Opened";
             default: return nullptr;
         }
     }

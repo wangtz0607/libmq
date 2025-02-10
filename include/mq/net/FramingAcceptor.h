@@ -102,8 +102,8 @@ private:
     static constexpr const char *name(mq::FramingAcceptor::State state) {
         using enum mq::FramingAcceptor::State;
         switch (state) {
-            case kClosed: return "CLOSED";
-            case kListening: return "LISTENING";
+            case kClosed: return "Closed";
+            case kListening: return "Listening";
             default: return nullptr;
         }
     }

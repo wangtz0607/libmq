@@ -152,9 +152,9 @@ private:
     static constexpr const char *name(mq::Socket::State state) {
         using enum mq::Socket::State;
         switch (state) {
-            case kClosed: return "CLOSED";
-            case kConnecting: return "CONNECTING";
-            case kConnected: return "CONNECTED";
+            case kClosed: return "Closed";
+            case kConnecting: return "Connecting";
+            case kConnected: return "Connected";
             default: return nullptr;
         }
     }
