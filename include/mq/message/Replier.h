@@ -36,6 +36,12 @@ public:
 
     class Promise {
     public:
+        Promise(const Promise &) = delete;
+        Promise(Promise &&) = default;
+
+        Promise &operator=(const Promise &) = delete;
+        Promise &operator=(Promise &&) = default;
+
         void operator()(MaybeOwnedString replyMessage);
         void operator()(std::vector<MaybeOwnedString> replyPieces);
 
