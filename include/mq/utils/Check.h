@@ -10,4 +10,4 @@
             LOG(error, "CHECK: {}", #condition); \
             abort(); \
         } \
-    } while (false);
+    } while (false)
