@@ -56,7 +56,7 @@ NetworkInterface parseInterface(const std::string &host) {
 TCPV6Endpoint::TCPV6Endpoint(IPV6Address hostAddr, uint16_t port) : addr_{} {
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
-    IPV6Address::Bytes src = hostAddr.bytes();
+    IPV6Address::bytes_type src = hostAddr.bytes();
     toBigEndian(src.data(), 16);
     memcpy(&addr_.sin6_addr, src.data(), 16);
 }
@@ -70,7 +70,7 @@ TCPV6Endpoint::TCPV6Endpoint(const std::string &host, uint16_t port)
     : TCPV6Endpoint(parseHostAddr(host), parseInterface(host), port) {}
 
 IPV6Address TCPV6Endpoint::hostAddr() const {
-    IPV6Address::Bytes dst;
+    IPV6Address::bytes_type dst;
     memcpy(dst.data(), &addr_.sin6_addr, 16);
     fromBigEndian(dst.data(), 16);
     return IPV6Address(dst);

@@ -15,14 +15,14 @@ namespace mq {
 
 class IPV6Address {
 public:
-    using Bytes = std::array<uint8_t, 16>;
+    using bytes_type = std::array<uint8_t, 16>;
 
     IPV6Address()
         : addr_() {}
 
     explicit IPV6Address(const uint8_t *addr);
 
-    explicit IPV6Address(const Bytes &addr)
+    explicit IPV6Address(const bytes_type &addr)
         : IPV6Address(addr.data()) {}
 
     explicit IPV6Address(const char *addr);
@@ -30,14 +30,14 @@ public:
     explicit IPV6Address(const std::string &addr)
         : IPV6Address(addr.c_str()) {}
 
-    Bytes bytes() const {
+    bytes_type bytes() const {
         return addr_;
     }
 
     std::string string() const;
 
 private:
-    Bytes addr_;
+    bytes_type addr_;
 };
 
 inline bool operator==(IPV6Address lhs, IPV6Address rhs) {

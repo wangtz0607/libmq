@@ -20,14 +20,14 @@ IPV6Address::IPV6Address(const uint8_t *addr) : addr_{} {
 }
 
 IPV6Address::IPV6Address(const char *addr) : addr_{} {
-    Bytes dst;
+    bytes_type dst;
     CHECK(inet_pton(AF_INET6, addr, dst.data()) == 1);
     fromBigEndian(dst.data(), 16);
     addr_ = dst;
 }
 
 std::string IPV6Address::string() const {
-    Bytes src = addr_;
+    bytes_type src = addr_;
     toBigEndian(src.data(), 16);
     char dst[INET6_ADDRSTRLEN];
     CHECK(inet_ntop(AF_INET6, src.data(), dst, sizeof(dst)) != nullptr);

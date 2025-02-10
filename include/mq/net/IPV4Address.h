@@ -12,10 +12,12 @@ namespace mq {
 
 class IPV4Address {
 public:
+    using uint_type = uint32_t;
+
     explicit IPV4Address()
         : addr_(0) {}
 
-    explicit IPV4Address(uint32_t addr)
+    explicit IPV4Address(uint_type addr)
         : addr_(addr) {}
 
     explicit IPV4Address(const char* addr);
@@ -23,14 +25,14 @@ public:
     explicit IPV4Address(const std::string &addr)
         : IPV4Address(addr.c_str()) {}
 
-    uint32_t uint() const {
+    uint_type uint() const {
         return addr_;
     }
 
     std::string string() const;
 
 private:
-    uint32_t addr_;
+    uint_type addr_;
 };
 
 inline bool operator==(IPV4Address lhs, IPV4Address rhs) {
@@ -42,7 +44,7 @@ inline bool operator==(IPV4Address lhs, IPV4Address rhs) {
 template <>
 struct std::hash<mq::IPV4Address> {
     size_t operator()(mq::IPV4Address addr) const noexcept {
-        return std::hash<uint32_t>{}(addr.uint());
+        return std::hash<mq::IPV4Address::uint_type>{}(addr.uint());
     }
 };
 
