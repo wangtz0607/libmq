@@ -50,7 +50,7 @@ public:
         insert(other.begin(), other.end());
     }
 
-    LinkedHashMap(LinkedHashMap &&other) noexcept = default;
+    LinkedHashMap(LinkedHashMap &&other) = default;
 
     LinkedHashMap &operator=(LinkedHashMap other) {
         swap(other);
