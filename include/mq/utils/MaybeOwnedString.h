@@ -10,24 +10,24 @@
 namespace mq {
 
 template <typename Char, typename Traits = std::char_traits<Char>>
-class BasicStringOrView {
+class MaybeOwnedBasicString {
 public:
-    constexpr BasicStringOrView()
+    constexpr MaybeOwnedBasicString()
         : value_(std::basic_string_view<Char, Traits>()) {}
 
-    constexpr BasicStringOrView(std::basic_string<Char, Traits> &&value)
+    constexpr MaybeOwnedBasicString(std::basic_string<Char, Traits> &&value)
         : value_(std::move(value)) {}
 
-    constexpr BasicStringOrView(const std::basic_string<Char, Traits> &value)
+    constexpr MaybeOwnedBasicString(const std::basic_string<Char, Traits> &value)
         : value_(std::basic_string_view<Char, Traits>(value)) {}
 
-    constexpr BasicStringOrView(std::basic_string_view<Char, Traits> value)
+    constexpr MaybeOwnedBasicString(std::basic_string_view<Char, Traits> value)
         : value_(value) {}
 
-    constexpr BasicStringOrView(const char *value)
+    constexpr MaybeOwnedBasicString(const char *value)
         : value_(std::basic_string_view<Char, Traits>(value)) {}
 
-    constexpr BasicStringOrView(const char *value, size_t size)
+    constexpr MaybeOwnedBasicString(const char *value, size_t size)
         : value_(std::basic_string_view<Char, Traits>(value, size)) {}
 
     constexpr operator std::basic_string<Char, Traits>() const & {
@@ -54,25 +54,25 @@ private:
     std::variant<std::basic_string<Char, Traits>, std::basic_string_view<Char, Traits>> value_;
 };
 
-using StringOrView = BasicStringOrView<char>;
+using MaybeOwnedString = MaybeOwnedBasicString<char>;
 
 } // namespace mq
 
 template <typename Char, typename Traits>
-struct std::hash<mq::BasicStringOrView<Char, Traits>> {
-    constexpr size_t operator()(const mq::BasicStringOrView<Char, Traits> &value) const noexcept {
+struct std::hash<mq::MaybeOwnedBasicString<Char, Traits>> {
+    constexpr size_t operator()(const mq::MaybeOwnedBasicString<Char, Traits> &value) const noexcept {
         return std::hash<std::basic_string_view<Char, Traits>>{}(std::basic_string_view<Char, Traits>(value));
     }
 };
 
 template <typename Char, typename Traits>
-struct std::formatter<mq::BasicStringOrView<Char, Traits>> {
+struct std::formatter<mq::MaybeOwnedBasicString<Char, Traits>> {
     constexpr auto parse(format_parse_context &ctx) {
         return ctx.begin();
     }
 
     template <typename FormatContext>
-    auto format(const mq::BasicStringOrView<Char, Traits> &value, FormatContext &ctx) const {
+    auto format(const mq::MaybeOwnedBasicString<Char, Traits> &value, FormatContext &ctx) const {
         return std::format_to(ctx.out(), "{}", std::basic_string_view<Char, Traits>(value));
     }
 };

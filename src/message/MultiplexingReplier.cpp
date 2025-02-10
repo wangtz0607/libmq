@@ -11,7 +11,7 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
-#include "mq/utils/StringOrView.h"
+#include "mq/utils/MaybeOwnedString.h"
 
 #define TAG "MultiplexingReplier"
 
@@ -78,7 +78,7 @@ void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint,
     memcpy(&requestIdLE, message.data(), 8);
 
     Promise newPromise =
-        [requestIdLE, promise = std::move(promise)](StringOrView replyMessage) mutable {
+        [requestIdLE, promise = std::move(promise)](MaybeOwnedString replyMessage) mutable {
             size_t size = 8 + replyMessage.size();
 
             auto op = [requestIdLE, replyMessage = std::move(replyMessage)](char *data, size_t size) {

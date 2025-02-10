@@ -14,7 +14,7 @@
 #include "mq/net/Endpoint.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/LinkedHashMap.h"
-#include "mq/utils/StringOrView.h"
+#include "mq/utils/MaybeOwnedString.h"
 
 namespace mq {
 
@@ -106,8 +106,8 @@ public:
         return requester_.waitForConnected(timeout);
     }
 
-    void send(StringOrView message, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
-    void send(std::vector<StringOrView> pieces, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
+    void send(MaybeOwnedString message, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
+    void send(std::vector<MaybeOwnedString> pieces, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
     size_t numPendingRequests() const;
     void close();
 

@@ -18,7 +18,7 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Empty.h"
 #include "mq/utils/Logging.h"
-#include "mq/utils/StringOrView.h"
+#include "mq/utils/MaybeOwnedString.h"
 
 #define TAG "Publisher"
 
@@ -274,7 +274,7 @@ int Publisher::open() {
     return error;
 }
 
-void Publisher::send(StringOrView message) {
+void Publisher::send(MaybeOwnedString message) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
@@ -292,7 +292,7 @@ void Publisher::send(StringOrView message) {
     }
 }
 
-void Publisher::send(std::vector<StringOrView> pieces) {
+void Publisher::send(std::vector<MaybeOwnedString> pieces) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
@@ -306,9 +306,9 @@ void Publisher::send(std::vector<StringOrView> pieces) {
         }
     } else {
         if (!sockets_.empty()) {
-            std::vector<StringOrView> newPieces;
+            std::vector<MaybeOwnedString> newPieces;
             newPieces.reserve(pieces.size());
-            for (StringOrView &piece : pieces) {
+            for (MaybeOwnedString &piece : pieces) {
                 newPieces.emplace_back(std::string(std::move(piece)));
             }
 

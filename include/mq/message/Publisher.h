@@ -12,9 +12,9 @@
 #include "mq/net/FramingAcceptor.h"
 #include "mq/net/FramingSocket.h"
 #include "mq/net/Socket.h"
+#include "mq/utils/MaybeOwnedString.h"
 #include "mq/utils/PtrEqual.h"
 #include "mq/utils/PtrHash.h"
-#include "mq/utils/StringOrView.h"
 
 namespace mq {
 
@@ -61,8 +61,8 @@ public:
 
     State state() const;
     int open();
-    void send(StringOrView message);
-    void send(std::vector<StringOrView> pieces);
+    void send(MaybeOwnedString message);
+    void send(std::vector<MaybeOwnedString> pieces);
     void close();
 
 private:

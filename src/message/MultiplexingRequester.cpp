@@ -18,7 +18,7 @@
 #include "mq/utils/Endian.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
-#include "mq/utils/StringOrView.h"
+#include "mq/utils/MaybeOwnedString.h"
 
 #define TAG "MultiplexingRequester"
 
@@ -99,7 +99,7 @@ void MultiplexingRequester::open() {
     }
 }
 
-void MultiplexingRequester::send(StringOrView message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
+void MultiplexingRequester::send(MaybeOwnedString message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
     LOG(debug, "");
 
     if (loop()->isInLoopThread()) {
@@ -116,7 +116,7 @@ void MultiplexingRequester::send(StringOrView message, RecvCallback recvCallback
 
         requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
 
-        std::vector<StringOrView> pieces;
+        std::vector<MaybeOwnedString> pieces;
         pieces.reserve(2);
         pieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE), 8);
         pieces.emplace_back(std::move(message));
@@ -135,7 +135,7 @@ void MultiplexingRequester::send(StringOrView message, RecvCallback recvCallback
     }
 }
 
-void MultiplexingRequester::send(std::vector<StringOrView> pieces,
+void MultiplexingRequester::send(std::vector<MaybeOwnedString> pieces,
                                  RecvCallback recvCallback,
                                  Executor *recvCallbackExecutor) {
     LOG(debug, "");
@@ -154,7 +154,7 @@ void MultiplexingRequester::send(std::vector<StringOrView> pieces,
 
         requests_.emplace(requestId, std::pair(std::move(recvCallback), recvCallbackExecutor));
 
-        std::vector<StringOrView> newPieces;
+        std::vector<MaybeOwnedString> newPieces;
         newPieces.reserve(1 + pieces.size());
         newPieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE), 8);
         newPieces.insert(newPieces.end(),
@@ -163,9 +163,9 @@ void MultiplexingRequester::send(std::vector<StringOrView> pieces,
 
         requester_.send(std::move(newPieces));
     } else {
-        std::vector<StringOrView> newPieces;
+        std::vector<MaybeOwnedString> newPieces;
         newPieces.reserve(pieces.size());
-        for (StringOrView &piece : pieces) {
+        for (MaybeOwnedString &piece : pieces) {
             newPieces.emplace_back(std::string(std::move(piece)));
         }
 

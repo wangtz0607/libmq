@@ -13,7 +13,7 @@
 #include "mq/net/Socket.h"
 #include "mq/rpc/RPCError.h"
 #include "mq/utils/Expected.h"
-#include "mq/utils/StringOrView.h"
+#include "mq/utils/MaybeOwnedString.h"
 
 namespace mq {
 
@@ -106,10 +106,10 @@ public:
     }
 
     std::future<Expected<std::string, RPCError>> call(
-        StringOrView methodName, StringOrView payload);
+        MaybeOwnedString methodName, MaybeOwnedString payload);
 
     std::future<Expected<std::string, RPCError>> call(
-        StringOrView methodName, std::vector<StringOrView> pieces);
+        MaybeOwnedString methodName, std::vector<MaybeOwnedString> pieces);
 
     size_t numPendingRequests() const {
         return requester_.numPendingRequests();

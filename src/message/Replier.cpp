@@ -16,7 +16,7 @@
 #include "mq/utils/Empty.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
-#include "mq/utils/StringOrView.h"
+#include "mq/utils/MaybeOwnedString.h"
 
 #define TAG "Replier"
 
@@ -376,7 +376,7 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
     Promise promise = [this,
                        socket = socket->shared_from_this(),
-                       token = std::weak_ptr(token_)](StringOrView replyMessage) mutable {
+                       token = std::weak_ptr(token_)](MaybeOwnedString replyMessage) mutable {
         if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) {
             loop_->post([socket = std::move(socket)] {});
 

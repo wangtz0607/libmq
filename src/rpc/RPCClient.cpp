@@ -17,7 +17,7 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Expected.h"
 #include "mq/utils/Logging.h"
-#include "mq/utils/StringOrView.h"
+#include "mq/utils/MaybeOwnedString.h"
 
 #define TAG "RPCClient"
 
@@ -80,7 +80,7 @@ RPCClient::~RPCClient() {
     LOG(debug, "");
 }
 
-std::future<Expected<std::string, RPCError>> RPCClient::call(StringOrView methodName, StringOrView payload) {
+std::future<Expected<std::string, RPCError>> RPCClient::call(MaybeOwnedString methodName, MaybeOwnedString payload) {
     LOG(debug, "methodName={}", methodName);
 
     CHECK(methodName.size() < 256);
@@ -90,7 +90,7 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(StringOrView method
 
     uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
 
-    std::vector<StringOrView> pieces;
+    std::vector<MaybeOwnedString> pieces;
     pieces.reserve(3);
     pieces.emplace_back(reinterpret_cast<const char *>(&methodNameLength), 1);
     pieces.emplace_back(std::move(methodName));
@@ -103,8 +103,8 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(StringOrView method
     return future;
 }
 
-std::future<Expected<std::string, RPCError>> RPCClient::call(StringOrView methodName,
-                                                             std::vector<StringOrView> pieces) {
+std::future<Expected<std::string, RPCError>> RPCClient::call(MaybeOwnedString methodName,
+                                                             std::vector<MaybeOwnedString> pieces) {
     LOG(debug, "methodName={}", methodName);
 
     CHECK(methodName.size() < 256);
@@ -114,7 +114,7 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(StringOrView method
 
     uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
 
-    std::vector<StringOrView> newPieces;
+    std::vector<MaybeOwnedString> newPieces;
     newPieces.reserve(2 + pieces.size());
     newPieces.emplace_back(reinterpret_cast<const char *>(&methodNameLength), 1);
     newPieces.emplace_back(std::move(methodName));
