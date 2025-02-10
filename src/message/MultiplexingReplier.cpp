@@ -1,5 +1,6 @@
 #include "mq/message/MultiplexingReplier.h"
 
+#include <cstdint>
 #include <cstring>
 #include <iterator>
 #include <string_view>

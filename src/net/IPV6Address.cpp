@@ -1,5 +1,6 @@
 #include "mq/net/IPV6Address.h"
 
+#include <cstdint>
 #include <cstring>
 #include <string>
 
