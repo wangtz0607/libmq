@@ -329,6 +329,8 @@ bool Acceptor::onWatcherReadReady() {
             remoteEndpoint = std::make_unique<UnixEndpoint>(addr, addrLen);
             break;
         }
+        default:
+            std::unreachable();
     }
 
     LOG(debug, "accept: connFd={}, remoteEndpoint={}", connFd, *remoteEndpoint);
