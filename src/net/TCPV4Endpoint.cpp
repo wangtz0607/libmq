@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/net/TCPV4Endpoint.h"
 
 #include <cstddef>

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/message/MultiplexingReplier.h"
 
 #include <cstdint>

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/net/NetworkInterface.h"
 
 #include <string>

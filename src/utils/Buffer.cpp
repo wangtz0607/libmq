@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/utils/Buffer.h"
 
 #include <algorithm>

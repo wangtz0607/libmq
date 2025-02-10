@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/rpc/RPCClient.h"
 
 #include <cstdint>

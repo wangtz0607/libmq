@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/net/IPV6Address.h"
 
 #include <cstdint>

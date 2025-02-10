@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/utils/ThreadPool.h"
 
 #include <cstddef>

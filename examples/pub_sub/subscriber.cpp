@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include <cstdio>
 #include <print>
 #include <string_view>

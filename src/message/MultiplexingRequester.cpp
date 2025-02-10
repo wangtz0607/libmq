@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/message/MultiplexingRequester.h"
 
 #include <chrono>

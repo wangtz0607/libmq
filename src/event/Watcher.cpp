@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mq/event/Watcher.h"
 
 #include <utility>
