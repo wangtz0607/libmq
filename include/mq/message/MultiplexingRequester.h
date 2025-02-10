@@ -108,8 +108,14 @@ public:
         return requester_.waitForConnected(timeout);
     }
 
-    void send(MaybeOwnedString message, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
-    void send(std::vector<MaybeOwnedString> pieces, RecvCallback recvCallback, Executor *recvCallbackExecutor = nullptr);
+    void send(MaybeOwnedString message,
+              RecvCallback recvCallback,
+              Executor *recvCallbackExecutor = nullptr);
+
+    void send(std::vector<MaybeOwnedString> pieces,
+              RecvCallback recvCallback,
+              Executor *recvCallbackExecutor = nullptr);
+
     size_t numPendingRequests() const;
     void close();
 

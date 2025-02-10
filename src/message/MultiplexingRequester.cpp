@@ -101,7 +101,9 @@ void MultiplexingRequester::open() {
     }
 }
 
-void MultiplexingRequester::send(MaybeOwnedString message, RecvCallback recvCallback, Executor *recvCallbackExecutor) {
+void MultiplexingRequester::send(MaybeOwnedString message,
+                                 RecvCallback recvCallback,
+                                 Executor *recvCallbackExecutor) {
     LOG(debug, "");
 
     if (loop()->isInLoopThread()) {
