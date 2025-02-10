@@ -1,10 +1,10 @@
 #include "mq/message/MultiplexingReplier.h"
 
-#include <cstddef>
 #include <cstring>
-#include <string>
+#include <iterator>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "mq/message/Replier.h"
 #include "mq/net/Endpoint.h"
@@ -16,6 +16,26 @@
 #define TAG "MultiplexingReplier"
 
 using namespace mq;
+
+void MultiplexingReplier::Promise::operator()(MaybeOwnedString replyMessage) {
+    std::vector<MaybeOwnedString> replyPieces;
+    replyPieces.reserve(2);
+    replyPieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE_), 8);
+    replyPieces.push_back(std::move(replyMessage));
+
+    promise_(std::move(replyPieces));
+}
+
+void MultiplexingReplier::Promise::operator()(std::vector<MaybeOwnedString> replyPieces) {
+    std::vector<MaybeOwnedString> newReplyPieces;
+    newReplyPieces.reserve(1 + replyPieces.size());
+    newReplyPieces.emplace_back(reinterpret_cast<const char *>(&requestIdLE_), 8);
+    newReplyPieces.insert(newReplyPieces.end(),
+                          std::make_move_iterator(replyPieces.begin()),
+                          std::make_move_iterator(replyPieces.end()));
+
+    promise_(std::move(newReplyPieces));
+}
 
 MultiplexingReplier::MultiplexingReplier(EventLoop *loop, const Endpoint &localEndpoint)
     : replier_(loop, localEndpoint) {
@@ -77,23 +97,7 @@ void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint,
     uint64_t requestIdLE;
     memcpy(&requestIdLE, message.data(), 8);
 
-    Promise newPromise =
-        [requestIdLE, promise = std::move(promise)](MaybeOwnedString replyMessage) mutable {
-            size_t size = 8 + replyMessage.size();
-
-            auto op = [requestIdLE, replyMessage = std::move(replyMessage)](char *data, size_t size) {
-                memcpy(data, reinterpret_cast<const char *>(&requestIdLE), 8);
-                data += 8;
-                memcpy(data, replyMessage.data(), replyMessage.size());
-
-                return size;
-            };
-
-            std::string newReplyMessage;
-            newReplyMessage.resize_and_overwrite(size, std::move(op));
-
-            promise(std::move(newReplyMessage));
-        };
+    Promise newPromise(requestIdLE, std::move(promise));
 
     recvCallback_(remoteEndpoint, message.substr(8), std::move(newPromise));
 }

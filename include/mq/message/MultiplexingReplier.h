@@ -2,14 +2,17 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 #include "mq/event/EventLoop.h"
 #include "mq/message/Replier.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/Socket.h"
 #include "mq/utils/Executor.h"
+#include "mq/utils/MaybeOwnedString.h"
 
 namespace mq {
 
@@ -20,8 +23,23 @@ public:
         kOpened = static_cast<int>(Replier::State::kOpened),
     };
 
-    using Promise = Replier::Promise;
-    using RecvCallback = Replier::RecvCallback;
+    class Promise {
+    public:
+        void operator()(MaybeOwnedString replyMessage);
+        void operator()(std::vector<MaybeOwnedString> replyPieces);
+
+    private:
+        uint64_t requestIdLE_;
+        Replier::Promise promise_;
+
+        Promise(uint64_t requestIdLE, Replier::Promise promise)
+            : requestIdLE_(requestIdLE), promise_(std::move(promise)) {}
+
+        friend class MultiplexingReplier;
+    };
+
+    using RecvCallback =
+        std::move_only_function<void (const Endpoint &remoteEndpoint, std::string_view message, Promise promise)>;
 
     MultiplexingReplier(EventLoop *loop, const Endpoint &localEndpoint);
     ~MultiplexingReplier();

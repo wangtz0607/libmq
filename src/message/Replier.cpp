@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "mq/net/Endpoint.h"
 #include "mq/net/FramingAcceptor.h"
@@ -21,6 +22,107 @@
 #define TAG "Replier"
 
 using namespace mq;
+
+void Replier::Promise::operator()(MaybeOwnedString replyMessage) {
+    if (token_.expired() || replier_->sockets_.find(socket_.get()) == replier_->sockets_.end()) {
+        replier_->loop_->post([socket = std::move(socket_)] {});
+
+        return;
+    }
+
+    if (replier_->loop_->isInLoopThread()) {
+        if (int error = socket_->send(replyMessage)) {
+            LOG(warning, "send: error={}", strerrorname_np(error));
+
+            replier_->loop_->post([replier = replier_,
+                                   socket = std::move(socket_),
+                                   token = std::weak_ptr(token_)] mutable {
+                if (token.expired() || replier->sockets_.find(socket.get()) == replier->sockets_.end()) return;
+
+                socket->reset();
+
+                replier->sockets_.erase(replier->sockets_.find(socket.get()));
+            });
+        }
+    } else {
+        replier_->loop_->post([replier = replier_,
+                               socket = std::move(socket_),
+                               token = std::weak_ptr(token_),
+                               replyMessage = std::string(std::move(replyMessage))] {
+            if (token.expired() || replier->sockets_.find(socket.get()) == replier->sockets_.end()) return;
+
+            if (int error = socket->send(replyMessage)) {
+                LOG(warning, "send: error={}", strerrorname_np(error));
+
+                socket->reset();
+
+                replier->sockets_.erase(replier->sockets_.find(socket));
+            }
+        });
+    }
+}
+
+void Replier::Promise::operator()(std::vector<MaybeOwnedString> replyPieces) {
+    if (token_.expired() || replier_->sockets_.find(socket_.get()) == replier_->sockets_.end()) {
+        replier_->loop_->post([socket = std::move(socket_)] {});
+
+        return;
+    }
+
+    if (replier_->loop_->isInLoopThread()) {
+        std::vector<std::string_view> pieces;
+        pieces.reserve(replyPieces.size());
+        for (const MaybeOwnedString &replyPiece : replyPieces) {
+            pieces.push_back(std::string_view(replyPiece));
+        }
+
+        if (int error = socket_->send(pieces)) {
+            LOG(warning, "send: error={}", strerrorname_np(error));
+
+            replier_->loop_->post([replier = replier_,
+                                   socket = std::move(socket_),
+                                   token = std::weak_ptr(token_)] mutable {
+                if (token.expired() || replier->sockets_.find(socket.get()) == replier->sockets_.end()) return;
+
+                socket->reset();
+
+                replier->sockets_.erase(replier->sockets_.find(socket.get()));
+            });
+        }
+    } else {
+        size_t size = 0;
+        for (const MaybeOwnedString &piece : replyPieces) {
+            size += piece.size();
+        }
+
+        auto op = [replyPieces = std::move(replyPieces)](char *data, size_t size) {
+            for (const MaybeOwnedString &piece : replyPieces) {
+                memcpy(data, piece.data(), piece.size());
+                data += piece.size();
+            }
+
+            return size;
+        };
+
+        std::string replyMessage;
+        replyMessage.resize_and_overwrite(size, std::move(op));
+
+        replier_->loop_->post([replier = replier_,
+                               socket = std::move(socket_),
+                               token = std::weak_ptr(token_),
+                               replyMessage = std::move(replyMessage)] {
+            if (token.expired() || replier->sockets_.find(socket.get()) == replier->sockets_.end()) return;
+
+            if (int error = socket->send(replyMessage)) {
+                LOG(warning, "send: error={}", strerrorname_np(error));
+
+                socket->reset();
+
+                replier->sockets_.erase(replier->sockets_.find(socket));
+            }
+        });
+    }
+}
 
 Replier::Replier(EventLoop *loop, const Endpoint &localEndpoint)
     : loop_(loop),
@@ -374,46 +476,7 @@ bool Replier::onFramingSocketRecv(FramingSocket *socket, std::string_view messag
 
     std::unique_ptr<Endpoint> remoteEndpoint = socket->remoteEndpoint();
 
-    Promise promise = [this,
-                       socket = socket->shared_from_this(),
-                       token = std::weak_ptr(token_)](MaybeOwnedString replyMessage) mutable {
-        if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) {
-            loop_->post([socket = std::move(socket)] {});
-
-            return;
-        }
-
-        if (loop_->isInLoopThread()) {
-            if (int error = socket->send(replyMessage)) {
-                LOG(warning, "send: error={}", strerrorname_np(error));
-
-                loop_->post([this,
-                             socket = std::move(socket),
-                             token = std::weak_ptr(token_)] mutable {
-                    if (token.expired() || sockets_.find(socket) == sockets_.end()) return;
-
-                    socket->reset();
-
-                    sockets_.erase(sockets_.find(socket));
-                });
-            }
-        } else {
-            loop_->post([this,
-                         socket = std::move(socket),
-                         replyMessage = std::string(std::move(replyMessage)),
-                         token = std::weak_ptr(token_)] {
-                if (token.expired() || sockets_.find(socket.get()) == sockets_.end()) return;
-
-                if (int error = socket->send(replyMessage)) {
-                    LOG(warning, "send: error={}", strerrorname_np(error));
-
-                    socket->reset();
-
-                    sockets_.erase(sockets_.find(socket));
-                }
-            });
-        }
-    };
+    Promise promise(this, socket->shared_from_this(), std::weak_ptr(token_));
 
     if (!recvCallbackExecutor_) {
         dispatchRecv(*remoteEndpoint, message, std::move(promise));

@@ -7,6 +7,7 @@
 #include <memory>
 #include <string_view>
 #include <unordered_set>
+#include <vector>
 
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
@@ -31,7 +32,21 @@ public:
         kOpened,
     };
 
-    using Promise = std::move_only_function<void (MaybeOwnedString replyMessage)>;
+    class Promise {
+    public:
+        void operator()(MaybeOwnedString replyMessage);
+        void operator()(std::vector<MaybeOwnedString> replyPieces);
+
+    private:
+        Replier *replier_;
+        std::shared_ptr<FramingSocket> socket_;
+        std::weak_ptr<void> token_;
+
+        Promise(Replier *replier, std::shared_ptr<FramingSocket> socket, std::weak_ptr<void> token)
+            : replier_(replier), socket_(std::move(socket)), token_(std::move(token)) {}
+
+        friend class Replier;
+    };
 
     using RecvCallback =
         std::move_only_function<void (const Endpoint &remoteEndpoint, std::string_view message, Promise promise)>;
