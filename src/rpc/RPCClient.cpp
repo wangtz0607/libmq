@@ -32,7 +32,7 @@ public:
 
     ~RecvCallbackImpl() {
         if (valid_) {
-            promise_.set_value(RPCError::kTimedOut);
+            promise_.set_value(RPCError::kCancelled);
         }
     }
 

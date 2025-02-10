@@ -10,7 +10,7 @@ enum class RPCError : uint8_t {
     kMethodNotFound = 1,
     kBadRequest = 2,
     kBadReply = 3,
-    kTimedOut = 4,
+    kCancelled = 4,
 };
 
 } // namespace mq
@@ -34,7 +34,7 @@ private:
             case kMethodNotFound: return "METHOD_NOT_FOUND";
             case kBadRequest: return "BAD_REQUEST";
             case kBadReply: return "BAD_REPLY";
-            case kTimedOut: return "TIMED_OUT";
+            case kCancelled: return "CANCELLED";
             default: return nullptr;
         }
     }
