@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <utility>
 
@@ -19,8 +21,14 @@ Buffer::Buffer(const Buffer &other)
     : maxCapacity_(other.maxCapacity_),
       capacity_(other.end_ - other.begin_),
       begin_(0),
-      end_(other.end_ - other.begin_),
-      buffer_(new char[other.end_ - other.begin_]) {
+      end_(other.end_ - other.begin_) {
+    buffer_ = static_cast<char *>(malloc(other.end_ - other.begin_));
+
+    if (!buffer_) {
+        perror("malloc");
+        abort();
+    }
+
     memcpy(buffer_, other.buffer_ + other.begin_, other.end_ - other.begin_);
 }
 
@@ -29,7 +37,7 @@ Buffer::Buffer(Buffer &&other) noexcept : Buffer() {
 }
 
 Buffer::~Buffer() {
-    delete[] buffer_;
+    free(buffer_);
 }
 
 Buffer &Buffer::operator=(Buffer other) noexcept {
@@ -114,11 +122,11 @@ void Buffer::swap(Buffer &other) noexcept {
 void Buffer::reallocate(size_t newCapacity) {
     size_t size = end_ - begin_;
 
-    char *newBuffer = new char[newCapacity];
+    char *newBuffer = static_cast<char *>(realloc(buffer_, newCapacity));
 
-    if (buffer_) {
-        memcpy(newBuffer, buffer_ + begin_, size);
-        delete[] buffer_;
+    if (!newBuffer) {
+        perror("realloc");
+        abort();
     }
 
 #ifndef NDEBUG
