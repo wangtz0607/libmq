@@ -65,7 +65,9 @@ void Buffer::retractFront(size_t size) {
     assert(end_ - begin_ >= size);
 
 #ifndef NDEBUG
-    memset(buffer_ + begin_, 0xcc, size);
+    if (buffer_) {
+        memset(buffer_ + begin_, 0xcc, size);
+    }
 #endif
 
     begin_ += size;
@@ -84,7 +86,9 @@ void Buffer::retractBack(size_t size) {
     assert(end_ - begin_ >= size);
 
 #ifndef NDEBUG
-    memset(buffer_ + end_ - size, 0xcc, size);
+    if (buffer_) {
+        memset(buffer_ + end_ - size, 0xcc, size);
+    }
 #endif
 
     end_ -= size;
@@ -97,7 +101,9 @@ void Buffer::retractBack(size_t size) {
 
 void Buffer::clear() {
 #ifndef NDEBUG
-    memset(buffer_ + begin_, 0xcc, end_ - begin_);
+    if (buffer_) {
+        memset(buffer_ + begin_, 0xcc, end_ - begin_);
+    }
 #endif
 
     begin_ = 0;
