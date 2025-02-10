@@ -101,19 +101,15 @@ public:
         return static_cast<State>(replier_.state());
     }
 
-    int open() {
-        return replier_.open();
-    }
-
-    void close() {
-        replier_.close();
-    }
+    int open();
+    void close();
 
 private:
     using MethodMap = std::unordered_map<std::string, std::pair<Method, Executor *>, StringHash, StringEqual>;
 
     MultiplexingReplier replier_;
     MethodMap methods_;
+    std::shared_ptr<void> token_;
 
     void onMultiplexingReplierRecv(const Endpoint &remoteEndpoint,
                                    std::string_view message,

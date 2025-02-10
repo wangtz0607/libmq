@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -13,6 +14,7 @@
 #include "mq/net/Endpoint.h"
 #include "mq/rpc/RPCError.h"
 #include "mq/utils/Check.h"
+#include "mq/utils/Empty.h"
 #include "mq/utils/Endian.h"
 #include "mq/utils/Executor.h"
 #include "mq/utils/Logging.h"
@@ -109,6 +111,44 @@ void RPCServer::unregisterAllMethods() {
     }
 }
 
+int RPCServer::open() {
+    LOG(debug, "");
+
+    int error;
+
+    if (loop()->isInLoopThread()) {
+        CHECK(state() == State::kClosed);
+
+        error = replier_.open();
+
+        if (!error) {
+            token_ = std::make_shared<Empty>();
+        }
+    } else {
+        loop()->postAndWait([this, &error] {
+            error = open();
+        });
+    }
+
+    return error;
+}
+
+void RPCServer::close() {
+    LOG(debug, "");
+
+    if (loop()->isInLoopThread()) {
+        if (state() == State::kClosed) return;
+
+        token_ = nullptr;
+
+        replier_.close();
+    } else {
+        loop()->postAndWait([this] {
+            close();
+        });
+    }
+}
+
 void RPCServer::onMultiplexingReplierRecv(const Endpoint &remoteEndpoint,
                                           std::string_view message,
                                           MultiplexingReplier::Promise promise) {
@@ -160,7 +200,10 @@ void RPCServer::onMultiplexingReplierRecv(const Endpoint &remoteEndpoint,
             methodExecutor->post([&method,
                                   remoteEndpoint = remoteEndpoint.clone(),
                                   payload = std::string(payload),
-                                  promise = std::move(promise)] mutable {
+                                  promise = std::move(promise),
+                                  token = std::weak_ptr(token_)] mutable {
+                if (token.expired()) return;
+
                 RPCError status = RPCError::kOk;
                 uint8_t statusCode = static_cast<uint8_t>(status);
 
