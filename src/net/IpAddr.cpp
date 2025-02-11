@@ -7,14 +7,15 @@
 #include <arpa/inet.h>
 
 #include "mq/utils/Check.h"
+#include "mq/utils/ZStringView.h"
 
 #define TAG "IpAddr"
 
 using namespace mq;
 
-IpAddr::IpAddr(const char *addr) {
+IpAddr::IpAddr(ZStringView addr) {
     uint_type dst;
-    CHECK(inet_pton(AF_INET, addr, &dst) == 1);
+    CHECK(inet_pton(AF_INET, addr.c_str(), &dst) == 1);
     addr_ = ntohl(dst);
 }
 

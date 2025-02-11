@@ -10,6 +10,7 @@
 #include <string>
 
 #include "mq/utils/Hash.h"
+#include "mq/utils/ZStringView.h"
 
 namespace mq {
 
@@ -25,10 +26,7 @@ public:
     explicit Ip6Addr(const bytes_type &addr)
         : Ip6Addr(addr.data()) {}
 
-    explicit Ip6Addr(const char *addr);
-
-    explicit Ip6Addr(const std::string &addr)
-        : Ip6Addr(addr.c_str()) {}
+    explicit Ip6Addr(ZStringView addr);
 
     bytes_type bytes() const {
         return addr_;

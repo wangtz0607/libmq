@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -24,7 +25,7 @@ public:
     Tcp6Endpoint(Ip6Addr hostAddr, uint16_t port)
         : Tcp6Endpoint(hostAddr, NetworkInterface(), port) {}
 
-    Tcp6Endpoint(const std::string &host, uint16_t port);
+    Tcp6Endpoint(std::string_view host, uint16_t port);
 
     explicit Tcp6Endpoint(const sockaddr_in6 &addr)
         : addr_(addr) {}

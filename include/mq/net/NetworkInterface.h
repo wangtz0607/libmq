@@ -8,6 +8,8 @@
 #include <functional>
 #include <string>
 
+#include "mq/utils/ZStringView.h"
+
 namespace mq {
 
 class NetworkInterface {
@@ -18,10 +20,7 @@ public:
     explicit NetworkInterface(uint32_t index)
         : index_(index) {}
 
-    explicit NetworkInterface(const char *name);
-
-    explicit NetworkInterface(const std::string &name)
-        : NetworkInterface(name.c_str()) {}
+    explicit NetworkInterface(ZStringView name);
 
     uint32_t index() const {
         return index_;

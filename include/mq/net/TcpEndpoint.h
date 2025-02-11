@@ -13,6 +13,7 @@
 
 #include "mq/net/Endpoint.h"
 #include "mq/net/IpAddr.h"
+#include "mq/utils/ZStringView.h"
 
 namespace mq {
 
@@ -20,10 +21,7 @@ class TcpEndpoint final : public Endpoint {
 public:
     TcpEndpoint(IpAddr hostAddr, uint16_t port);
 
-    TcpEndpoint(const char *hostAddr, uint16_t port)
-        : TcpEndpoint(IpAddr(hostAddr), port) {}
-
-    TcpEndpoint(const std::string &hostAddr, uint16_t port)
+    TcpEndpoint(ZStringView hostAddr, uint16_t port)
         : TcpEndpoint(IpAddr(hostAddr), port) {}
 
     explicit TcpEndpoint(const sockaddr_in &addr)

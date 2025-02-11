@@ -10,6 +10,7 @@
 
 #include "mq/utils/Check.h"
 #include "mq/utils/Endian.h"
+#include "mq/utils/ZStringView.h"
 
 #define TAG "Ip6Addr"
 
@@ -19,9 +20,9 @@ Ip6Addr::Ip6Addr(const uint8_t *addr) : addr_{} {
     memcpy(addr_.data(), addr, 16);
 }
 
-Ip6Addr::Ip6Addr(const char *addr) : addr_{} {
+Ip6Addr::Ip6Addr(ZStringView addr) : addr_{} {
     bytes_type dst;
-    CHECK(inet_pton(AF_INET6, addr, dst.data()) == 1);
+    CHECK(inet_pton(AF_INET6, addr.c_str(), dst.data()) == 1);
     fromBigEndian(dst.data(), 16);
     addr_ = dst;
 }

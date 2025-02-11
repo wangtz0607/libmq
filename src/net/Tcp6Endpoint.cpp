@@ -9,6 +9,7 @@
 #include <format>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -26,17 +27,17 @@ using namespace mq;
 
 namespace {
 
-Ip6Addr parseHostAddr(const std::string &host) {
+Ip6Addr parseHostAddr(std::string_view host) {
     if (size_t i = host.find('%'); i != std::string::npos) {
-        return Ip6Addr(host.substr(0, i));
+        return Ip6Addr(std::string(host.substr(0, i)));
     } else {
-        return Ip6Addr(host);
+        return Ip6Addr(std::string(host));
     }
 }
 
-NetworkInterface parseInterface(const std::string &host) {
+NetworkInterface parseInterface(std::string_view host) {
     if (size_t i = host.find('%'); i != std::string::npos) {
-        std::string interface = host.substr(i + 1);
+        std::string_view interface = host.substr(i + 1);
 
         uint32_t index;
         auto [ptr, ec] = std::from_chars(interface.data(), interface.data() + interface.size(), index);
@@ -44,7 +45,7 @@ NetworkInterface parseInterface(const std::string &host) {
         if (ptr == interface.data() + interface.size() && ec == std::errc()) {
             return NetworkInterface(index);
         } else {
-            return NetworkInterface(interface);
+            return NetworkInterface(std::string(interface));
         }
     } else {
         return NetworkInterface();
@@ -62,7 +63,7 @@ Tcp6Endpoint::Tcp6Endpoint(Ip6Addr hostAddr, NetworkInterface interface, uint16_
     addr_.sin6_scope_id = interface.index();
 }
 
-Tcp6Endpoint::Tcp6Endpoint(const std::string &host, uint16_t port)
+Tcp6Endpoint::Tcp6Endpoint(std::string_view host, uint16_t port)
     : Tcp6Endpoint(parseHostAddr(host), parseInterface(host), port) {}
 
 Ip6Addr Tcp6Endpoint::hostAddr() const {

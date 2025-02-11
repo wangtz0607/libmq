@@ -8,6 +8,8 @@
 #include <functional>
 #include <string>
 
+#include "mq/utils/ZStringView.h"
+
 namespace mq {
 
 class IpAddr {
@@ -20,10 +22,7 @@ public:
     explicit IpAddr(uint_type addr)
         : addr_(addr) {}
 
-    explicit IpAddr(const char* addr);
-
-    explicit IpAddr(const std::string &addr)
-        : IpAddr(addr.c_str()) {}
+    explicit IpAddr(ZStringView addr);
 
     uint_type uint() const {
         return addr_;
