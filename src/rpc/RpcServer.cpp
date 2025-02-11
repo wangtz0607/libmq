@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -63,7 +64,7 @@ bool RpcServer::hasMethod(std::string_view methodName) const {
 void RpcServer::registerMethod(std::string methodName, Method method, Executor *methodExecutor) {
     LOG(debug, "methodName={}", methodName);
 
-    CHECK(methodName.size() < 256);
+    CHECK(methodName.size() <= std::numeric_limits<uint8_t>::max());
 
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);

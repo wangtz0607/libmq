@@ -7,6 +7,7 @@
 #include <format>
 #include <future>
 #include <iterator>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -85,7 +86,7 @@ RpcClient::~RpcClient() {
 std::future<Expected<std::string, RpcError>> RpcClient::call(MaybeOwnedString methodName, MaybeOwnedString payload) {
     LOG(debug, "methodName={}", methodName);
 
-    CHECK(methodName.size() < 256);
+    CHECK(methodName.size() <= std::numeric_limits<uint8_t>::max());
 
     std::promise<Expected<std::string, RpcError>> promise;
     std::future<Expected<std::string, RpcError>> future = promise.get_future();
@@ -109,7 +110,7 @@ std::future<Expected<std::string, RpcError>> RpcClient::call(MaybeOwnedString me
                                                              std::vector<MaybeOwnedString> pieces) {
     LOG(debug, "methodName={}", methodName);
 
-    CHECK(methodName.size() < 256);
+    CHECK(methodName.size() <= std::numeric_limits<uint8_t>::max());
 
     std::promise<Expected<std::string, RpcError>> promise;
     std::future<Expected<std::string, RpcError>> future = promise.get_future();
