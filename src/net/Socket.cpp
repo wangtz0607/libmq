@@ -393,8 +393,12 @@ void Socket::open(const Endpoint &remoteEndpoint) {
     CHECK((fd_ = socket(remoteEndpoint.domain(), SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)) >= 0);
     LOG(debug, "fd={}", fd_);
 
-    setRcvBufSockOpt(fd_, rcvBuf_);
-    setSndBufSockOpt(fd_, sndBuf_);
+    if (rcvBuf_ >= 0) {
+        setRcvBufSockOpt(fd_, rcvBuf_);
+    }
+    if (sndBuf_ >= 0) {
+        setSndBufSockOpt(fd_, sndBuf_);
+    }
 
     if (remoteEndpoint.domain() == AF_INET || remoteEndpoint.domain() == AF_INET6) {
         setNoDelaySockOpt(fd_, noDelay_);
