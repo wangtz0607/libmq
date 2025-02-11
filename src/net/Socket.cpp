@@ -401,8 +401,12 @@ void Socket::open(const Endpoint &remoteEndpoint) {
     }
 
     if (remoteEndpoint.domain() == AF_INET || remoteEndpoint.domain() == AF_INET6) {
-        setNoDelaySockOpt(fd_, noDelay_);
-        setKeepAliveSockOpt(fd_, keepAlive_);
+        if (noDelay_) {
+            setNoDelaySockOpt(fd_, noDelay_);
+        }
+        if (keepAlive_) {
+            setKeepAliveSockOpt(fd_, keepAlive_);
+        }
     }
 
     watcher_ = std::make_unique<Watcher>(loop_, fd_);
@@ -525,8 +529,12 @@ void Socket::open(int fd, const Endpoint &remoteEndpoint) {
     CHECK(optVal == SOCK_STREAM);
 
     if (remoteEndpoint.domain() == AF_INET || remoteEndpoint.domain() == AF_INET6) {
-        setNoDelaySockOpt(fd, noDelay_);
-        setKeepAliveSockOpt(fd, keepAlive_);
+        if (noDelay_) {
+            setNoDelaySockOpt(fd, noDelay_);
+        }
+        if (keepAlive_) {
+            setKeepAliveSockOpt(fd, keepAlive_);
+        }
     }
 
     fd_ = fd;
