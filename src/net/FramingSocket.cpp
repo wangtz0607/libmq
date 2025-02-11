@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <string_view>
 #include <utility>
@@ -40,6 +41,7 @@ void FramingSocket::setMaxMessageLength(size_t maxMessageLength) {
 
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
+    CHECK(maxMessageLength <= std::numeric_limits<uint32_t>::max());
 
     maxMessageLength_ = maxMessageLength;
 }
