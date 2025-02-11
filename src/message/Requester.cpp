@@ -437,16 +437,27 @@ void Requester::send(std::vector<MaybeOwnedString> pieces) {
             LOG(warning, "send: error={}", strerrorname_np(error));
         }
     } else {
-        std::vector<MaybeOwnedString> newPieces;
-        newPieces.reserve(pieces.size());
-        for (MaybeOwnedString &piece : pieces) {
-            newPieces.emplace_back(std::string(std::move(piece)));
+        size_t size = 0;
+        for (const MaybeOwnedString &piece : pieces) {
+            size += piece.size();
         }
 
-        loop_->post([this, newPieces = std::move(newPieces), token = std::weak_ptr(token_)] mutable {
+        auto op = [pieces = std::move(pieces)](char *data, size_t size) {
+            for (const MaybeOwnedString &piece : pieces) {
+                memcpy(data, piece.data(), piece.size());
+                data += piece.size();
+            }
+
+            return size;
+        };
+
+        std::string message;
+        message.resize_and_overwrite(size, std::move(op));
+
+        loop_->post([this, message = std::move(message), token = std::weak_ptr(token_)] mutable {
             if (token.expired()) return;
 
-            send(std::move(newPieces));
+            send(std::move(message));
         });
     }
 }
