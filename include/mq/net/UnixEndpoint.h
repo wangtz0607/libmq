@@ -23,7 +23,7 @@ public:
 
     std::filesystem::path path() const;
 
-    int domain() const override {
+    sa_family_t domain() const override {
         return AF_UNIX;
     }
 

@@ -25,7 +25,7 @@ public:
     Endpoint &operator=(const Endpoint &) = delete;
     Endpoint &operator=(Endpoint &&) = delete;
 
-    virtual int domain() const = 0;
+    virtual sa_family_t domain() const = 0;
     virtual const sockaddr *data() const = 0;
     virtual socklen_t size() const = 0;
     virtual std::string format() const = 0;

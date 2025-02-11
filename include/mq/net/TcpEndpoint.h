@@ -32,7 +32,7 @@ public:
     IpAddr hostAddr() const;
     uint16_t port() const;
 
-    int domain() const override {
+    sa_family_t domain() const override {
         return AF_INET;
     }
 
