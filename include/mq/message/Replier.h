@@ -106,8 +106,8 @@ private:
     size_t recvBufferMaxCapacity_ = 16 * 1024 * 1024;
     size_t sendBufferMaxCapacity_ = 16 * 1024 * 1024;
     size_t recvChunkSize_ = 4096;
-    std::chrono::nanoseconds recvTimeout_ = std::chrono::seconds(5);
-    std::chrono::nanoseconds sendTimeout_ = std::chrono::seconds(5);
+    std::chrono::nanoseconds recvTimeout_ = std::chrono::seconds(30);
+    std::chrono::nanoseconds sendTimeout_ = std::chrono::seconds(30);
     int rcvBuf_ = 212992;
     int sndBuf_ = 212992;
     bool noDelay_ = true;
