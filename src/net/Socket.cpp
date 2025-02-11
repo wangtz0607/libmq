@@ -618,6 +618,8 @@ int Socket::send(const std::vector<std::pair<const char *, size_t>> &buffers) {
         return ENOBUFS;
     }
 
+    sendBuffer_.reserve(totalSize);
+
     for (auto [data, size] : buffers) {
         sendBuffer_.extend(size);
         memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
