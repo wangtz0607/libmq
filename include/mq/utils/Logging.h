@@ -89,4 +89,4 @@ private:
         if (mq::detail::sink_ && level >= mq::detail::level_) { \
             mq::detail::log(level, TAG, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__); \
         } \
-    } while (false);
+    } while (false)
