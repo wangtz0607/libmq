@@ -167,20 +167,31 @@ void MultiplexingRequester::send(std::vector<MaybeOwnedString> pieces,
 
         requester_.send(std::move(newPieces));
     } else {
-        std::vector<MaybeOwnedString> newPieces;
-        newPieces.reserve(pieces.size());
-        for (MaybeOwnedString &piece : pieces) {
-            newPieces.emplace_back(std::string(std::move(piece)));
+        size_t size = 0;
+        for (const MaybeOwnedString &piece : pieces) {
+            size += piece.size();
         }
 
+        auto op = [pieces = std::move(pieces)](char *data, size_t size) {
+            for (const MaybeOwnedString &piece : pieces) {
+                memcpy(data, piece.data(), piece.size());
+                data += piece.size();
+            }
+
+            return size;
+        };
+
+        std::string message;
+        message.resize_and_overwrite(size, std::move(op));
+
         loop()->post([this,
-                      newPieces = std::move(newPieces),
+                      message = std::move(message),
                       recvCallback = std::move(recvCallback),
                       recvCallbackExecutor,
                       token = std::weak_ptr(token_)] mutable {
             if (token.expired()) return;
 
-            send(std::move(newPieces), std::move(recvCallback), recvCallbackExecutor);
+            send(std::move(message), std::move(recvCallback), recvCallbackExecutor);
         });
     }
 }
