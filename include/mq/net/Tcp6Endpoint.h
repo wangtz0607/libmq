@@ -19,9 +19,10 @@ namespace mq {
 
 class Tcp6Endpoint final : public Endpoint {
 public:
-    Tcp6Endpoint(Ip6Addr hostAddr, uint16_t port);
-
     Tcp6Endpoint(Ip6Addr hostAddr, NetworkInterface interface, uint16_t port);
+
+    Tcp6Endpoint(Ip6Addr hostAddr, uint16_t port)
+        : Tcp6Endpoint(hostAddr, NetworkInterface(), port) {}
 
     Tcp6Endpoint(const std::string &host, uint16_t port);
 

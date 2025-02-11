@@ -53,16 +53,12 @@ NetworkInterface parseInterface(const std::string &host) {
 
 } // namespace
 
-Tcp6Endpoint::Tcp6Endpoint(Ip6Addr hostAddr, uint16_t port) : addr_{} {
+Tcp6Endpoint::Tcp6Endpoint(Ip6Addr hostAddr, NetworkInterface interface, uint16_t port) : addr_{} {
     addr_.sin6_family = AF_INET6;
     addr_.sin6_port = htons(port);
     Ip6Addr::bytes_type src = hostAddr.bytes();
     toBigEndian(src.data(), 16);
     memcpy(&addr_.sin6_addr, src.data(), 16);
-}
-
-Tcp6Endpoint::Tcp6Endpoint(Ip6Addr hostAddr, NetworkInterface interface, uint16_t port)
-    : Tcp6Endpoint(hostAddr, port) {
     addr_.sin6_scope_id = interface.index();
 }
 
