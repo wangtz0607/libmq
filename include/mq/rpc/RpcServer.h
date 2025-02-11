@@ -20,7 +20,7 @@
 
 namespace mq {
 
-class RPCServer {
+class RpcServer {
 public:
     enum class State {
         kClosed = static_cast<int>(MultiplexingReplier::State::kClosed),
@@ -29,14 +29,14 @@ public:
 
     using Method = std::move_only_function<std::string (const Endpoint &remoteEndpoint, std::string_view payload)>;
 
-    RPCServer(EventLoop *loop, const Endpoint &localEndpoint);
-    ~RPCServer();
+    RpcServer(EventLoop *loop, const Endpoint &localEndpoint);
+    ~RpcServer();
 
-    RPCServer(const RPCServer &) = delete;
-    RPCServer(RPCServer &&) = delete;
+    RpcServer(const RpcServer &) = delete;
+    RpcServer(RpcServer &&) = delete;
 
-    RPCServer &operator=(const RPCServer &) = delete;
-    RPCServer &operator=(RPCServer &&) = delete;
+    RpcServer &operator=(const RpcServer &) = delete;
+    RpcServer &operator=(RpcServer &&) = delete;
 
     EventLoop *loop() const {
         return replier_.loop();

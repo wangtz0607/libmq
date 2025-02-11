@@ -13,21 +13,21 @@ add_library(mq
     src/message/MultiplexingReplier.cpp
     src/message/MultiplexingRequester.cpp
     src/message/Publisher.cpp
-    src/message/Subscriber.cpp
     src/message/Replier.cpp
     src/message/Requester.cpp
+    src/message/Subscriber.cpp
     src/net/Acceptor.cpp
     src/net/FramingAcceptor.cpp
     src/net/FramingSocket.cpp
-    src/net/IPV4Address.cpp
-    src/net/IPV6Address.cpp
+    src/net/Ip6Addr.cpp
+    src/net/IpAddr.cpp
     src/net/NetworkInterface.cpp
     src/net/Socket.cpp
-    src/net/TCPV4Endpoint.cpp
-    src/net/TCPV6Endpoint.cpp
+    src/net/Tcp6Endpoint.cpp
+    src/net/TcpEndpoint.cpp
     src/net/UnixEndpoint.cpp
-    src/rpc/RPCClient.cpp
-    src/rpc/RPCServer.cpp
+    src/rpc/RpcClient.cpp
+    src/rpc/RpcServer.cpp
     src/utils/Buffer.cpp
     src/utils/Executor.cpp
     src/utils/Logging.cpp

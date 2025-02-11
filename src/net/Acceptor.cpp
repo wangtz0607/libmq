@@ -17,8 +17,8 @@
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/Socket.h"
-#include "mq/net/TCPV4Endpoint.h"
-#include "mq/net/TCPV6Endpoint.h"
+#include "mq/net/Tcp6Endpoint.h"
+#include "mq/net/TcpEndpoint.h"
 #include "mq/net/UnixEndpoint.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
@@ -304,7 +304,7 @@ bool Acceptor::onWatcherReadReady() {
                                      &addrLen,
                                      SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
-            remoteEndpoint = std::make_unique<TCPV4Endpoint>(addr);
+            remoteEndpoint = std::make_unique<TcpEndpoint>(addr);
             break;
         }
         case AF_INET6: {
@@ -315,7 +315,7 @@ bool Acceptor::onWatcherReadReady() {
                                      &addrLen,
                                      SOCK_NONBLOCK | SOCK_CLOEXEC)) < 0 && errno == EINTR);
             CHECK(connFd >= 0);
-            remoteEndpoint = std::make_unique<TCPV6Endpoint>(addr);
+            remoteEndpoint = std::make_unique<Tcp6Endpoint>(addr);
             break;
         }
         case AF_UNIX: {

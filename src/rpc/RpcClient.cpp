@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "mq/rpc/RPCClient.h"
+#include "mq/rpc/RpcClient.h"
 
 #include <cstdint>
 #include <cstring>
@@ -15,13 +15,13 @@
 #include "mq/event/EventLoop.h"
 #include "mq/message/MultiplexingRequester.h"
 #include "mq/net/Endpoint.h"
-#include "mq/rpc/RPCError.h"
+#include "mq/rpc/RpcError.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Expected.h"
 #include "mq/utils/Logging.h"
 #include "mq/utils/MaybeOwnedString.h"
 
-#define TAG "RPCClient"
+#define TAG "RpcClient"
 
 using namespace mq;
 
@@ -29,12 +29,12 @@ namespace {
 
 class RecvCallbackImpl {
 public:
-    explicit RecvCallbackImpl(std::promise<Expected<std::string, RPCError>> promise)
+    explicit RecvCallbackImpl(std::promise<Expected<std::string, RpcError>> promise)
         : promise_(std::move(promise)), valid_(true) {}
 
     ~RecvCallbackImpl() {
         if (valid_) {
-            promise_.set_value(RPCError::kCancelled);
+            promise_.set_value(RpcError::kCancelled);
         }
     }
 
@@ -47,7 +47,7 @@ public:
         if (message.size() < 1) {
             LOG(warning, "Bad reply");
 
-            promise_.set_value(RPCError::kBadReply);
+            promise_.set_value(RpcError::kBadReply);
             valid_ = false;
             return;
         }
@@ -55,9 +55,9 @@ public:
         uint8_t statusCode;
         memcpy(&statusCode, message.data(), 1);
 
-        RPCError status = static_cast<RPCError>(statusCode);
+        RpcError status = static_cast<RpcError>(statusCode);
 
-        if (status != RPCError::kOk) {
+        if (status != RpcError::kOk) {
             promise_.set_value(status);
             valid_ = false;
             return;
@@ -68,27 +68,27 @@ public:
     }
 
 private:
-    std::promise<Expected<std::string, RPCError>> promise_;
+    std::promise<Expected<std::string, RpcError>> promise_;
     bool valid_;
 };
 
 } // namespace
 
-RPCClient::RPCClient(EventLoop *loop, const Endpoint &remoteEndpoint) : requester_(loop, remoteEndpoint) {
+RpcClient::RpcClient(EventLoop *loop, const Endpoint &remoteEndpoint) : requester_(loop, remoteEndpoint) {
     LOG(debug, "");
 }
 
-RPCClient::~RPCClient() {
+RpcClient::~RpcClient() {
     LOG(debug, "");
 }
 
-std::future<Expected<std::string, RPCError>> RPCClient::call(MaybeOwnedString methodName, MaybeOwnedString payload) {
+std::future<Expected<std::string, RpcError>> RpcClient::call(MaybeOwnedString methodName, MaybeOwnedString payload) {
     LOG(debug, "methodName={}", methodName);
 
     CHECK(methodName.size() < 256);
 
-    std::promise<Expected<std::string, RPCError>> promise;
-    std::future<Expected<std::string, RPCError>> future = promise.get_future();
+    std::promise<Expected<std::string, RpcError>> promise;
+    std::future<Expected<std::string, RpcError>> future = promise.get_future();
 
     uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
 
@@ -105,14 +105,14 @@ std::future<Expected<std::string, RPCError>> RPCClient::call(MaybeOwnedString me
     return future;
 }
 
-std::future<Expected<std::string, RPCError>> RPCClient::call(MaybeOwnedString methodName,
+std::future<Expected<std::string, RpcError>> RpcClient::call(MaybeOwnedString methodName,
                                                              std::vector<MaybeOwnedString> pieces) {
     LOG(debug, "methodName={}", methodName);
 
     CHECK(methodName.size() < 256);
 
-    std::promise<Expected<std::string, RPCError>> promise;
-    std::future<Expected<std::string, RPCError>> future = promise.get_future();
+    std::promise<Expected<std::string, RpcError>> promise;
+    std::future<Expected<std::string, RpcError>> future = promise.get_future();
 
     uint8_t methodNameLength = static_cast<uint8_t>(methodName.size());
 

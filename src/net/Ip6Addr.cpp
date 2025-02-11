@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "mq/net/IPV6Address.h"
+#include "mq/net/Ip6Addr.h"
 
 #include <cstdint>
 #include <cstring>
@@ -11,22 +11,22 @@
 #include "mq/utils/Check.h"
 #include "mq/utils/Endian.h"
 
-#define TAG "IPV6Address"
+#define TAG "Ip6Addr"
 
 using namespace mq;
 
-IPV6Address::IPV6Address(const uint8_t *addr) : addr_{} {
+Ip6Addr::Ip6Addr(const uint8_t *addr) : addr_{} {
     memcpy(addr_.data(), addr, 16);
 }
 
-IPV6Address::IPV6Address(const char *addr) : addr_{} {
+Ip6Addr::Ip6Addr(const char *addr) : addr_{} {
     bytes_type dst;
     CHECK(inet_pton(AF_INET6, addr, dst.data()) == 1);
     fromBigEndian(dst.data(), 16);
     addr_ = dst;
 }
 
-std::string IPV6Address::string() const {
+std::string Ip6Addr::string() const {
     bytes_type src = addr_;
     toBigEndian(src.data(), 16);
     char dst[INET6_ADDRSTRLEN];

@@ -10,7 +10,7 @@
 #include "mq/event/EventLoop.h"
 #include "mq/message/MultiplexingReplier.h"
 #include "mq/net/Endpoint.h"
-#include "mq/net/TCPV4Endpoint.h"
+#include "mq/net/TcpEndpoint.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 #include "mq/utils/ThreadPool.h"
@@ -24,7 +24,7 @@ int main() {
     mq::EventLoop loop;
     mq::ThreadPool pool;
 
-    mq::MultiplexingReplier replier(&loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
+    mq::MultiplexingReplier replier(&loop, mq::TcpEndpoint("0.0.0.0", 9999));
 
     replier.setRecvCallback(
         [](const mq::Endpoint &remoteEndpoint, std::string_view message, mq::MultiplexingReplier::Promise promise) {

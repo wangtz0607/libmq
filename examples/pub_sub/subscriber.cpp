@@ -7,7 +7,7 @@
 #include "mq/event/EventLoop.h"
 #include "mq/message/Subscriber.h"
 #include "mq/net/Endpoint.h"
-#include "mq/net/TCPV4Endpoint.h"
+#include "mq/net/TcpEndpoint.h"
 #include "mq/utils/Logging.h"
 #include "mq/utils/ThreadPool.h"
 
@@ -26,7 +26,7 @@ int main() {
 
     subscriber.setRecvCallbackExecutor(&pool);
 
-    subscriber.subscribe(mq::TCPV4Endpoint("127.0.0.1", 9999), {"time"});
+    subscriber.subscribe(mq::TcpEndpoint("127.0.0.1", 9999), {"time"});
 
     loop.run();
 }

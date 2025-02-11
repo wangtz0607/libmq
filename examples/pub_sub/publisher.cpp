@@ -10,7 +10,7 @@
 
 #include "mq/event/EventLoop.h"
 #include "mq/message/Publisher.h"
-#include "mq/net/TCPV4Endpoint.h"
+#include "mq/net/TcpEndpoint.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 
@@ -24,7 +24,7 @@ int main() {
 
     mq::EventLoop *loop = mq::EventLoop::background();
 
-    mq::Publisher publisher(loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
+    mq::Publisher publisher(loop, mq::TcpEndpoint("0.0.0.0", 9999));
 
     CHECK(publisher.open() == 0);
 

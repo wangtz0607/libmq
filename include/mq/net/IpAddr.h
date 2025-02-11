@@ -10,20 +10,20 @@
 
 namespace mq {
 
-class IPV4Address {
+class IpAddr {
 public:
     using uint_type = uint32_t;
 
-    explicit IPV4Address()
+    explicit IpAddr()
         : addr_(0) {}
 
-    explicit IPV4Address(uint_type addr)
+    explicit IpAddr(uint_type addr)
         : addr_(addr) {}
 
-    explicit IPV4Address(const char* addr);
+    explicit IpAddr(const char* addr);
 
-    explicit IPV4Address(const std::string &addr)
-        : IPV4Address(addr.c_str()) {}
+    explicit IpAddr(const std::string &addr)
+        : IpAddr(addr.c_str()) {}
 
     uint_type uint() const {
         return addr_;
@@ -35,27 +35,27 @@ private:
     uint_type addr_;
 };
 
-inline bool operator==(IPV4Address lhs, IPV4Address rhs) {
+inline bool operator==(IpAddr lhs, IpAddr rhs) {
     return lhs.uint() == rhs.uint();
 }
 
 } // namespace mq
 
 template <>
-struct std::hash<mq::IPV4Address> {
-    size_t operator()(mq::IPV4Address addr) const noexcept {
-        return std::hash<mq::IPV4Address::uint_type>{}(addr.uint());
+struct std::hash<mq::IpAddr> {
+    size_t operator()(mq::IpAddr addr) const noexcept {
+        return std::hash<mq::IpAddr::uint_type>{}(addr.uint());
     }
 };
 
 template <>
-struct std::formatter<mq::IPV4Address> {
+struct std::formatter<mq::IpAddr> {
     constexpr auto parse(std::format_parse_context &ctx) {
         return ctx.begin();
     }
 
     template <typename FormatContext>
-    auto format(mq::IPV4Address addr, FormatContext &ctx) const {
+    auto format(mq::IpAddr addr, FormatContext &ctx) const {
         return format_to(ctx.out(), "{}", addr.string());
     }
 };

@@ -13,27 +13,27 @@
 #include "mq/message/MultiplexingRequester.h"
 #include "mq/net/Endpoint.h"
 #include "mq/net/Socket.h"
-#include "mq/rpc/RPCError.h"
+#include "mq/rpc/RpcError.h"
 #include "mq/utils/Expected.h"
 #include "mq/utils/MaybeOwnedString.h"
 
 namespace mq {
 
-class RPCClient {
+class RpcClient {
 public:
     enum class State {
         kClosed = static_cast<int>(MultiplexingRequester::State::kClosed),
         kOpened = static_cast<int>(MultiplexingRequester::State::kOpened),
     };
 
-    RPCClient(const RPCClient &) = delete;
-    RPCClient(RPCClient &&) = delete;
+    RpcClient(const RpcClient &) = delete;
+    RpcClient(RpcClient &&) = delete;
 
-    RPCClient &operator=(const RPCClient &) = delete;
-    RPCClient &operator=(RPCClient &&) = delete;
+    RpcClient &operator=(const RpcClient &) = delete;
+    RpcClient &operator=(RpcClient &&) = delete;
 
-    RPCClient(EventLoop *loop, const Endpoint &remoteEndpoint);
-    ~RPCClient();
+    RpcClient(EventLoop *loop, const Endpoint &remoteEndpoint);
+    ~RpcClient();
 
     EventLoop *loop() const {
         return requester_.loop();
@@ -107,10 +107,10 @@ public:
         return requester_.waitForConnected(timeout);
     }
 
-    std::future<Expected<std::string, RPCError>> call(
+    std::future<Expected<std::string, RpcError>> call(
         MaybeOwnedString methodName, MaybeOwnedString payload);
 
-    std::future<Expected<std::string, RPCError>> call(
+    std::future<Expected<std::string, RpcError>> call(
         MaybeOwnedString methodName, std::vector<MaybeOwnedString> pieces);
 
     size_t numPendingRequests() const {

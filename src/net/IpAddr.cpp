@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "mq/net/IPV4Address.h"
+#include "mq/net/IpAddr.h"
 
 #include <string>
 
@@ -8,17 +8,17 @@
 
 #include "mq/utils/Check.h"
 
-#define TAG "IPV4Address"
+#define TAG "IpAddr"
 
 using namespace mq;
 
-IPV4Address::IPV4Address(const char *addr) {
+IpAddr::IpAddr(const char *addr) {
     uint_type dst;
     CHECK(inet_pton(AF_INET, addr, &dst) == 1);
     addr_ = ntohl(dst);
 }
 
-std::string IPV4Address::string() const {
+std::string IpAddr::string() const {
     uint_type src = htonl(addr_);
     char dst[INET_ADDRSTRLEN];
     CHECK(inet_ntop(AF_INET, &src, dst, sizeof(dst)) != nullptr);

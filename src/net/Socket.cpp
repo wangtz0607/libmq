@@ -21,8 +21,8 @@
 #include "mq/event/EventLoop.h"
 #include "mq/event/Timer.h"
 #include "mq/net/Endpoint.h"
-#include "mq/net/TCPV4Endpoint.h"
-#include "mq/net/TCPV6Endpoint.h"
+#include "mq/net/Tcp6Endpoint.h"
+#include "mq/net/TcpEndpoint.h"
 #include "mq/net/UnixEndpoint.h"
 #include "mq/utils/Buffer.h"
 #include "mq/utils/Check.h"
@@ -44,13 +44,13 @@ std::unique_ptr<Endpoint> getSockName(int fd) {
             sockaddr_in addr;
             socklen_t addrLen = sizeof(addr);
             CHECK(getsockname(fd, reinterpret_cast<sockaddr *>(&addr), &addrLen) == 0);
-            return std::make_unique<TCPV4Endpoint>(addr);
+            return std::make_unique<TcpEndpoint>(addr);
         }
         case AF_INET6: {
             sockaddr_in6 addr;
             socklen_t addrLen = sizeof(addr);
             CHECK(getsockname(fd, reinterpret_cast<sockaddr *>(&addr), &addrLen) == 0);
-            return std::make_unique<TCPV6Endpoint>(addr);
+            return std::make_unique<Tcp6Endpoint>(addr);
         }
         case AF_UNIX: {
             sockaddr_un addr;

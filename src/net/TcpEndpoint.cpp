@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "mq/net/TCPV4Endpoint.h"
+#include "mq/net/TcpEndpoint.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -12,42 +12,42 @@
 #include <netinet/in.h>
 
 #include "mq/net/Endpoint.h"
-#include "mq/net/IPV4Address.h"
+#include "mq/net/IpAddr.h"
 #include "mq/utils/Hash.h"
 
-#define TAG "TCPV4Endpoint"
+#define TAG "TcpEndpoint"
 
 using namespace mq;
 
-TCPV4Endpoint::TCPV4Endpoint(IPV4Address hostAddr, uint16_t port) : addr_{} {
+TcpEndpoint::TcpEndpoint(IpAddr hostAddr, uint16_t port) : addr_{} {
     addr_.sin_family = AF_INET;
     addr_.sin_port = htons(port);
     addr_.sin_addr.s_addr = htonl(hostAddr.uint());
 }
 
-IPV4Address TCPV4Endpoint::hostAddr() const {
-    return IPV4Address(ntohl(addr_.sin_addr.s_addr));
+IpAddr TcpEndpoint::hostAddr() const {
+    return IpAddr(ntohl(addr_.sin_addr.s_addr));
 }
 
-uint16_t TCPV4Endpoint::port() const {
+uint16_t TcpEndpoint::port() const {
     return ntohs(addr_.sin_port);
 }
 
-std::string TCPV4Endpoint::format() const {
+std::string TcpEndpoint::format() const {
     return std::format("tcp://{}:{}", hostAddr(), port());
 }
 
-std::unique_ptr<Endpoint> TCPV4Endpoint::clone() const {
-    return std::make_unique<TCPV4Endpoint>(addr_);
+std::unique_ptr<Endpoint> TcpEndpoint::clone() const {
+    return std::make_unique<TcpEndpoint>(addr_);
 }
 
-bool TCPV4Endpoint::equals(const Endpoint &other) const {
+bool TcpEndpoint::equals(const Endpoint &other) const {
     if (domain() != other.domain()) return false;
-    const TCPV4Endpoint &castOther = static_cast<const TCPV4Endpoint &>(other);
+    const TcpEndpoint &castOther = static_cast<const TcpEndpoint &>(other);
     return hostAddr() == castOther.hostAddr() && port() == castOther.port();
 }
 
-size_t TCPV4Endpoint::hashCode() const noexcept {
+size_t TcpEndpoint::hashCode() const noexcept {
     size_t seed = 0;
     hash_combine(seed, hostAddr());
     hash_combine(seed, port());

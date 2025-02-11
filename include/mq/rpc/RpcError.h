@@ -7,7 +7,7 @@
 
 namespace mq {
 
-enum class RPCError : uint8_t {
+enum class RpcError : uint8_t {
     kOk = 0,
     kMethodNotFound = 1,
     kBadRequest = 2,
@@ -18,19 +18,19 @@ enum class RPCError : uint8_t {
 } // namespace mq
 
 template <>
-struct std::formatter<mq::RPCError> {
+struct std::formatter<mq::RpcError> {
     constexpr auto parse(format_parse_context &ctx) {
         return ctx.begin();
     }
 
     template <typename FormatContext>
-    auto format(mq::RPCError error, FormatContext &ctx) const {
+    auto format(mq::RpcError error, FormatContext &ctx) const {
         return std::format_to(ctx.out(), "{}", name(error));
     }
 
 private:
-    static constexpr const char *name(mq::RPCError error) {
-        using enum mq::RPCError;
+    static constexpr const char *name(mq::RpcError error) {
+        using enum mq::RpcError;
         switch (error) {
             case kOk: return "Ok";
             case kMethodNotFound: return "MethodNotFound";

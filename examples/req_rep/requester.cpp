@@ -7,7 +7,7 @@
 
 #include "mq/event/EventLoop.h"
 #include "mq/message/Requester.h"
-#include "mq/net/TCPV4Endpoint.h"
+#include "mq/net/TcpEndpoint.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Logging.h"
 #include "mq/utils/ThreadPool.h"
@@ -23,7 +23,7 @@ int main() {
     mq::EventLoop *loop = mq::EventLoop::background();
     mq::ThreadPool pool;
 
-    mq::Requester requester(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
+    mq::Requester requester(loop, mq::TcpEndpoint("127.0.0.1", 9999));
 
     requester.setRecvCallback([](std::string_view message) {
         std::println("{}", message);

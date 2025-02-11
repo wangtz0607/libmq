@@ -7,9 +7,9 @@
 #include <string>
 
 #include "mq/event/EventLoop.h"
-#include "mq/net/TCPV4Endpoint.h"
-#include "mq/rpc/RPCClient.h"
-#include "mq/rpc/RPCError.h"
+#include "mq/net/TcpEndpoint.h"
+#include "mq/rpc/RpcClient.h"
+#include "mq/rpc/RpcError.h"
 #include "mq/utils/Check.h"
 #include "mq/utils/Expected.h"
 #include "mq/utils/Logging.h"
@@ -24,14 +24,14 @@ int main() {
 
     mq::EventLoop *loop = mq::EventLoop::background();
 
-    mq::RPCClient client(loop, mq::TCPV4Endpoint("127.0.0.1", 9999));
+    mq::RpcClient client(loop, mq::TcpEndpoint("127.0.0.1", 9999));
 
     client.open();
     CHECK(client.waitForConnected(30s) == 0);
 
-    std::future<mq::Expected<std::string, mq::RPCError>> future = client.call("increment", "42");
+    std::future<mq::Expected<std::string, mq::RpcError>> future = client.call("increment", "42");
 
-    mq::Expected<std::string, mq::RPCError> result = future.get();
+    mq::Expected<std::string, mq::RpcError> result = future.get();
 
     if (result) {
         std::println("{}", result.value());

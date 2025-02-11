@@ -11,8 +11,8 @@
 
 #include "mq/event/EventLoop.h"
 #include "mq/net/Endpoint.h"
-#include "mq/net/TCPV4Endpoint.h"
-#include "mq/rpc/RPCServer.h"
+#include "mq/net/TcpEndpoint.h"
+#include "mq/rpc/RpcServer.h"
 #include "mq/utils/Logging.h"
 #include "mq/utils/ThreadPool.h"
 
@@ -23,7 +23,7 @@ int main() {
     mq::EventLoop loop;
     mq::ThreadPool pool;
 
-    mq::RPCServer server(&loop, mq::TCPV4Endpoint("0.0.0.0", 9999));
+    mq::RpcServer server(&loop, mq::TcpEndpoint("0.0.0.0", 9999));
 
     server.registerMethod("increment", [](const mq::Endpoint &remoteEndpoint, std::string_view message) {
         std::println("{}: {}", remoteEndpoint, message);
