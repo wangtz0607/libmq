@@ -329,12 +329,6 @@ void Publisher::close() {
     if (loop_->isInLoopThread()) {
         if (state_ == State::kClosed) return;
 
-        State oldState = state_;
-        state_ = State::kClosed;
-        LOG(debug, "{} -> {}", oldState, state_);
-
-        token_ = nullptr;
-
         acceptor_->reset();
 
         for (const std::shared_ptr<FramingSocket> &socket : sockets_) {
@@ -345,6 +339,12 @@ void Publisher::close() {
 
         acceptor_ = nullptr;
         sockets_.clear();
+
+        token_ = nullptr;
+
+        State oldState = state_;
+        state_ = State::kClosed;
+        LOG(debug, "{} -> {}", oldState, state_);
     } else {
         loop_->postAndWait([this] {
             close();

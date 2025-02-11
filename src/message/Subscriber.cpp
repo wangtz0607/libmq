@@ -253,6 +253,14 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
     if (loop_->isInLoopThread()) {
         CHECK(endpointToSocket_.find(remoteEndpoint) == endpointToSocket_.end());
 
+        if (sockets_.empty()) {
+            State oldState = state_;
+            state_ = State::kOpened;
+            LOG(debug, "{} -> {}", oldState, state_);
+
+            token_ = std::make_shared<Empty>();
+        }
+
         std::unique_ptr<FramingSocket> socket = std::make_unique<FramingSocket>(loop_);
 
         socket->setMaxMessageLength(maxMessageLength_);
@@ -320,14 +328,6 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
         endpointToSocket_.emplace(remoteEndpoint.clone(), socket.get());
         socketToTopics_.emplace(socket.get(), std::move(topics));
         sockets_.insert(std::shared_ptr(std::move(socket)));
-
-        if (sockets_.size() == 1) {
-            token_ = std::make_shared<Empty>();
-
-            State oldState = state_;
-            state_ = State::kOpened;
-            LOG(debug, "{} -> {}", oldState, state_);
-        }
     } else {
         loop_->postAndWait([this, &remoteEndpoint, &topics] {
             subscribe(remoteEndpoint, std::move(topics));
@@ -339,14 +339,6 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
     LOG(debug, "");
 
     if (loop_->isInLoopThread()) {
-        if (sockets_.size() == 1) {
-            State oldState = state_;
-            state_ = State::kClosed;
-            LOG(debug, "{} -> {}", oldState, state_);
-
-            token_ = nullptr;
-        }
-
         auto i = endpointToSocket_.find(remoteEndpoint);
         auto j = socketToTopics_.find(i->second);
         auto k = sockets_.find(i->second);
@@ -359,6 +351,14 @@ void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
         socket->reset();
 
         loop_->post([socket = std::move(socket)] {});
+
+        if (sockets_.empty()) {
+            token_ = nullptr;
+
+            State oldState = state_;
+            state_ = State::kClosed;
+            LOG(debug, "{} -> {}", oldState, state_);
+        }
     } else {
         loop_->postAndWait([this, &remoteEndpoint] {
             unsubscribe(remoteEndpoint);

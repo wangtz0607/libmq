@@ -429,17 +429,17 @@ void Replier::close() {
     if (loop_->isInLoopThread()) {
         if (state_ == State::kClosed) return;
 
-        State oldState = state_;
-        state_ = State::kClosed;
-        LOG(debug, "{} -> {}", oldState, state_);
-
-        token_ = nullptr;
-
         acceptor_->reset();
 
         loop_->post([acceptor = std::move(acceptor_)] {});
 
         acceptor_ = nullptr;
+
+        token_ = nullptr;
+
+        State oldState = state_;
+        state_ = State::kClosed;
+        LOG(debug, "{} -> {}", oldState, state_);
     } else {
         loop_->postAndWait([this] {
             close();

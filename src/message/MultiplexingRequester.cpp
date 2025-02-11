@@ -79,6 +79,10 @@ void MultiplexingRequester::open() {
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);
 
+        requester_.open();
+
+        token_ = std::make_shared<Empty>();
+
         if (requestTimeout_.count() > 0) {
             timer_ = std::make_unique<Timer>(loop());
 
@@ -90,10 +94,6 @@ void MultiplexingRequester::open() {
 
             timer_->setTime(requestTimeout_, requestTimeout_);
         }
-
-        token_ = std::make_shared<Empty>();
-
-        requester_.open();
     } else {
         loop()->postAndWait([this] {
             open();
@@ -216,15 +216,15 @@ void MultiplexingRequester::close() {
     if (loop()->isInLoopThread()) {
         if (state() == State::kClosed) return;
 
-        requester_.close();
-
-        token_ = nullptr;
-
         if (requestTimeout_.count() > 0) {
             timer_->reset();
 
             loop()->post([timer = std::move(timer_)] {});
         }
+
+        token_ = nullptr;
+
+        requester_.close();
     } else {
         loop()->postAndWait([this] {
             close();

@@ -315,6 +315,12 @@ void Requester::open() {
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
+        State oldState = state_;
+        state_ = State::kOpened;
+        LOG(debug, "{} -> {}", oldState, state_);
+
+        token_ = std::make_shared<Empty>();
+
         socket_ = std::make_unique<FramingSocket>(loop_);
 
         socket_->setMaxMessageLength(maxMessageLength_);
@@ -360,12 +366,6 @@ void Requester::open() {
         }
 
         socket_->open(*remoteEndpoint_);
-
-        token_ = std::make_shared<Empty>();
-
-        State oldState = state_;
-        state_ = State::kOpened;
-        LOG(debug, "{} -> {}", oldState, state_);
     } else {
         loop_->postAndWait([this] {
             open();
@@ -468,17 +468,17 @@ void Requester::close() {
     if (loop_->isInLoopThread()) {
         if (state_ == State::kClosed) return;
 
-        State oldState = state_;
-        state_ = State::kClosed;
-        LOG(debug, "{} -> {}", oldState, state_);
-
-        token_ = nullptr;
-
         socket_->reset();
 
         loop_->post([socket = std::move(socket_)] {});
 
         socket_ = nullptr;
+
+        token_ = nullptr;
+
+        State oldState = state_;
+        state_ = State::kClosed;
+        LOG(debug, "{} -> {}", oldState, state_);
     } else {
         loop_->postAndWait([this] {
             close();
