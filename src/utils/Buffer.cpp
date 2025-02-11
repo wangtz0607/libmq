@@ -53,7 +53,7 @@ void Buffer::setMaxCapacity(size_t maxCapacity) {
     maxCapacity_ = maxCapacity;
 }
 
-void Buffer::extendBack(size_t size) {
+void Buffer::extend(size_t size) {
     assert(end_ - begin_ + size <= maxCapacity_);
 
     if (end_ + size > capacity_) {

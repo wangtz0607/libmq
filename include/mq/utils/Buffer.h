@@ -51,7 +51,7 @@ public:
     }
 
     void setMaxCapacity(size_t maxCapacity);
-    void extendBack(size_t size);
+    void extend(size_t size);
     void retractFront(size_t size);
     void retractBack(size_t size);
     void clear();

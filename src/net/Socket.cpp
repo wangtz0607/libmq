@@ -590,7 +590,7 @@ int Socket::send(const char *data, size_t size) {
     if (size == 0) {
         dispatchSendComplete();
     } else {
-        sendBuffer_.extendBack(size);
+        sendBuffer_.extend(size);
 
         memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
 
@@ -619,7 +619,7 @@ int Socket::send(const std::vector<std::pair<const char *, size_t>> &buffers) {
     }
 
     for (auto [data, size] : buffers) {
-        sendBuffer_.extendBack(size);
+        sendBuffer_.extend(size);
         memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
     }
 
@@ -735,7 +735,7 @@ bool Socket::onWatcherReadReady() {
     }
 
     size_t chunkSize = std::min(recvChunkSize_, recvBuffer_.maxCapacity() - recvBuffer_.size());
-    recvBuffer_.extendBack(chunkSize);
+    recvBuffer_.extend(chunkSize);
 
     ssize_t n = recv(fd_, recvBuffer_.data() + recvBuffer_.size() - chunkSize, chunkSize, 0);
     LOG(debug, "recv: n={}", n);
