@@ -112,6 +112,14 @@ void Buffer::clear() {
     end_ = 0;
 }
 
+void Buffer::reserve(size_t size) {
+    assert(end_ - begin_ + size <= maxCapacity_);
+
+    if (end_ + size > capacity_) {
+        reallocate(std::max((end_ - begin_) + size, capacity_ + capacity_ / 2));
+    }
+}
+
 void Buffer::shrinkToFit() {
     if (capacity_ > end_ - begin_) {
         reallocate(end_ - begin_);
