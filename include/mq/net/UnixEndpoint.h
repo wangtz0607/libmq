@@ -3,9 +3,9 @@
 #pragma once
 
 #include <cstddef>
-#include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -16,12 +16,12 @@ namespace mq {
 
 class UnixEndpoint final : public Endpoint {
 public:
-    explicit UnixEndpoint(const std::filesystem::path &path);
+    explicit UnixEndpoint(std::string_view path);
 
     explicit UnixEndpoint(const sockaddr_un &addr, socklen_t addrLen)
         : addr_(addr), addrLen_(addrLen) {}
 
-    std::filesystem::path path() const;
+    std::string path() const;
 
     sa_family_t domain() const override {
         return AF_UNIX;
