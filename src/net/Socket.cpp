@@ -643,6 +643,8 @@ int Socket::send(const std::vector<std::pair<const char *, size_t>> &buffers) {
         if (sendBuffer_.size() == totalSize) {
             watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
         }
+    } else {
+        dispatchSendComplete();
     }
 
     return 0;
