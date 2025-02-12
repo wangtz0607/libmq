@@ -83,7 +83,7 @@ private:
     int rcvBuf_ = -1;
     int sndBuf_ = -1;
     bool noDelay_ = true;
-    KeepAlive keepAlive_{std::chrono::seconds(120), std::chrono::seconds(20), 30};
+    KeepAlive keepAlive_{std::chrono::seconds(120), std::chrono::seconds(20), 3};
     State state_ = State::kClosed;
     std::unique_ptr<FramingAcceptor> acceptor_;
     SocketSet sockets_;

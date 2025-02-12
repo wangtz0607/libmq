@@ -113,7 +113,7 @@ private:
     int rcvBuf_ = -1;
     int sndBuf_ = -1;
     bool noDelay_ = true;
-    KeepAlive keepAlive_{std::chrono::seconds(120), std::chrono::seconds(20), 30};
+    KeepAlive keepAlive_{std::chrono::seconds(120), std::chrono::seconds(20), 3};
     RecvCallback recvCallback_;
     Executor *recvCallbackExecutor_ = nullptr;
     State state_ = State::kClosed;
