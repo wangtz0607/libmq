@@ -48,6 +48,15 @@ void Acceptor::setReuseAddr(bool reuseAddr) {
     reuseAddr_ = reuseAddr;
 }
 
+void Acceptor::setReusePort(bool reusePort) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    reusePort_ = reusePort;
+}
+
 void Acceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
     LOG(debug, "");
 
@@ -212,6 +221,10 @@ int Acceptor::open(const Endpoint &localEndpoint) {
     if (reuseAddr_) {
         int optVal = 1;
         CHECK(setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &optVal, sizeof(optVal)) == 0);
+    }
+    if (reusePort_) {
+        int optVal = 1;
+        CHECK(setsockopt(fd_, SOL_SOCKET, SO_REUSEPORT, &optVal, sizeof(optVal)) == 0);
     }
 
     if (bind(fd_, localEndpoint.data(), localEndpoint.size()) < 0) {

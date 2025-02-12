@@ -54,6 +54,10 @@ public:
         replier_.setReuseAddr(reuseAddr);
     }
 
+    void setReusePort(bool reusePort) {
+        replier_.setReusePort(reusePort);
+    }
+
     void setMaxMessageLength(size_t maxMessageLength) {
         replier_.setMaxMessageLength(maxMessageLength);
     }

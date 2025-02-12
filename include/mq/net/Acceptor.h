@@ -39,6 +39,7 @@ public:
     }
 
     void setReuseAddr(bool reuseAddr);
+    void setReusePort(bool reusePort);
     void setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity);
     void setSendBufferMaxCapacity(size_t sendBufferMaxCapacity);
     void setRecvChunkSize(size_t recvChunkSize);
@@ -67,6 +68,7 @@ public:
 private:
     EventLoop *loop_;
     bool reuseAddr_ = true;
+    bool reusePort_ = true;
     size_t recvBufferMaxCapacity_ = 16 * 1024 * 1024;
     size_t sendBufferMaxCapacity_ = 16 * 1024 * 1024;
     size_t recvChunkSize_ = 4096;

@@ -40,6 +40,15 @@ void FramingAcceptor::setReuseAddr(bool reuseAddr) {
     reuseAddr_ = reuseAddr;
 }
 
+void FramingAcceptor::setReusePort(bool reusePort) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    reusePort_ = reusePort;
+}
+
 void FramingAcceptor::setMaxMessageLength(size_t maxMessageLength) {
     LOG(debug, "");
 
@@ -203,6 +212,7 @@ int FramingAcceptor::open(const Endpoint &localEndpoint) {
     acceptor_ = std::make_unique<Acceptor>(loop_);
 
     acceptor_->setReuseAddr(reuseAddr_);
+    acceptor_->setReusePort(reusePort_);
     acceptor_->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
     acceptor_->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
     acceptor_->setRecvChunkSize(recvChunkSize_);

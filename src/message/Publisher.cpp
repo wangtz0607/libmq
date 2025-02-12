@@ -69,6 +69,22 @@ void Publisher::setReuseAddr(bool reuseAddr) {
     }
 }
 
+void Publisher::setReusePort(bool reusePort) {
+    LOG(debug, "");
+
+    if (loop_->isInLoopThread()) {
+        CHECK(state_ == State::kClosed);
+
+        reusePort_ = reusePort;
+    } else {
+        loop_->postAndWait([this, reusePort] {
+            CHECK(state_ == State::kClosed);
+
+            reusePort_ = reusePort;
+        });
+    }
+}
+
 void Publisher::setMaxMessageLength(size_t maxMessageLength) {
     LOG(debug, "");
 
@@ -240,6 +256,7 @@ int Publisher::open() {
         acceptor_ = std::make_unique<FramingAcceptor>(loop_);
 
         acceptor_->setReuseAddr(reuseAddr_);
+        acceptor_->setReusePort(reusePort_);
         acceptor_->setMaxMessageLength(maxMessageLength_);
         acceptor_->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
         acceptor_->setSendBufferMaxCapacity(sendBufferMaxCapacity_);

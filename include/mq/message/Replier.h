@@ -78,6 +78,7 @@ public:
 
     void setMaxConnections(size_t maxConnections);
     void setReuseAddr(bool reuseAddr);
+    void setReusePort(bool reusePort);
     void setMaxMessageLength(size_t maxMessageLength);
     void setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity);
     void setSendBufferMaxCapacity(size_t sendBufferMaxCapacity);
@@ -102,6 +103,7 @@ private:
     std::unique_ptr<Endpoint> localEndpoint_;
     size_t maxConnections_ = 512;
     bool reuseAddr_ = true;
+    bool reusePort_ = true;
     size_t maxMessageLength_ = 8 * 1024 * 1024;
     size_t recvBufferMaxCapacity_ = 16 * 1024 * 1024;
     size_t sendBufferMaxCapacity_ = 16 * 1024 * 1024;
