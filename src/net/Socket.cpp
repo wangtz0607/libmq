@@ -575,40 +575,42 @@ int Socket::send(const char *data, size_t size) {
 
     if (state_ != State::kConnected) return ENOTCONN;
 
-    if (sendBuffer_.maxCapacity() - sendBuffer_.size() < size) {
-        return ENOBUFS;
-    }
+    if (size > 0) {
+        if (sendBuffer_.maxCapacity() - sendBuffer_.size() < size) {
+            return ENOBUFS;
+        }
 
-    if (size > 0 && sendBuffer_.empty()) {
-        while (size > 0) {
-            ssize_t n = ::send(fd_, data, size, MSG_NOSIGNAL);
+        if (sendBuffer_.empty()) {
+            while (size > 0) {
+                ssize_t n = ::send(fd_, data, size, MSG_NOSIGNAL);
 
-            if (n >= 0) {
-                data += n;
-                size -= n;
-            } else {
-                LOG(debug, "send: errno={}", strerrorname_np(errno));
+                if (n >= 0) {
+                    data += n;
+                    size -= n;
+                } else {
+                    LOG(debug, "send: errno={}", strerrorname_np(errno));
 
-                if (errno == EINTR) continue;
-                if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+                    if (errno == EINTR) continue;
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) break;
 
-                close(errno);
+                    close(errno);
 
-                return 0;
+                    return 0;
+                }
             }
         }
-    }
 
-    if (size == 0) {
-        dispatchSendComplete();
-    } else {
-        sendBuffer_.extend(size);
+        if (size > 0) {
+            sendBuffer_.extend(size);
 
-        memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
+            memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
 
-        if (sendBuffer_.size() == size) {
-            watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
+            if (sendBuffer_.size() == size) {
+                watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
+            }
         }
+    } else {
+        dispatchSendComplete();
     }
 
     return 0;
@@ -626,19 +628,21 @@ int Socket::send(const std::vector<std::pair<const char *, size_t>> &buffers) {
         totalSize += size;
     }
 
-    if (sendBuffer_.maxCapacity() - sendBuffer_.size() < totalSize) {
-        return ENOBUFS;
-    }
+    if (totalSize > 0) {
+        if (sendBuffer_.maxCapacity() - sendBuffer_.size() < totalSize) {
+            return ENOBUFS;
+        }
 
-    sendBuffer_.reserve(totalSize);
+        sendBuffer_.reserve(totalSize);
 
-    for (auto [data, size] : buffers) {
-        sendBuffer_.extend(size);
-        memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
-    }
+        for (auto [data, size] : buffers) {
+            sendBuffer_.extend(size);
+            memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
+        }
 
-    if (!sendBuffer_.empty() && sendBuffer_.size() == totalSize) {
-        watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
+        if (sendBuffer_.size() == totalSize) {
+            watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
+        }
     }
 
     return 0;
