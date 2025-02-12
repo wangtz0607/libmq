@@ -39,24 +39,6 @@ Acceptor::~Acceptor() {
     CHECK(state_ == State::kClosed);
 }
 
-void Acceptor::setReuseAddr(bool reuseAddr) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    reuseAddr_ = reuseAddr;
-}
-
-void Acceptor::setReusePort(bool reusePort) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    reusePort_ = reusePort;
-}
-
 void Acceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
     LOG(debug, "");
 
@@ -100,6 +82,24 @@ void Acceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
     CHECK(state_ == State::kClosed);
 
     sendTimeout_ = sendTimeout;
+}
+
+void Acceptor::setReuseAddr(bool reuseAddr) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    reuseAddr_ = reuseAddr;
+}
+
+void Acceptor::setReusePort(bool reusePort) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    reusePort_ = reusePort;
 }
 
 void Acceptor::setRcvBuf(int rcvBuf) {

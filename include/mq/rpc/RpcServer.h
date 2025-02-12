@@ -50,14 +50,6 @@ public:
         replier_.setMaxConnections(maxConnections);
     }
 
-    void setReuseAddr(bool reuseAddr) {
-        replier_.setReuseAddr(reuseAddr);
-    }
-
-    void setReusePort(bool reusePort) {
-        replier_.setReusePort(reusePort);
-    }
-
     void setMaxMessageLength(size_t maxMessageLength) {
         replier_.setMaxMessageLength(maxMessageLength);
     }
@@ -80,6 +72,14 @@ public:
 
     void setSendTimeout(std::chrono::nanoseconds sendTimeout) {
         replier_.setSendTimeout(sendTimeout);
+    }
+
+    void setReuseAddr(bool reuseAddr) {
+        replier_.setReuseAddr(reuseAddr);
+    }
+
+    void setReusePort(bool reusePort) {
+        replier_.setReusePort(reusePort);
     }
 
     void setRcvBuf(int rcvBuf) {

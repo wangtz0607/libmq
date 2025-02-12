@@ -31,24 +31,6 @@ FramingAcceptor::~FramingAcceptor() {
     CHECK(state_ == State::kClosed);
 }
 
-void FramingAcceptor::setReuseAddr(bool reuseAddr) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    reuseAddr_ = reuseAddr;
-}
-
-void FramingAcceptor::setReusePort(bool reusePort) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    reusePort_ = reusePort;
-}
-
 void FramingAcceptor::setMaxMessageLength(size_t maxMessageLength) {
     LOG(debug, "");
 
@@ -101,6 +83,24 @@ void FramingAcceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
     CHECK(state_ == State::kClosed);
 
     sendTimeout_ = sendTimeout;
+}
+
+void FramingAcceptor::setReuseAddr(bool reuseAddr) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    reuseAddr_ = reuseAddr;
+}
+
+void FramingAcceptor::setReusePort(bool reusePort) {
+    LOG(debug, "");
+
+    CHECK(loop_->isInLoopThread());
+    CHECK(state_ == State::kClosed);
+
+    reusePort_ = reusePort;
 }
 
 void FramingAcceptor::setRcvBuf(int rcvBuf) {
@@ -211,13 +211,13 @@ int FramingAcceptor::open(const Endpoint &localEndpoint) {
 
     acceptor_ = std::make_unique<Acceptor>(loop_);
 
-    acceptor_->setReuseAddr(reuseAddr_);
-    acceptor_->setReusePort(reusePort_);
     acceptor_->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
     acceptor_->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
     acceptor_->setRecvChunkSize(recvChunkSize_);
     acceptor_->setRecvTimeout(recvTimeout_);
     acceptor_->setSendTimeout(sendTimeout_);
+    acceptor_->setReuseAddr(reuseAddr_);
+    acceptor_->setReusePort(reusePort_);
     acceptor_->setRcvBuf(rcvBuf_);
     acceptor_->setSndBuf(sndBuf_);
     acceptor_->setNoDelay(noDelay_);

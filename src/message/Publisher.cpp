@@ -53,37 +53,6 @@ void Publisher::setMaxConnections(size_t maxConnections) {
     }
 }
 
-void Publisher::setReuseAddr(bool reuseAddr) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        CHECK(state_ == State::kClosed);
-
-        reuseAddr_ = reuseAddr;
-    } else {
-        loop_->postAndWait([this, reuseAddr] {
-            CHECK(state_ == State::kClosed);
-
-            reuseAddr_ = reuseAddr;
-        });
-    }
-}
-
-void Publisher::setReusePort(bool reusePort) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        CHECK(state_ == State::kClosed);
-
-        reusePort_ = reusePort;
-    } else {
-        loop_->postAndWait([this, reusePort] {
-            CHECK(state_ == State::kClosed);
-
-            reusePort_ = reusePort;
-        });
-    }
-}
 
 void Publisher::setMaxMessageLength(size_t maxMessageLength) {
     LOG(debug, "");
@@ -255,14 +224,14 @@ int Publisher::open() {
 
         acceptor_ = std::make_unique<FramingAcceptor>(loop_);
 
-        acceptor_->setReuseAddr(reuseAddr_);
-        acceptor_->setReusePort(reusePort_);
         acceptor_->setMaxMessageLength(maxMessageLength_);
         acceptor_->setRecvBufferMaxCapacity(recvBufferMaxCapacity_);
         acceptor_->setSendBufferMaxCapacity(sendBufferMaxCapacity_);
         acceptor_->setRecvChunkSize(recvChunkSize_);
         acceptor_->setRecvTimeout(recvTimeout_);
         acceptor_->setSendTimeout(sendTimeout_);
+        acceptor_->setReuseAddr(reuseAddr_);
+        acceptor_->setReusePort(reusePort_);
         acceptor_->setRcvBuf(rcvBuf_);
         acceptor_->setSndBuf(sndBuf_);
         acceptor_->setNoDelay(noDelay_);
