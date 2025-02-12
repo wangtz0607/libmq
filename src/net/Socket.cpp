@@ -674,10 +674,10 @@ void Socket::close(int error) {
         sendTimer_->reset();
     }
 
-    loop_->post([watcher = std::move(watcher_),
-                 fd = fd_,
-                 recvTimer = std::move(recvTimer_),
-                 sendTimer = std::move(sendTimer_)] {
+    loop_->post([recvTimer = std::move(recvTimer_),
+                 sendTimer = std::move(sendTimer_),
+                 watcher = std::move(watcher_),
+                 fd = fd_] {
         watcher->unregisterSelf();
 
         CHECK(::close(fd) == 0);
@@ -726,10 +726,10 @@ void Socket::reset() {
         sendTimer_->reset();
     }
 
-    loop_->post([watcher = std::move(watcher_),
-                 fd = fd_,
+    loop_->post([recvTimer = std::move(recvTimer_),
                  sendTimer = std::move(sendTimer_),
-                 recvTimer = std::move(recvTimer_)] {
+                 watcher = std::move(watcher_),
+                 fd = fd_] {
         watcher->unregisterSelf();
 
         CHECK(::close(fd) == 0);
