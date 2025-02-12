@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <sys/uio.h>
 #include <sys/un.h>
 #include <unistd.h>
 
@@ -633,15 +634,56 @@ int Socket::send(const std::vector<std::pair<const char *, size_t>> &buffers) {
             return ENOBUFS;
         }
 
-        sendBuffer_.reserve(totalSize);
+        size_t remainingSize = totalSize;
 
-        for (auto [data, size] : buffers) {
-            sendBuffer_.extend(size);
-            memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
+        if (sendBuffer_.empty()) {
+            std::vector<iovec> iovs;
+            iovs.reserve(buffers.size());
+            for (auto [data, size] : buffers) {
+                iovs.emplace_back(static_cast<void *>(const_cast<char *>(data)), size);
+            }
+
+            msghdr msg{};
+            msg.msg_iov = iovs.data();
+            msg.msg_iovlen = iovs.size();
+
+            ssize_t n = sendmsg(fd_, &msg, MSG_NOSIGNAL);
+
+            if (n >= 0) {
+                remainingSize -= n;
+            } else {
+                LOG(debug, "sendmsg: errno={}", strerrorname_np(errno));
+
+                if (errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) {
+                    close(errno);
+
+                    return 0;
+                }
+            }
         }
 
-        if (sendBuffer_.size() == totalSize) {
-            watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
+        if (remainingSize > 0) {
+            sendBuffer_.reserve(remainingSize);
+
+            size_t offset = totalSize - remainingSize;
+
+            for (auto [data, size] : buffers) {
+                if (offset >= size) {
+                    offset -= size;
+                } else {
+                    data += offset;
+                    size -= offset;
+
+                    sendBuffer_.extend(size);
+                    memcpy(sendBuffer_.data() + sendBuffer_.size() - size, data, size);
+
+                    offset = 0;
+                }
+            }
+
+            if (sendBuffer_.size() == remainingSize) {
+                watcher_->addWriteReadyCallback([this] { return onWatcherWriteReady(); });
+            }
         }
     } else {
         dispatchSendComplete();
