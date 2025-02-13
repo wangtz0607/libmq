@@ -2,6 +2,7 @@
 
 #include "mq/utils/Logging.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <format>
@@ -14,8 +15,8 @@ using namespace mq;
 
 namespace mq::detail {
 
-FILE *sink_ = stderr;
-Level level_ = Level::kInfo;
+std::atomic<FILE *> sink_ = stderr;
+std::atomic<Level> level_ = Level::kInfo;
 
 } // namespace mq::detail
 

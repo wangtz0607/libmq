@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstdio>
 #include <format>
 #include <string_view>
@@ -17,8 +18,8 @@ enum class Level {
 
 namespace detail {
 
-extern FILE *sink_;
-extern Level level_;
+extern std::atomic<FILE *> sink_;
+extern std::atomic<Level> level_;
 
 void log(FILE *sink,
          Level level,
@@ -43,11 +44,11 @@ void log(FILE *sink,
 } // namespace detail
 
 inline void setLogSink(FILE *sink) {
-    detail::sink_ = sink;
+    detail::sink_.store(sink, std::memory_order_relaxed);
 }
 
 inline void setLogLevel(Level level) {
-    detail::level_ = level;
+    detail::level_.store(level, std::memory_order_relaxed);
 }
 
 } // namespace mq
@@ -89,9 +90,11 @@ private:
 
 #define LOG_LEVEL(level, ...) \
     do { \
-        if (mq::detail::sink_ && level >= mq::detail::level_) { \
+        FILE *sink_ = mq::detail::sink_.load(std::memory_order_relaxed); \
+        mq::Level level_ = mq::detail::level_.load(std::memory_order_relaxed); \
+        if (sink_ && level_ <= level) { \
             mq::detail::log( \
-                mq::detail::sink_, \
+                sink_, \
                 level, \
                 TAG, \
                 __FUNCTION__, \
