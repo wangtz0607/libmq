@@ -5,7 +5,8 @@
 #include <chrono>
 #include <cstdio>
 #include <filesystem>
-#include <print>
+#include <format>
+#include <string>
 #include <string_view>
 
 #include <unistd.h>
@@ -53,15 +54,17 @@ void mq::detail::log(FILE *sink,
         resetStyle = "";
     }
 
-    std::println(sink,
-                 "{}{:%FT%TZ}: {}: {}: {} ({}, {}:{}){}",
-                 setStyle,
-                 std::chrono::system_clock::now(),
-                 levelName,
-                 tag,
-                 message,
-                 function,
-                 std::filesystem::path(file).filename().string(),
-                 line,
-                 resetStyle);
+    std::string logMessage =
+        std::format("{}{:%FT%TZ}: {}: {}: {} ({}, {}:{}){}\n",
+                    setStyle,
+                    std::chrono::system_clock::now(),
+                    levelName,
+                    tag,
+                    message,
+                    function,
+                    std::filesystem::path(file).filename().string(),
+                    line,
+                    resetStyle);
+
+    fwrite(logMessage.c_str(), 1, logMessage.size(), sink);
 }
