@@ -22,6 +22,8 @@ add_library(mq
     src/net/Ip6Addr.cpp
     src/net/IpAddr.cpp
     src/net/NetworkInterface.cpp
+    src/net/ReadLineAcceptor.cpp
+    src/net/ReadLineSocket.cpp
     src/net/Socket.cpp
     src/net/Tcp6Endpoint.cpp
     src/net/TcpEndpoint.cpp
@@ -84,3 +86,6 @@ export(EXPORT mq-targets
 if(LIBMQ_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+add_executable(example main.cpp)
+target_link_libraries(example PRIVATE mq::mq)

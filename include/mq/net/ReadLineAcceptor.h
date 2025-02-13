@@ -1,0 +1,118 @@
+// SPDX-License-Identifier: MIT
+
+#pragma once
+
+#include <chrono>
+#include <cstddef>
+#include <format>
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "mq/event/EventLoop.h"
+#include "mq/net/Acceptor.h"
+#include "mq/net/Endpoint.h"
+#include "mq/net/ReadLineSocket.h"
+#include "mq/net/Socket.h"
+
+namespace mq {
+
+class ReadLineAcceptor {
+public:
+    enum class State {
+        kClosed,
+        kListening,
+    };
+
+    using AcceptCallback =
+        std::move_only_function<bool (std::unique_ptr<ReadLineSocket> socket, const Endpoint &remoteEndpoint)>;
+
+    explicit ReadLineAcceptor(EventLoop *loop);
+    ~ReadLineAcceptor();
+
+    ReadLineAcceptor(const ReadLineAcceptor &) = delete;
+    ReadLineAcceptor(ReadLineAcceptor &&) = delete;
+
+    ReadLineAcceptor &operator=(const ReadLineAcceptor &) = delete;
+    ReadLineAcceptor &operator=(ReadLineAcceptor &&) = delete;
+
+    EventLoop *loop() const {
+        return loop_;
+    }
+
+    void setDelimiter(std::string delimiter);
+    void setMaxLineLength(size_t maxLineLength);
+    void setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity);
+    void setSendBufferMaxCapacity(size_t sendBufferMaxCapacity);
+    void setRecvChunkSize(size_t recvChunkSize);
+    void setRecvTimeout(std::chrono::nanoseconds recvTimeout);
+    void setSendTimeout(std::chrono::nanoseconds sendTimeout);
+    void setReuseAddr(bool reuseAddr);
+    void setReusePort(bool reusePort);
+    void setRcvBuf(int rcvBuf);
+    void setSndBuf(int sndBuf);
+    void setNoDelay(bool noDelay);
+    void setKeepAlive(KeepAlive keepAlive);
+
+    State state();
+    Acceptor &acceptor();
+    const Acceptor &acceptor() const;
+    std::unique_ptr<Endpoint> localEndpoint() const;
+
+    bool hasAcceptCallback() const;
+    void addAcceptCallback(AcceptCallback acceptCallback);
+    void clearAcceptCallbacks();
+    void dispatchAccept(std::unique_ptr<ReadLineSocket> socket, const Endpoint &remoteEndpoint);
+
+    int open(const Endpoint &localEndpoint);
+    void close();
+    void reset();
+
+private:
+    EventLoop *loop_;
+    std::string delimiter_ = "\n";
+    size_t maxLineLength_ = 8 * 1024 * 1024;
+    size_t recvBufferMaxCapacity_ = 16 * 1024 * 1024;
+    size_t sendBufferMaxCapacity_ = 16 * 1024 * 1024;
+    size_t recvChunkSize_ = 4096;
+    std::chrono::nanoseconds recvTimeout_{};
+    std::chrono::nanoseconds sendTimeout_{};
+    bool reuseAddr_ = true;
+    bool reusePort_ = true;
+    int rcvBuf_ = -1;
+    int sndBuf_ = -1;
+    bool noDelay_ = false;
+    KeepAlive keepAlive_{};
+    State state_ = State::kClosed;
+    std::unique_ptr<Acceptor> acceptor_;
+    std::unique_ptr<Endpoint> localEndpoint_;
+    std::vector<AcceptCallback> acceptCallbacks_;
+
+    bool onAcceptorAccept(std::unique_ptr<Socket> socket, const Endpoint &remoteEndpoint);
+};
+
+} // namespace mq
+
+template <>
+struct std::formatter<mq::ReadLineAcceptor::State> {
+    constexpr auto parse(std::format_parse_context &ctx) {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(mq::ReadLineAcceptor::State state, FormatContext &ctx) const {
+        return std::format_to(ctx.out(), "{}", name(state));
+    }
+
+private:
+    static constexpr const char *name(mq::ReadLineAcceptor::State state) {
+        using enum mq::ReadLineAcceptor::State;
+
+        switch (state) {
+            case kClosed: return "Closed";
+            case kListening: return "Listening";
+            default: return nullptr;
+        }
+    }
+};
