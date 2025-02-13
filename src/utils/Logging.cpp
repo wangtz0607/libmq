@@ -13,10 +13,12 @@
 
 using namespace mq;
 
+using enum Level;
+
 namespace mq::detail {
 
 std::atomic<FILE *> sink_ = stderr;
-std::atomic<Level> level_ = Level::kInfo;
+std::atomic<Level> level_ = kInfo;
 
 } // namespace mq::detail
 
@@ -27,8 +29,6 @@ void mq::detail::log(FILE *sink,
                      std::string_view file,
                      int line,
                      std::string_view message) {
-    using enum Level;
-
     const char *levelName;
 
     switch (level) {
