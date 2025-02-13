@@ -145,6 +145,8 @@ void Buffer::reallocate(size_t newCapacity) {
         abort();
     }
 
+    memmove(newBuffer, newBuffer + begin_, size);
+
 #ifndef NDEBUG
     memset(newBuffer + size, 0xcc, newCapacity - size);
 #endif
