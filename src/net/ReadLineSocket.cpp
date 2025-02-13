@@ -32,8 +32,6 @@ ReadLineSocket::~ReadLineSocket() {
 }
 
 void ReadLineSocket::setDelimiter(std::string delimiter) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -41,8 +39,6 @@ void ReadLineSocket::setDelimiter(std::string delimiter) {
 }
 
 void ReadLineSocket::setMaxLineLength(size_t maxLineLength) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -50,8 +46,6 @@ void ReadLineSocket::setMaxLineLength(size_t maxLineLength) {
 }
 
 void ReadLineSocket::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -59,8 +53,6 @@ void ReadLineSocket::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void ReadLineSocket::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -68,8 +60,6 @@ void ReadLineSocket::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void ReadLineSocket::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -77,8 +67,6 @@ void ReadLineSocket::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void ReadLineSocket::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -86,8 +74,6 @@ void ReadLineSocket::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void ReadLineSocket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -95,8 +81,6 @@ void ReadLineSocket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void ReadLineSocket::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -104,8 +88,6 @@ void ReadLineSocket::setNoDelay(bool noDelay) {
 }
 
 void ReadLineSocket::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -171,71 +153,55 @@ bool ReadLineSocket::hasCloseCallback() const {
 }
 
 void ReadLineSocket::addConnectCallback(ConnectCallback connectCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     connectCallbacks_.emplace_back(std::move(connectCallback));
 }
 
 void ReadLineSocket::addRecvCallback(RecvCallback recvCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     recvCallbacks_.emplace_back(std::move(recvCallback));
 }
 
 void ReadLineSocket::addSendCompleteCallback(SendCompleteCallback sendCompleteCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     sendCompleteCallbacks_.emplace_back(std::move(sendCompleteCallback));
 }
 
 void ReadLineSocket::addCloseCallback(CloseCallback closeCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     closeCallbacks_.emplace_back(std::move(closeCallback));
 }
 
 void ReadLineSocket::clearConnectCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     connectCallbacks_.clear();
 }
 
 void ReadLineSocket::clearRecvCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     recvCallbacks_.clear();
 }
 
 void ReadLineSocket::clearSendCompleteCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     sendCompleteCallbacks_.clear();
 }
 
 void ReadLineSocket::clearCloseCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     closeCallbacks_.clear();
 }
 
 void ReadLineSocket::dispatchConnect(int error) {
-    LOG(debug, "");
+    LOG(debug, "error={}", error);
 
     CHECK(loop_->isInLoopThread());
 

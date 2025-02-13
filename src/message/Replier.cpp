@@ -139,8 +139,6 @@ Replier::~Replier() {
 }
 
 void Replier::setMaxConnections(size_t maxConnections) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -155,8 +153,6 @@ void Replier::setMaxConnections(size_t maxConnections) {
 }
 
 void Replier::setMaxMessageLength(size_t maxMessageLength) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -171,8 +167,6 @@ void Replier::setMaxMessageLength(size_t maxMessageLength) {
 }
 
 void Replier::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -187,8 +181,6 @@ void Replier::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void Replier::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -203,8 +195,6 @@ void Replier::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void Replier::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -219,8 +209,6 @@ void Replier::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void Replier::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -235,8 +223,6 @@ void Replier::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void Replier::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -251,8 +237,6 @@ void Replier::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void Replier::setReuseAddr(bool reuseAddr) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -267,8 +251,6 @@ void Replier::setReuseAddr(bool reuseAddr) {
 }
 
 void Replier::setReusePort(bool reusePort) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -283,8 +265,6 @@ void Replier::setReusePort(bool reusePort) {
 }
 
 void Replier::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -299,8 +279,6 @@ void Replier::setNoDelay(bool noDelay) {
 }
 
 void Replier::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -315,8 +293,6 @@ void Replier::setKeepAlive(KeepAlive keepAlive) {
 }
 
 void Replier::setRecvCallback(RecvCallback recvCallback) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         recvCallback_ = std::move(recvCallback);
     } else {
@@ -327,8 +303,6 @@ void Replier::setRecvCallback(RecvCallback recvCallback) {
 }
 
 void Replier::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         recvCallbackExecutor_ = recvCallbackExecutor;
     } else {
@@ -339,7 +313,7 @@ void Replier::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
 }
 
 void Replier::dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message, Promise promise) {
-    LOG(debug, "");
+    LOG(debug, "remoteEndpoint={}", remoteEndpoint);
 
     if (recvCallback_) {
         return recvCallback_(remoteEndpoint, message, std::move(promise));

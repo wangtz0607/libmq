@@ -32,8 +32,6 @@ FramingAcceptor::~FramingAcceptor() {
 }
 
 void FramingAcceptor::setMaxMessageLength(size_t maxMessageLength) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -41,8 +39,6 @@ void FramingAcceptor::setMaxMessageLength(size_t maxMessageLength) {
 }
 
 void FramingAcceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -50,8 +46,6 @@ void FramingAcceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void FramingAcceptor::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -59,8 +53,6 @@ void FramingAcceptor::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void FramingAcceptor::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -68,8 +60,6 @@ void FramingAcceptor::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void FramingAcceptor::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -77,8 +67,6 @@ void FramingAcceptor::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void FramingAcceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -86,8 +74,6 @@ void FramingAcceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void FramingAcceptor::setReuseAddr(bool reuseAddr) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -95,8 +81,6 @@ void FramingAcceptor::setReuseAddr(bool reuseAddr) {
 }
 
 void FramingAcceptor::setReusePort(bool reusePort) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -104,8 +88,6 @@ void FramingAcceptor::setReusePort(bool reusePort) {
 }
 
 void FramingAcceptor::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -113,8 +95,6 @@ void FramingAcceptor::setNoDelay(bool noDelay) {
 }
 
 void FramingAcceptor::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -155,23 +135,19 @@ bool FramingAcceptor::hasAcceptCallback() const {
 }
 
 void FramingAcceptor::addAcceptCallback(AcceptCallback acceptCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     acceptCallbacks_.emplace_back(std::move(acceptCallback));
 }
 
 void FramingAcceptor::clearAcceptCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     acceptCallbacks_.clear();
 }
 
 void FramingAcceptor::dispatchAccept(std::unique_ptr<FramingSocket> socket, const Endpoint &remoteEndpoint) {
-    LOG(debug, "");
+    LOG(debug, "remoteEndpoint={}", remoteEndpoint);
 
     CHECK(loop_->isInLoopThread());
 

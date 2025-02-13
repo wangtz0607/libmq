@@ -55,8 +55,6 @@ MultiplexingReplier::~MultiplexingReplier() {
 }
 
 void MultiplexingReplier::setRecvCallback(RecvCallback recvCallback) {
-    LOG(debug, "");
-
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);
 
@@ -71,8 +69,6 @@ void MultiplexingReplier::setRecvCallback(RecvCallback recvCallback) {
 }
 
 void MultiplexingReplier::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
-    LOG(debug, "");
-
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);
 
@@ -89,7 +85,7 @@ void MultiplexingReplier::setRecvCallbackExecutor(Executor *recvCallbackExecutor
 void MultiplexingReplier::onReplierRecv(const Endpoint &remoteEndpoint,
                                         std::string_view message,
                                         Replier::Promise promise) {
-    LOG(debug, "");
+    LOG(debug, "remoteEndpoint={}", remoteEndpoint);
 
     if (message.size() < 8) {
         LOG(warning, "Bad request");

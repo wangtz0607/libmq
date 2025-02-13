@@ -39,16 +39,12 @@ bool Timer::hasExpireCallback() const {
 }
 
 void Timer::addExpireCallback(ExpireCallback expireCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     expireCallbacks_.emplace_back(std::move(expireCallback));
 }
 
 void Timer::clearExpireCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     expireCallbacks_.clear();
@@ -114,8 +110,6 @@ void Timer::open() {
 }
 
 void Timer::setTime(std::chrono::nanoseconds delay) {
-    LOG(debug, "delay={}", delay);
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kOpened);
     CHECK(delay.count() > 0);
@@ -128,8 +122,6 @@ void Timer::setTime(std::chrono::nanoseconds delay) {
 }
 
 void Timer::setTime(std::chrono::nanoseconds delay, std::chrono::nanoseconds interval) {
-    LOG(debug, "delay={}, interval={}", delay, interval);
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kOpened);
     CHECK(delay.count() > 0);
@@ -145,8 +137,6 @@ void Timer::setTime(std::chrono::nanoseconds delay, std::chrono::nanoseconds int
 }
 
 void Timer::cancel() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kOpened);
 

@@ -32,8 +32,6 @@ Subscriber::~Subscriber() {
 }
 
 void Subscriber::setMaxMessageLength(size_t maxMessageLength) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -48,8 +46,6 @@ void Subscriber::setMaxMessageLength(size_t maxMessageLength) {
 }
 
 void Subscriber::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -64,8 +60,6 @@ void Subscriber::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void Subscriber::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -80,8 +74,6 @@ void Subscriber::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void Subscriber::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -96,8 +88,6 @@ void Subscriber::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void Subscriber::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -112,8 +102,6 @@ void Subscriber::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void Subscriber::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -128,8 +116,6 @@ void Subscriber::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void Subscriber::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -144,8 +130,6 @@ void Subscriber::setNoDelay(bool noDelay) {
 }
 
 void Subscriber::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -160,8 +144,6 @@ void Subscriber::setKeepAlive(KeepAlive keepAlive) {
 }
 
 void Subscriber::setRecvCallback(RecvCallback recvCallback) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -176,8 +158,6 @@ void Subscriber::setRecvCallback(RecvCallback recvCallback) {
 }
 
 void Subscriber::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -192,7 +172,7 @@ void Subscriber::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
 }
 
 void Subscriber::dispatchRecv(const Endpoint &remoteEndpoint, std::string_view message) {
-    LOG(debug, "");
+    LOG(debug, "remoteEndpoint={}", remoteEndpoint);
 
     if (recvCallback_) {
         recvCallback_(remoteEndpoint, message);
@@ -200,8 +180,6 @@ void Subscriber::dispatchRecv(const Endpoint &remoteEndpoint, std::string_view m
 }
 
 Subscriber::State Subscriber::state() const {
-    LOG(debug, "");
-
     State state;
 
     if (loop_->isInLoopThread()) {
@@ -216,7 +194,7 @@ Subscriber::State Subscriber::state() const {
 }
 
 void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::string> topics) {
-    LOG(debug, "");
+    LOG(debug, "remoteEndpoint={}", remoteEndpoint);
 
     if (loop_->isInLoopThread()) {
         CHECK(endpointToSocket_.find(remoteEndpoint) == endpointToSocket_.end());
@@ -302,7 +280,7 @@ void Subscriber::subscribe(const Endpoint &remoteEndpoint, std::vector<std::stri
 }
 
 void Subscriber::unsubscribe(const Endpoint &remoteEndpoint) {
-    LOG(debug, "");
+    LOG(debug, "remoteEndpoint={}", remoteEndpoint);
 
     if (loop_->isInLoopThread()) {
         auto i = endpointToSocket_.find(remoteEndpoint);

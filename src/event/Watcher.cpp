@@ -37,8 +37,6 @@ bool Watcher::hasWriteReadyCallback() const {
 }
 
 void Watcher::addReadReadyCallback(ReadReadyCallback readReadyCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     readReadyCallbacks_.emplace_back(std::move(readReadyCallback));
@@ -49,8 +47,6 @@ void Watcher::addReadReadyCallback(ReadReadyCallback readReadyCallback) {
 }
 
 void Watcher::addWriteReadyCallback(WriteReadyCallback writeReadyCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     writeReadyCallbacks_.emplace_back(std::move(writeReadyCallback));
@@ -61,8 +57,6 @@ void Watcher::addWriteReadyCallback(WriteReadyCallback writeReadyCallback) {
 }
 
 void Watcher::clearReadReadyCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     if (!readReadyCallbacks_.empty()) {
@@ -73,8 +67,6 @@ void Watcher::clearReadReadyCallbacks() {
 }
 
 void Watcher::clearWriteReadyCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     if (!writeReadyCallbacks_.empty()) {

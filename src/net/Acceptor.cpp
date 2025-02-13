@@ -40,8 +40,6 @@ Acceptor::~Acceptor() {
 }
 
 void Acceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -49,8 +47,6 @@ void Acceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void Acceptor::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -58,8 +54,6 @@ void Acceptor::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void Acceptor::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -67,8 +61,6 @@ void Acceptor::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void Acceptor::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -76,8 +68,6 @@ void Acceptor::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void Acceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -85,8 +75,6 @@ void Acceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void Acceptor::setReuseAddr(bool reuseAddr) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -94,8 +82,6 @@ void Acceptor::setReuseAddr(bool reuseAddr) {
 }
 
 void Acceptor::setReusePort(bool reusePort) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -103,8 +89,6 @@ void Acceptor::setReusePort(bool reusePort) {
 }
 
 void Acceptor::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -112,8 +96,6 @@ void Acceptor::setNoDelay(bool noDelay) {
 }
 
 void Acceptor::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -161,23 +143,19 @@ bool Acceptor::hasAcceptCallback() const {
 }
 
 void Acceptor::addAcceptCallback(AcceptCallback acceptCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     acceptCallbacks_.emplace_back(std::move(acceptCallback));
 }
 
 void Acceptor::clearAcceptCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     acceptCallbacks_.clear();
 }
 
 void Acceptor::dispatchAccept(std::unique_ptr<Socket> socket, const Endpoint &remoteEndpoint) {
-    LOG(debug, "");
+    LOG(debug, "remoteEndpoint={}", remoteEndpoint);
 
     CHECK(loop_->isInLoopThread());
 

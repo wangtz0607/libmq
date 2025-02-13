@@ -108,8 +108,6 @@ Socket::~Socket() {
 }
 
 void Socket::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -117,8 +115,6 @@ void Socket::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void Socket::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -126,8 +122,6 @@ void Socket::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void Socket::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -135,8 +129,6 @@ void Socket::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void Socket::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -144,8 +136,6 @@ void Socket::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void Socket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -153,8 +143,6 @@ void Socket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void Socket::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -162,8 +150,6 @@ void Socket::setNoDelay(bool noDelay) {
 }
 
 void Socket::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -236,71 +222,55 @@ bool Socket::hasCloseCallback() const {
 }
 
 void Socket::addConnectCallback(ConnectCallback connectCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     connectCallbacks_.emplace_back(std::move(connectCallback));
 }
 
 void Socket::addRecvCallback(RecvCallback recvCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     recvCallbacks_.emplace_back(std::move(recvCallback));
 }
 
 void Socket::addSendCompleteCallback(SendCompleteCallback sendCompleteCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     sendCompleteCallbacks_.emplace_back(std::move(sendCompleteCallback));
 }
 
 void Socket::addCloseCallback(CloseCallback closeCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     closeCallbacks_.emplace_back(std::move(closeCallback));
 }
 
 void Socket::clearConnectCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     connectCallbacks_.clear();
 }
 
 void Socket::clearRecvCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     recvCallbacks_.clear();
 }
 
 void Socket::clearSendCompleteCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     sendCompleteCallbacks_.clear();
 }
 
 void Socket::clearCloseCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     closeCallbacks_.clear();
 }
 
 void Socket::dispatchConnect(int error) {
-    LOG(debug, "");
+    LOG(debug, "error={}", error);
 
     CHECK(loop_->isInLoopThread());
 
@@ -315,7 +285,7 @@ void Socket::dispatchConnect(int error) {
 }
 
 void Socket::dispatchRecv(const char *data, size_t size, size_t &newSize) {
-    LOG(debug, "");
+    LOG(debug, "size={}", size);
 
     CHECK(loop_->isInLoopThread());
 
@@ -345,7 +315,7 @@ void Socket::dispatchSendComplete() {
 }
 
 void Socket::dispatchClose(int error, const char *data, size_t size) {
-    LOG(debug, "");
+    LOG(debug, "error={}, size={}", error, size);
 
     CHECK(loop_->isInLoopThread());
 

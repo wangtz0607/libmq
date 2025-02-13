@@ -37,8 +37,6 @@ FramingSocket::~FramingSocket() {
 }
 
 void FramingSocket::setMaxMessageLength(size_t maxMessageLength) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
     CHECK(maxMessageLength <= std::numeric_limits<uint32_t>::max());
@@ -47,8 +45,6 @@ void FramingSocket::setMaxMessageLength(size_t maxMessageLength) {
 }
 
 void FramingSocket::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -56,8 +52,6 @@ void FramingSocket::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void FramingSocket::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -65,8 +59,6 @@ void FramingSocket::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void FramingSocket::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -74,8 +66,6 @@ void FramingSocket::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void FramingSocket::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -83,8 +73,6 @@ void FramingSocket::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void FramingSocket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -92,8 +80,6 @@ void FramingSocket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void FramingSocket::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -101,8 +87,6 @@ void FramingSocket::setNoDelay(bool noDelay) {
 }
 
 void FramingSocket::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -168,71 +152,55 @@ bool FramingSocket::hasCloseCallback() const {
 }
 
 void FramingSocket::addConnectCallback(ConnectCallback connectCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     connectCallbacks_.emplace_back(std::move(connectCallback));
 }
 
 void FramingSocket::addRecvCallback(RecvCallback recvCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     recvCallbacks_.emplace_back(std::move(recvCallback));
 }
 
 void FramingSocket::addSendCompleteCallback(SendCompleteCallback sendCompleteCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     sendCompleteCallbacks_.emplace_back(std::move(sendCompleteCallback));
 }
 
 void FramingSocket::addCloseCallback(CloseCallback closeCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     closeCallbacks_.emplace_back(std::move(closeCallback));
 }
 
 void FramingSocket::clearConnectCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     connectCallbacks_.clear();
 }
 
 void FramingSocket::clearRecvCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     recvCallbacks_.clear();
 }
 
 void FramingSocket::clearSendCompleteCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     sendCompleteCallbacks_.clear();
 }
 
 void FramingSocket::clearCloseCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     closeCallbacks_.clear();
 }
 
 void FramingSocket::dispatchConnect(int error) {
-    LOG(debug, "");
+    LOG(debug, "error={}");
 
     CHECK(loop_->isInLoopThread());
 

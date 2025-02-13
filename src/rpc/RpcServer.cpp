@@ -62,8 +62,6 @@ bool RpcServer::hasMethod(std::string_view methodName) const {
 }
 
 void RpcServer::registerMethod(std::string methodName, Method method, Executor *methodExecutor) {
-    LOG(debug, "methodName={}", methodName);
-
     CHECK(methodName.size() <= std::numeric_limits<uint8_t>::max());
 
     if (loop()->isInLoopThread()) {
@@ -83,8 +81,6 @@ void RpcServer::registerMethod(std::string methodName, Method method, Executor *
 }
 
 void RpcServer::unregisterMethod(std::string_view methodName) {
-    LOG(debug, "methodName={}", methodName);
-
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);
 
@@ -99,8 +95,6 @@ void RpcServer::unregisterMethod(std::string_view methodName) {
 }
 
 void RpcServer::unregisterAllMethods() {
-    LOG(debug, "");
-
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);
 

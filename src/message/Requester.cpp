@@ -38,8 +38,6 @@ Requester::~Requester() {
 }
 
 void Requester::setReconnectInterval(std::chrono::nanoseconds reconnectInterval) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -54,8 +52,6 @@ void Requester::setReconnectInterval(std::chrono::nanoseconds reconnectInterval)
 }
 
 void Requester::setMaxMessageLength(size_t maxMessageLength) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -70,8 +66,6 @@ void Requester::setMaxMessageLength(size_t maxMessageLength) {
 }
 
 void Requester::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -86,8 +80,6 @@ void Requester::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void Requester::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -102,8 +94,6 @@ void Requester::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void Requester::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -118,8 +108,6 @@ void Requester::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void Requester::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -134,8 +122,6 @@ void Requester::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void Requester::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -150,8 +136,6 @@ void Requester::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void Requester::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -166,8 +150,6 @@ void Requester::setNoDelay(bool noDelay) {
 }
 
 void Requester::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -182,8 +164,6 @@ void Requester::setKeepAlive(KeepAlive keepAlive) {
 }
 
 void Requester::setConnectCallback(ConnectCallback connectCallback) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -198,8 +178,6 @@ void Requester::setConnectCallback(ConnectCallback connectCallback) {
 }
 
 void Requester::setRecvCallback(RecvCallback recvCallback) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -214,8 +192,6 @@ void Requester::setRecvCallback(RecvCallback recvCallback) {
 }
 
 void Requester::setConnectCallbackExecutor(Executor *connectCallbackExecutor) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -230,8 +206,6 @@ void Requester::setConnectCallbackExecutor(Executor *connectCallbackExecutor) {
 }
 
 void Requester::setRecvCallbackExecutor(Executor *recvCallbackExecutor) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -262,8 +236,6 @@ void Requester::dispatchRecv(std::string_view message) {
 }
 
 Requester::State Requester::state() const {
-    LOG(debug, "");
-
     State state;
 
     if (loop_->isInLoopThread()) {
@@ -340,8 +312,6 @@ void Requester::open() {
 }
 
 int Requester::waitForConnected(std::chrono::nanoseconds timeout) {
-    LOG(debug, "");
-
     CHECK(!loop_->isInLoopThread());
 
     std::promise<void> promise;
@@ -453,7 +423,7 @@ void Requester::close() {
 }
 
 bool Requester::onFramingSocketConnect(int error) {
-    LOG(debug, "");
+    LOG(debug, "error={}", error);
 
     if (!error) {
         if (!connectCallbackExecutor_) {

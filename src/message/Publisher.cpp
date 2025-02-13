@@ -38,8 +38,6 @@ Publisher::~Publisher() {
 }
 
 void Publisher::setMaxConnections(size_t maxConnections) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -55,8 +53,6 @@ void Publisher::setMaxConnections(size_t maxConnections) {
 
 
 void Publisher::setMaxMessageLength(size_t maxMessageLength) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -71,8 +67,6 @@ void Publisher::setMaxMessageLength(size_t maxMessageLength) {
 }
 
 void Publisher::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -87,8 +81,6 @@ void Publisher::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void Publisher::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -103,8 +95,6 @@ void Publisher::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void Publisher::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -119,8 +109,6 @@ void Publisher::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void Publisher::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -135,8 +123,6 @@ void Publisher::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void Publisher::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -151,8 +137,6 @@ void Publisher::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void Publisher::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 
@@ -167,8 +151,6 @@ void Publisher::setNoDelay(bool noDelay) {
 }
 
 void Publisher::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     if (loop_->isInLoopThread()) {
         CHECK(state_ == State::kClosed);
 

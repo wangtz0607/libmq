@@ -42,8 +42,6 @@ MultiplexingRequester::~MultiplexingRequester() {
 }
 
 void MultiplexingRequester::setMaxPendingRequests(size_t maxPendingRequests) {
-    LOG(debug, "");
-
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);
 
@@ -58,8 +56,6 @@ void MultiplexingRequester::setMaxPendingRequests(size_t maxPendingRequests) {
 }
 
 void MultiplexingRequester::setRequestTimeout(std::chrono::nanoseconds requestTimeout) {
-    LOG(debug, "");
-
     if (loop()->isInLoopThread()) {
         CHECK(state() == State::kClosed);
 

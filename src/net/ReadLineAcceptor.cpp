@@ -31,8 +31,6 @@ ReadLineAcceptor::~ReadLineAcceptor() {
 }
 
 void ReadLineAcceptor::setDelimiter(std::string delimiter) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -40,8 +38,6 @@ void ReadLineAcceptor::setDelimiter(std::string delimiter) {
 }
 
 void ReadLineAcceptor::setMaxLineLength(size_t maxLineLength) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -49,8 +45,6 @@ void ReadLineAcceptor::setMaxLineLength(size_t maxLineLength) {
 }
 
 void ReadLineAcceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -58,8 +52,6 @@ void ReadLineAcceptor::setRecvBufferMaxCapacity(size_t recvBufferMaxCapacity) {
 }
 
 void ReadLineAcceptor::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -67,8 +59,6 @@ void ReadLineAcceptor::setSendBufferMaxCapacity(size_t sendBufferMaxCapacity) {
 }
 
 void ReadLineAcceptor::setRecvChunkSize(size_t recvChunkSize) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -76,8 +66,6 @@ void ReadLineAcceptor::setRecvChunkSize(size_t recvChunkSize) {
 }
 
 void ReadLineAcceptor::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -85,8 +73,6 @@ void ReadLineAcceptor::setRecvTimeout(std::chrono::nanoseconds recvTimeout) {
 }
 
 void ReadLineAcceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -94,8 +80,6 @@ void ReadLineAcceptor::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
 }
 
 void ReadLineAcceptor::setReuseAddr(bool reuseAddr) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -103,8 +87,6 @@ void ReadLineAcceptor::setReuseAddr(bool reuseAddr) {
 }
 
 void ReadLineAcceptor::setReusePort(bool reusePort) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -112,8 +94,6 @@ void ReadLineAcceptor::setReusePort(bool reusePort) {
 }
 
 void ReadLineAcceptor::setNoDelay(bool noDelay) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -121,8 +101,6 @@ void ReadLineAcceptor::setNoDelay(bool noDelay) {
 }
 
 void ReadLineAcceptor::setKeepAlive(KeepAlive keepAlive) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
     CHECK(state_ == State::kClosed);
 
@@ -163,23 +141,19 @@ bool ReadLineAcceptor::hasAcceptCallback() const {
 }
 
 void ReadLineAcceptor::addAcceptCallback(AcceptCallback acceptCallback) {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     acceptCallbacks_.emplace_back(std::move(acceptCallback));
 }
 
 void ReadLineAcceptor::clearAcceptCallbacks() {
-    LOG(debug, "");
-
     CHECK(loop_->isInLoopThread());
 
     acceptCallbacks_.clear();
 }
 
 void ReadLineAcceptor::dispatchAccept(std::unique_ptr<ReadLineSocket> socket, const Endpoint &remoteEndpoint) {
-    LOG(debug, "");
+    LOG(debug, "remoteEndpoint={}", remoteEndpoint);
 
     CHECK(loop_->isInLoopThread());
 
