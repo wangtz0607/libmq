@@ -23,7 +23,8 @@ public:
         kListening,
     };
 
-    using AcceptCallback = std::function<bool (std::unique_ptr<Socket> socket, const Endpoint &remoteEndpoint)>;
+    using AcceptCallback =
+        std::move_only_function<bool (std::unique_ptr<Socket> socket, const Endpoint &remoteEndpoint)>;
 
     explicit Acceptor(EventLoop *loop);
     ~Acceptor();
