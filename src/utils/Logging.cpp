@@ -29,6 +29,8 @@ void mq::detail::log(FILE *sink,
                      std::string_view file,
                      int line,
                      std::string_view message) {
+    const thread_local pid_t kThreadId = gettid();
+
     const char *levelName;
 
     switch (level) {
@@ -59,7 +61,7 @@ void mq::detail::log(FILE *sink,
         std::format("{}{:%FT%TZ}: {}: {}: {}: {} ({}, {}:{}){}\n",
                     setStyle,
                     std::chrono::system_clock::now(),
-                    gettid(),
+                    kThreadId,
                     levelName,
                     tag,
                     message,
