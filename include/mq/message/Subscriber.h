@@ -25,17 +25,6 @@
 namespace mq {
 
 class Subscriber {
-    using SocketSet = std::unordered_set<std::shared_ptr<FramingSocket>,
-                                         PtrHash<std::shared_ptr<FramingSocket>>,
-                                         PtrEqual<std::shared_ptr<FramingSocket>>>;
-
-    using EndpointToSocketMap = std::unordered_map<std::unique_ptr<Endpoint>,
-                                                   FramingSocket *,
-                                                   IndirectHash<std::unique_ptr<Endpoint>>,
-                                                   IndirectEqual<std::unique_ptr<Endpoint>>>;
-
-    using SocketToTopicsMap = std::unordered_map<FramingSocket *, std::vector<std::string>>;
-
 public:
     enum class State {
         kClosed,
@@ -78,6 +67,17 @@ public:
     void unsubscribe(const Endpoint &remoteEndpoint);
 
 private:
+    using SocketSet = std::unordered_set<std::shared_ptr<FramingSocket>,
+                                         PtrHash<std::shared_ptr<FramingSocket>>,
+                                         PtrEqual<std::shared_ptr<FramingSocket>>>;
+
+    using EndpointToSocketMap = std::unordered_map<std::unique_ptr<Endpoint>,
+                                                   FramingSocket *,
+                                                   IndirectHash<std::unique_ptr<Endpoint>>,
+                                                   IndirectEqual<std::unique_ptr<Endpoint>>>;
+
+    using SocketToTopicsMap = std::unordered_map<FramingSocket *, std::vector<std::string>>;
+
     EventLoop *loop_;
     std::chrono::nanoseconds reconnectInterval_ = std::chrono::milliseconds(100);
     size_t maxMessageLength_ = 8 * 1024 * 1024;

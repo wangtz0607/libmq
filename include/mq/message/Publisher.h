@@ -21,10 +21,6 @@
 namespace mq {
 
 class Publisher {
-    using SocketSet = std::unordered_set<std::shared_ptr<FramingSocket>,
-                                         PtrHash<std::shared_ptr<FramingSocket>>,
-                                         PtrEqual<std::shared_ptr<FramingSocket>>>;
-
 public:
     enum class State {
         kClosed,
@@ -69,6 +65,10 @@ public:
     void close();
 
 private:
+    using SocketSet = std::unordered_set<std::shared_ptr<FramingSocket>,
+                                         PtrHash<std::shared_ptr<FramingSocket>>,
+                                         PtrEqual<std::shared_ptr<FramingSocket>>>;
+
     EventLoop *loop_;
     std::unique_ptr<Endpoint> localEndpoint_;
     size_t maxConnections_ = 512;
