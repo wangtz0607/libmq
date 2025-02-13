@@ -4,7 +4,6 @@
 
 #include <chrono>
 #include <cstdio>
-#include <filesystem>
 #include <format>
 #include <string>
 #include <string_view>
@@ -63,7 +62,7 @@ void mq::detail::log(FILE *sink,
                     tag,
                     message,
                     function,
-                    std::filesystem::path(file).filename().string(),
+                    file,
                     line,
                     resetStyle);
 

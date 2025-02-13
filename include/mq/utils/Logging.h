@@ -90,6 +90,13 @@ private:
 #define LOG_LEVEL(level, ...) \
     do { \
         if (mq::detail::sink_ && level >= mq::detail::level_) { \
-            mq::detail::log(mq::detail::sink_, level, TAG, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__); \
+            mq::detail::log( \
+                mq::detail::sink_, \
+                level, \
+                TAG, \
+                __FUNCTION__, \
+                (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__), \
+                __LINE__, \
+                __VA_ARGS__); \
         } \
     } while (false)
