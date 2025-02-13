@@ -79,6 +79,7 @@ public:
 private:
     static constexpr const char *name(mq::Timer::State state) {
         using enum mq::Timer::State;
+
         switch (state) {
             case kClosed: return "Closed";
             case kOpened: return "Opened";

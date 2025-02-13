@@ -128,6 +128,7 @@ struct std::formatter<mq::FramingSocket::State> {
 private:
     static constexpr const char *name(mq::FramingSocket::State state) {
         using enum mq::FramingSocket::State;
+
         switch (state) {
             case kClosed: return "Closed";
             case kConnecting: return "Connecting";

@@ -103,6 +103,7 @@ struct std::formatter<mq::Acceptor::State> {
 private:
     static constexpr const char *name(mq::Acceptor::State state) {
         using enum mq::Acceptor::State;
+
         switch (state) {
             case kClosed: return "Closed";
             case kListening: return "Listening";

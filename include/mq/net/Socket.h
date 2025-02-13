@@ -151,6 +151,7 @@ struct std::formatter<mq::Socket::State> {
 private:
     static constexpr const char *name(mq::Socket::State state) {
         using enum mq::Socket::State;
+
         switch (state) {
             case kClosed: return "Closed";
             case kConnecting: return "Connecting";

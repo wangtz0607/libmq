@@ -109,6 +109,7 @@ struct std::formatter<mq::Publisher::State> {
 private:
     static constexpr const char *name(mq::Publisher::State state) {
         using enum mq::Publisher::State;
+
         switch (state) {
             case kClosed: return "Closed";
             case kOpened: return "Opened";

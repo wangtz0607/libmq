@@ -116,6 +116,7 @@ struct std::formatter<mq::Requester::State> {
 private:
     static constexpr const char *name(mq::Requester::State state) {
         using enum mq::Requester::State;
+
         switch (state) {
             case kClosed: return "Closed";
             case kOpened: return "Opened";

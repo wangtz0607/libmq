@@ -85,6 +85,7 @@ struct std::formatter<mq::EventLoop::State> {
 private:
     static constexpr const char *name(mq::EventLoop::State state) {
         using enum mq::EventLoop::State;
+
         switch (state) {
             case kIdle: return "Idle";
             case kCallback: return "Callback";

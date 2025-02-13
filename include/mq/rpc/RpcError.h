@@ -31,6 +31,7 @@ struct std::formatter<mq::RpcError> {
 private:
     static constexpr const char *name(mq::RpcError error) {
         using enum mq::RpcError;
+
         switch (error) {
             case kOk: return "Ok";
             case kMethodNotFound: return "MethodNotFound";

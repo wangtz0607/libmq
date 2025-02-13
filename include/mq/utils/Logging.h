@@ -63,7 +63,8 @@ struct std::formatter<mq::Level> {
 
 private:
     static constexpr const char *name(mq::Level level) {
-    using enum mq::Level;
+        using enum mq::Level;
+
         switch (level) {
             case kDebug: return "Debug";
             case kInfo: return "Info";
