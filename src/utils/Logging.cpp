@@ -19,56 +19,48 @@ Level level_ = Level::kInfo;
 
 } // namespace mq::detail
 
-namespace {
-
-constexpr const char *name(Level level) {
-    using enum Level;
-    switch (level) {
-        case kDebug: return "debug";
-        case kInfo: return "info";
-        case kWarning: return "warning";
-        case kError: return "error";
-        default: return nullptr;
-    }
-}
-
-constexpr const char *style(Level level) {
-    using enum Level;
-    switch (level) {
-        case kDebug: return "\033[1;39m";
-        case kInfo: return "\033[1;36m";
-        case kWarning: return "\033[1;33m";
-        case kError: return "\033[1;31m";
-        default: return nullptr;
-    }
-}
-
-constexpr const char *kResetStyle = "\033[0m";
-
-} // namespace
-
 void mq::detail::log(Level level,
                      std::string_view tag,
                      std::string_view function,
                      std::string_view file,
                      int line,
                      std::string_view message) {
-    const char *begin = "", *end = "";
+    using enum Level;
+
+    const char *levelName;
+
+    switch (level) {
+        case kDebug: levelName = "debug"; break;
+        case kInfo: levelName = "info"; break;
+        case kWarning: levelName = "warning"; break;
+        case kError: levelName = "error"; break;
+    }
+
+    const char *setStyle, *resetStyle;
 
     if (isatty(fileno(sink_))) {
-        begin = style(level);
-        end = kResetStyle;
+        switch (level) {
+            case kDebug: setStyle = "\033[1;39m"; break;
+            case kInfo: setStyle = "\033[1;36m"; break;
+            case kWarning: setStyle = "\033[1;33m"; break;
+            case kError: setStyle = "\033[1;31m"; break;
+        }
+
+        resetStyle = "\033[0m";
+    } else {
+        setStyle = "";
+        resetStyle = "";
     }
 
     std::println(sink_,
                  "{}{:%FT%TZ}: {}: {}: {} ({}, {}:{}){}",
-                 begin,
+                 setStyle,
                  std::chrono::system_clock::now(),
-                 name(level),
+                 levelName,
                  tag,
                  message,
                  function,
                  std::filesystem::path(file).filename().string(),
                  line,
-                 end);
+                 resetStyle);
 }
