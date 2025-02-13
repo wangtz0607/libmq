@@ -81,8 +81,6 @@ public:
     void setSendTimeout(std::chrono::nanoseconds sendTimeout);
     void setReuseAddr(bool reuseAddr);
     void setReusePort(bool reusePort);
-    void setRcvBuf(int rcvBuf);
-    void setSndBuf(int sndBuf);
     void setNoDelay(bool noDelay);
     void setKeepAlive(KeepAlive keepAlive);
 
@@ -110,8 +108,6 @@ private:
     std::chrono::nanoseconds sendTimeout_ = std::chrono::seconds(30);
     bool reuseAddr_ = true;
     bool reusePort_ = true;
-    int rcvBuf_ = -1;
-    int sndBuf_ = -1;
     bool noDelay_ = true;
     KeepAlive keepAlive_{std::chrono::seconds(120), std::chrono::seconds(20), 3};
     RecvCallback recvCallback_;

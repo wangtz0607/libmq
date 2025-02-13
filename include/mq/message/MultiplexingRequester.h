@@ -78,14 +78,6 @@ public:
         requester_.setSendTimeout(sendTimeout);
     }
 
-    void setRcvBuf(int rcvBuf) {
-        requester_.setRcvBuf(rcvBuf);
-    }
-
-    void setSndBuf(int sndBuf) {
-        requester_.setSndBuf(sndBuf);
-    }
-
     void setNoDelay(bool noDelay) {
         requester_.setNoDelay(noDelay);
     }

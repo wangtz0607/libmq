@@ -111,24 +111,6 @@ void ReadLineAcceptor::setReusePort(bool reusePort) {
     reusePort_ = reusePort;
 }
 
-void ReadLineAcceptor::setRcvBuf(int rcvBuf) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    rcvBuf_ = rcvBuf;
-}
-
-void ReadLineAcceptor::setSndBuf(int sndBuf) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    sndBuf_ = sndBuf;
-}
-
 void ReadLineAcceptor::setNoDelay(bool noDelay) {
     LOG(debug, "");
 
@@ -226,8 +208,6 @@ int ReadLineAcceptor::open(const Endpoint &localEndpoint) {
     acceptor_->setSendTimeout(sendTimeout_);
     acceptor_->setReuseAddr(reuseAddr_);
     acceptor_->setReusePort(reusePort_);
-    acceptor_->setRcvBuf(rcvBuf_);
-    acceptor_->setSndBuf(sndBuf_);
     acceptor_->setNoDelay(noDelay_);
     acceptor_->setKeepAlive(keepAlive_);
 
@@ -302,8 +282,6 @@ bool ReadLineAcceptor::onAcceptorAccept(std::unique_ptr<Socket> socket, const En
     readLineSocket->setRecvChunkSize(recvChunkSize_);
     readLineSocket->setRecvTimeout(recvTimeout_);
     readLineSocket->setSendTimeout(sendTimeout_);
-    readLineSocket->setRcvBuf(rcvBuf_);
-    readLineSocket->setSndBuf(sndBuf_);
     readLineSocket->setNoDelay(noDelay_);
     readLineSocket->setKeepAlive(keepAlive_);
 

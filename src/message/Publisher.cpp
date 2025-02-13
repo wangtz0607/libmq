@@ -150,38 +150,6 @@ void Publisher::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
     }
 }
 
-void Publisher::setRcvBuf(int rcvBuf) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        CHECK(state_ == State::kClosed);
-
-        rcvBuf_ = rcvBuf;
-    } else {
-        loop_->postAndWait([this, rcvBuf] {
-            CHECK(state_ == State::kClosed);
-
-            rcvBuf_ = rcvBuf;
-        });
-    }
-}
-
-void Publisher::setSndBuf(int sndBuf) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        CHECK(state_ == State::kClosed);
-
-        sndBuf_ = sndBuf;
-    } else {
-        loop_->postAndWait([this, sndBuf] {
-            CHECK(state_ == State::kClosed);
-
-            sndBuf_ = sndBuf;
-        });
-    }
-}
-
 void Publisher::setNoDelay(bool noDelay) {
     LOG(debug, "");
 
@@ -232,8 +200,6 @@ int Publisher::open() {
         acceptor_->setSendTimeout(sendTimeout_);
         acceptor_->setReuseAddr(reuseAddr_);
         acceptor_->setReusePort(reusePort_);
-        acceptor_->setRcvBuf(rcvBuf_);
-        acceptor_->setSndBuf(sndBuf_);
         acceptor_->setNoDelay(noDelay_);
         acceptor_->setKeepAlive(keepAlive_);
 

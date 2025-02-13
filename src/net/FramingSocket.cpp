@@ -91,24 +91,6 @@ void FramingSocket::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
     sendTimeout_ = sendTimeout;
 }
 
-void FramingSocket::setRcvBuf(int rcvBuf) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    rcvBuf_ = rcvBuf;
-}
-
-void FramingSocket::setSndBuf(int sndBuf) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    sndBuf_ = sndBuf;
-}
-
 void FramingSocket::setNoDelay(bool noDelay) {
     LOG(debug, "");
 
@@ -322,8 +304,6 @@ void FramingSocket::open(const Endpoint &remoteEndpoint) {
     socket_->setRecvChunkSize(recvChunkSize_);
     socket_->setRecvTimeout(recvTimeout_);
     socket_->setSendTimeout(sendTimeout_);
-    socket_->setRcvBuf(rcvBuf_);
-    socket_->setSndBuf(sndBuf_);
     socket_->setNoDelay(noDelay_);
     socket_->setKeepAlive(keepAlive_);
 

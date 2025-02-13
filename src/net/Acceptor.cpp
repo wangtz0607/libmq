@@ -102,24 +102,6 @@ void Acceptor::setReusePort(bool reusePort) {
     reusePort_ = reusePort;
 }
 
-void Acceptor::setRcvBuf(int rcvBuf) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    rcvBuf_ = rcvBuf;
-}
-
-void Acceptor::setSndBuf(int sndBuf) {
-    LOG(debug, "");
-
-    CHECK(loop_->isInLoopThread());
-    CHECK(state_ == State::kClosed);
-
-    sndBuf_ = sndBuf;
-}
-
 void Acceptor::setNoDelay(bool noDelay) {
     LOG(debug, "");
 
@@ -357,8 +339,6 @@ bool Acceptor::onWatcherReadReady() {
     socket->setRecvChunkSize(recvChunkSize_);
     socket->setRecvTimeout(recvTimeout_);
     socket->setSendTimeout(sendTimeout_);
-    socket->setRcvBuf(rcvBuf_);
-    socket->setSndBuf(sndBuf_);
     socket->setNoDelay(noDelay_);
     socket->setKeepAlive(keepAlive_);
 

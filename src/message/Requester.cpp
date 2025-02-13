@@ -149,38 +149,6 @@ void Requester::setSendTimeout(std::chrono::nanoseconds sendTimeout) {
     }
 }
 
-void Requester::setRcvBuf(int rcvBuf) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        CHECK(state_ == State::kClosed);
-
-        rcvBuf_ = rcvBuf;
-    } else {
-        loop_->postAndWait([this, rcvBuf] {
-            CHECK(state_ == State::kClosed);
-
-            rcvBuf_ = rcvBuf;
-        });
-    }
-}
-
-void Requester::setSndBuf(int sndBuf) {
-    LOG(debug, "");
-
-    if (loop_->isInLoopThread()) {
-        CHECK(state_ == State::kClosed);
-
-        sndBuf_ = sndBuf;
-    } else {
-        loop_->postAndWait([this, sndBuf] {
-            CHECK(state_ == State::kClosed);
-
-            sndBuf_ = sndBuf;
-        });
-    }
-}
-
 void Requester::setNoDelay(bool noDelay) {
     LOG(debug, "");
 
@@ -329,8 +297,6 @@ void Requester::open() {
         socket_->setRecvChunkSize(recvChunkSize_);
         socket_->setRecvTimeout(recvTimeout_);
         socket_->setSendTimeout(sendTimeout_);
-        socket_->setRcvBuf(rcvBuf_);
-        socket_->setSndBuf(sndBuf_);
         socket_->setNoDelay(noDelay_);
         socket_->setKeepAlive(keepAlive_);
 

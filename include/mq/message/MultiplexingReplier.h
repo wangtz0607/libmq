@@ -102,14 +102,6 @@ public:
         replier_.setReusePort(reusePort);
     }
 
-    void setRcvBuf(int rcvBuf) {
-        replier_.setRcvBuf(rcvBuf);
-    }
-
-    void setSndBuf(int sndBuf) {
-        replier_.setSndBuf(sndBuf);
-    }
-
     void setNoDelay(bool noDelay) {
         replier_.setNoDelay(noDelay);
     }
