@@ -38,7 +38,8 @@ void mq::detail::log(FILE *sink,
         case kError: levelName = "error"; break;
     }
 
-    const char *setStyle, *resetStyle;
+    const char *setStyle,
+               *resetStyle;
 
     if (isatty(fileno(sink))) {
         switch (level) {
