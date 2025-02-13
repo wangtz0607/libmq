@@ -43,6 +43,14 @@ void log(FILE *sink,
 
 } // namespace detail
 
+inline FILE *getLogSink() {
+    return detail::sink_.load(std::memory_order_relaxed);
+}
+
+inline Level getLogLevel() {
+    return detail::level_.load(std::memory_order_relaxed);
+}
+
 inline void setLogSink(FILE *sink) {
     detail::sink_.store(sink, std::memory_order_relaxed);
 }
