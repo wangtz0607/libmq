@@ -56,9 +56,10 @@ void mq::detail::log(FILE *sink,
     }
 
     std::string logMessage =
-        std::format("{}{:%FT%TZ}: {}: {}: {} ({}, {}:{}){}\n",
+        std::format("{}{:%FT%TZ}: {}: {}: {}: {} ({}, {}:{}){}\n",
                     setStyle,
                     std::chrono::system_clock::now(),
+                    gettid(),
                     levelName,
                     tag,
                     message,
