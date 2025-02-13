@@ -19,7 +19,8 @@ Level level_ = Level::kInfo;
 
 } // namespace mq::detail
 
-void mq::detail::log(Level level,
+void mq::detail::log(FILE *sink,
+                     Level level,
                      std::string_view tag,
                      std::string_view function,
                      std::string_view file,
@@ -38,7 +39,7 @@ void mq::detail::log(Level level,
 
     const char *setStyle, *resetStyle;
 
-    if (isatty(fileno(sink_))) {
+    if (isatty(fileno(sink))) {
         switch (level) {
             case kDebug: setStyle = "\033[1;39m"; break;
             case kInfo: setStyle = "\033[1;36m"; break;
@@ -52,7 +53,7 @@ void mq::detail::log(Level level,
         resetStyle = "";
     }
 
-    std::println(sink_,
+    std::println(sink,
                  "{}{:%FT%TZ}: {}: {}: {} ({}, {}:{}){}",
                  setStyle,
                  std::chrono::system_clock::now(),

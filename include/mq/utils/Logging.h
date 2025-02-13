@@ -20,7 +20,8 @@ namespace detail {
 extern FILE *sink_;
 extern Level level_;
 
-void log(Level level,
+void log(FILE *sink,
+         Level level,
          std::string_view tag,
          std::string_view function,
          std::string_view file,
@@ -28,14 +29,15 @@ void log(Level level,
          std::string_view message);
 
 template <typename... Args>
-void log(Level level,
+void log(FILE *sink,
+         Level level,
          std::string_view tag,
          std::string_view function,
          std::string_view file,
          int line,
          std::format_string<Args...> fmt,
          Args &&...args) {
-    log(level, tag, function, file, line, std::format(fmt, std::forward<Args>(args)...));
+    log(sink, level, tag, function, file, line, std::format(fmt, std::forward<Args>(args)...));
 }
 
 } // namespace detail
@@ -88,6 +90,6 @@ private:
 #define LOG_LEVEL(level, ...) \
     do { \
         if (mq::detail::sink_ && level >= mq::detail::level_) { \
-            mq::detail::log(level, TAG, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__); \
+            mq::detail::log(mq::detail::sink_, level, TAG, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__); \
         } \
     } while (false)
